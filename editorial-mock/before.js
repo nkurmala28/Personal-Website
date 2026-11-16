@@ -9,6 +9,7 @@ Object.values(C.interests || {}).forEach(v=>{v.list=(v.list||[]).filter(x=>!x.in
 (C.film||[]).forEach(v=>{if(v.caption.includes('['))v.caption='35mm film.';});
 Object.values(C.jobs||{}).forEach(v=>{if(v.text.includes('['))v.text='More about this chapter soon.';if(v.place?.includes('['))v.place='';if(v.years?.includes('['))v.years='';});
 const home=$('.panel[data-ch="0"]');
+home.querySelector('.chips')?.remove();
 home.insertAdjacentHTML('afterbegin','<div class="part home-kicker">Strategy · Data · Software</div>');
 home.insertAdjacentHTML('beforeend','<h2 class="home-position">High velocity generalist.</h2><p class="home-intro">I work in economic consulting and build tools on the side. Before that, I wrote about watches.</p><p class="home-note">This one holds a few things about me.</p><div class="home-location">Based in San Francisco</div>');
 const exp=$('.panel[data-ch="1"]');
@@ -18,6 +19,7 @@ exp.querySelector(':scope > p').remove();
 exp.insertAdjacentHTML('beforeend','<div class="hanger-caption"><span>Choose a strap. Change the story.</span><span>Recent → Earlier</span></div>');
 const work=$('.panel[data-ch="2"]');
 work.innerHTML='<div class="part">02 / Selected work</div><h2>A few things<br>outside the day job.</h2><p class="work-intro">Built, written, or caught on film.<br>Each lives in a different part of the dial.</p><div class="work-choices"><button data-open="moon" data-preview="moon"><span class="work-number">01</span><span class="work-copy"><strong>Projects</strong><span>Notch, local agents, and experiments.</span></span><span class="work-arrow">↗</span></button><button data-open="sec" data-preview="sec"><span class="work-number">02</span><span class="work-copy"><strong>Writing</strong><span>Watch stories for Wrist Review.</span></span><span class="work-arrow">↗</span></button><button data-open="date" data-preview="date"><span class="work-number">03</span><span class="work-copy"><strong>Film</strong><span>Seven frames. Shot on 35mm.</span></span><img class="work-thumb" src="./photos/01.jpg" alt="" width="34" height="43"><span class="work-arrow">↗</span></button></div>';
+document.querySelectorAll('#hots .hot[data-ch="2"]').forEach(pin=>pin.remove());
 $('#hots').insertAdjacentHTML('afterbegin','<button class="hot work-pin" data-ch="2" data-k="moon" data-open="moon" aria-label="Open projects"><span>Projects</span></button><button class="hot work-pin" data-ch="2" data-k="sec" data-open="sec" aria-label="Open writing"><span>Writing</span></button><button class="hot work-pin" data-ch="2" data-k="date" data-open="date" aria-label="Open film"><span>Film</span></button>');
 const about=$('.panel[data-ch="6"]');
 about.querySelector(':scope > .part').textContent='03 / About';
@@ -25,7 +27,15 @@ $('#int-hint').textContent='Pick a part of the movement to get to know me.';
 about.querySelector('.signlab').hidden=true;about.querySelector('.rows.sign').hidden=true;
 $('#int-hint').insertAdjacentHTML('beforebegin','<p class="provenance">Singapore <span>→</span> UCLA <span>→</span> San Francisco</p><div class="interest-choices"><button data-interest="soccer"><span>01</span>Football <i>↗</i></button><button data-interest="cooking"><span>02</span>Cooking <i>↗</i></button><button data-interest="snow"><span>03</span>Snowboarding <i>↗</i></button><button data-interest="music"><span>04</span>Music <i>↗</i></button></div>');
 // Put appearance options behind a native, keyboard-operable disclosure.
-const ways=$('#top .ways'), sound=$('#top .sndw'), resume=$('#top .tr > a');
+const ways=$('#top .ways'), resume=$('#top .tr > a');
+let sound=$('#top .sndw');
+if(!sound){
+  sound=document.createElement('span');
+  sound.className='sndw';
+  const toggle=$('#snd'), volume=$('#vol');
+  if(!toggle || !volume) throw new Error('Required sound controls are missing from the base page.');
+  sound.append(toggle,volume);
+}
 const tools=document.createElement('div');tools.className='header-tools';
 const picker=document.createElement('details');picker.id='dial-picker';picker.innerHTML='<summary><span class="dial-dot"></span>Dial <span class="disclosure-chevron">⌄</span></summary><div class="dial-menu"><div class="menu-label">Dial finish</div></div>';
 picker.querySelector('.dial-menu').appendChild(ways);

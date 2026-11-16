@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nikhil Kurmala</title>
-<script>/* the strap display test page: which display to show, and open straight on the Strap chapter with no unboxing */ window.STRAPVIEW = 'hanger'; window.STRAPSKIP = true;</script>
+<title>Nikhil Kurmala · Editorial mockup</title>
+<script>/* Full mockup: use the hanger and start at the homepage. */ window.STRAPVIEW = 'hanger'; window.STRAPSKIP = false;</script>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@600&display=swap">
 <style>
@@ -394,6 +394,9 @@ body.focused #focus>*{pointer-events:auto}
 }
 @media (prefers-reduced-motion:reduce){.hot::before{animation:none}}
 </style>
+<meta name="description" content="Nikhil Kurmala. Strategy, data, software, and a few things that make me tick.">
+<link rel="stylesheet" href="./editorial-mock/style.css">
+<script>if(!location.hash)history.replaceState(null,"","#nointro");</script>
 </head>
 <body>
 <script>
@@ -533,6 +536,8 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.ec866fd9.js"></script>
+<script src="./editorial-mock/before.js"></script>
+<script src="./bundle.editorial-mock.js"></script>
+<script src="./editorial-mock/after.js"></script>
 </body>
 </html>

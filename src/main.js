@@ -1965,7 +1965,7 @@ const RJ = (() => { const def = ['writing', 'banking', 'quant', 'engineering', '
    and below the row of holes' hooks (every strap hangs at full length, so the longest, the open bracelet, sets the drop); z is its back, t its thickness, hy how far the hooks' holes sit above
    the prongs. PAIR: where a hung buckle's strap tip lies under the prong, how far the long half's tip stops short of the buckle bar, and how far it slides to come out of the keepers */
 const RB = { top: 13, drop: 177, z: -8.4, t: 1.6, hy: 5 }, PAIR = { tip: -7.5, gap: 3, D: 30 }, BRY = -3.6;   // BRY: the height of the cradle's spring bar
-const mBoard = new THREE.MeshStandardMaterial({ color: 0x2c3138, metalness: 0.45, roughness: 0.62, envMapIntensity: 0.55 });
+const mBoard = new THREE.MeshStandardMaterial({ color: 0x484640, metalness: 0.22, roughness: 0.82, envMapIntensity: 0.42 });
 /* the printed cradle: matte, with the fine ridges a printer's layers leave */
 const mCradle = new THREE.MeshStandardMaterial({ color: 0x8a8f96, metalness: 0, roughness: 0.82, envMapIntensity: 0.35, bumpScale: 0.6, bumpMap: (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d'); for (let y = 0; y < 64; y++) { const v = Math.round(128 + 100 * Math.sin(y / 8 * TAU)); g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; g.fillRect(0, y, 4, 1); } const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })() });
 /* the tray: tipped back by e so its floor faces the visitor, channels L long and cw wide (a spring bar's tips just reach the walls), sunk dep into the walnut, a rim all round */

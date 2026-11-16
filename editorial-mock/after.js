@@ -32,7 +32,10 @@ if(C.contact.resume){const a=document.createElement('a');a.href=C.contact.resume
 const seen=new Set();let last='',settled='',at=0,raf;
 $('#collection-next').addEventListener('click',()=>{const k=$('#collection-next').dataset.next;if(k==='about')W.jumpTo(6);else W.openFocus(k);});
 function paint(t){
-const s=W.work(),ch=Math.round(s.cur),focused=!!s.focus,zoomed=body.classList.contains('zoomed');
+const position=W.cur();
+const activeStop=$('#focus [data-stop].cur');
+const s={cur:position.cur,focus:body.classList.contains('focused') ? activeStop?.dataset.stop || null : null};
+const ch=Math.round(s.cur),focused=!!s.focus,zoomed=body.classList.contains('zoomed');
 if(s.focus!==settled){settled=s.focus;at=t;}
 if(s.focus&&Math.abs(s.cur-ch)<.035&&t-at>600)seen.add(s.focus);
 const selected=$('[data-rail][aria-pressed="true"]')?.dataset.rail||'consulting';

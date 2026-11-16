@@ -99,12 +99,12 @@ seed = 997550894;   // hand the shared dice on exactly as the stripes used to le
 
 /* ---------- content for the three complications ---------- */
 const DATA = {
-  date: { kicker: 'Film, in the date window', hint: 'Next brings up the next frame.', items: ['Husky crossing', 'Counter seat', 'Snow platform', 'No parking', 'Limit 40', 'Carrera', 'Departures'].map((t, i) => ({ t, d: '[WHERE AND WHEN]. 35mm film.', r: i === 4 ? 1.418 : 0.705 })) },
-  moon: { kicker: 'Projects, on the moonphase', hint: 'Next turns the disc to the next project.', items: [
+  date: { kicker: 'Film', hint: 'Next brings up the next frame.', items: ['Husky crossing', 'Counter seat', 'Snow platform', 'No parking', 'Limit 40', 'Carrera', 'Departures'].map((t, i) => ({ t, d: '[WHERE AND WHEN]. 35mm film.', r: i === 4 ? 1.418 : 0.705 })) },
+  moon: { kicker: 'Projects', hint: 'Next turns the disc to the next project.', items: [
     { t: 'Notch', d: 'A Mac notch app with agents built in. Drop in a resume or an article and get a summary.', link: 'See it' },
     { t: 'Overflow clone', d: '[ONE OR TWO LINES ON WHAT IT DOES]', link: 'See it' },
     { t: 'On device agents', d: 'Open source models running locally, on my own data.', link: 'See it' }] },
-  sec: { kicker: 'Articles, on the small seconds', hint: 'Next steps the hand to the next article.', note: 'These are the bylined ones. I have ghostwritten many more.', items: [
+  sec: { kicker: 'Articles', hint: 'Next steps the hand to the next article.', note: 'These are the bylined ones. I have ghostwritten many more.', items: [
     { t: "A Rare Vintage Panerai Radiomir 'Type A' ref.6152 Watch Auctioned For 226.000€", d: "Wrist Review, February 2019. A 1953 Radiomir that belonged to an Italian rear admiral sold for nearly twice its top estimate, and its case and movement came from Rolex.", link: 'Read it', url: 'https://wristreview.com/a-rare-vintage-panerai-radiomir-type-a-ref-6152-watch-auctioned-for-226-000e/' },
     { t: 'Ulysse Nardin Freak X Silicium Marquetry Watch', d: "Wrist Review, February 2019. Dials set from about 120 hand-fitted silicon pieces, on a watch with no hands: the movement itself turns once an hour and points to the minutes.", link: 'Read it', url: 'https://wristreview.com/ulysse-nardin-freak-x-silicium-marquetry-watch/' },
     { t: 'SIHH 2019: Piaget Polo S Green Dial Limited Edition Watch (Live Pics)', d: "Wrist Review, January 2019. The green dial Polo S from SIHH, limited to 500 pieces, on Piaget's thin in-house automatic.", link: 'Read it', url: 'https://wristreview.com/sihh-2019-piaget-polo-s-green-dial-limited-edition-watch-live-pics/' },
@@ -980,7 +980,8 @@ const tanAt = (V, c, r, s) => Math.atan2(V[1] - c[1], V[0] - c[0]) + s * Math.ac
    sharp inward corner, runs round the ratchet and out to the rim again. */
 const chain = (pts, r) => sdU(0, ...pts.slice(1).map((p, i) => sdS(pts[i], p, r)));
 const clickArc = Array.from({ length: 9 }, (_, i) => { const a = rad(lerp(231, 184, i / 8)); return [PB[0] + 5.22 * Math.cos(a), PB[1] + 5.22 * Math.sin(a)]; }), clickTip = [PB[0] - 4.18, PB[1]];   // a blade click: screwed down at one end, its beak in the ratchet
-const NOTCH = [-2.9, -0.85], BIGS = [[-2.12, 11.0], [-12.15, 2.45], [-9.6, -8.2], [5.25, -10.45]];
+/* the bridge's four big screws. The top one sits midway between the bridge's edge by the balance cock and the rotor's well, so its whole head lies on the frosted face with a margin all round */
+const NOTCH = [-2.9, -0.85], BIGS = [[-2.8, 11.05], [-12.15, 2.45], [-9.6, -8.2], [5.25, -10.45]];
 { const L = [], arc = (c, r, a0, a1, n) => { for (let i = 0; i <= n; i++) { const a = lerp(a0, a1, i / n); L.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]); } }, spl = (pts, n) => { new THREE.SplineCurve([L[L.length - 1]].concat(pts).map((p) => new THREE.Vector2(p[0], p[1]))).getPoints(n).slice(1).forEach((p) => L.push([p.x, p.y])); };
   const RL = 5.4, WL = 6.0, BC = RBS + 0.42, J = meet(MR, WL, PBAL, BC, -1), ang = (p, c) => Math.atan2(p[1] - c[1], p[0] - c[0]);
   arc(PC, 14.55, rad(99), rad(301), 110);
@@ -1861,8 +1862,8 @@ function rotorPhysics(dt) {
 }
 
 /* ---------- sound: synthesised watch noises. Nothing plays until the visitor has touched the page. ---------- */
-let actx = null, muted = false, master = null, vol = 0.6;
-function audioOn() { if (muted) return; if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = vol * 1.4; master.connect(actx.destination); } catch (e) {} } else if (actx.state === 'suspended') actx.resume(); }
+let actx = null, muted = false, master = null, vol = 0.5;
+function audioOn() { if (muted) return; if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = vol * 0.7; master.connect(actx.destination); } catch (e) {} } else if (actx.state === 'suspended') actx.resume(); }
 function ping(o) { if (!actx || muted || actx.state !== 'running') return; try { const t = actx.currentTime + (o.when || 0), len = Math.max(64, Math.floor(actx.sampleRate * (o.dur || 0.02))), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, o.sharp || 5);
   const n = actx.createBufferSource(); n.buffer = buf; const f = actx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = o.f; f.Q.value = o.q || 3; const g = actx.createGain(); g.gain.value = o.vol; n.connect(f).connect(g).connect(master); n.start(t);
   if (o.ring) { const os = actx.createOscillator(), og = actx.createGain(); os.type = 'triangle'; os.frequency.value = o.ring; og.gain.setValueAtTime(o.vol * (o.ringVol || 0.2), t); og.gain.exponentialRampToValueAtTime(0.0001, t + (o.ringDur || 0.03)); os.connect(og).connect(master); os.start(t); os.stop(t + (o.ringDur || 0.03) + 0.01); }
@@ -1900,19 +1901,19 @@ const snd = {
   strap: (seat) => seat ? ping({ f: 1900, q: 3, dur: 0.02, vol: 0.1, thump: 150 }) : ping({ f: 3000, q: 4, dur: 0.012, vol: 0.11, ring: 4600, ringVol: 0.18, ringDur: 0.02 })
 };
 addEventListener('pointerdown', audioOn, { passive: true });
-const sndBtn = $('snd'), volEl = $('vol'); let lastVol = 60;
-const setVol = () => { vol = volEl.value / 100; muted = vol < 0.005; if (master) master.gain.value = vol * 1.4; sndBtn.textContent = muted ? 'Sound off' : 'Sound'; sndBtn.setAttribute('aria-pressed', !muted); if (!muted) audioOn(); };
-sndBtn.onclick = () => { if (muted) volEl.value = lastVol || 60; else { lastVol = +volEl.value; volEl.value = 0; } setVol(); };
+const sndBtn = $('snd'), volEl = $('vol'); let lastVol = 50;
+const setVol = () => { vol = volEl.value / 100; muted = vol < 0.005; if (master) master.gain.value = vol * 0.7; sndBtn.dataset.lv = muted ? 0 : vol < 0.5 ? 1 : 2; sndBtn.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on'); sndBtn.setAttribute('aria-pressed', !muted); if (!muted) audioOn(); };
+sndBtn.onclick = () => { if (muted) volEl.value = lastVol || 50; else { lastVol = +volEl.value; volEl.value = 0; } setVol(); };
 volEl.oninput = setVol;
 
 
 /* ---------- choreography ---------- */
-const NAMES = ['Start', 'Strap', 'Dial', 'Projects', 'Articles', 'Film', 'Caseback', 'Full set'], N = NAMES.length, CD = 2, CB = 6;
+const NAMES = ['Start', 'Experience', 'Side projects', 'Projects', 'Articles / blogs', 'Film', 'Background and interests', 'Contact'], N = NAMES.length, CD = 2, CB = 6;
 /* chapters 3 to 5 are the complications, visited in this order as you scroll: the camera goes in to each one and stops there */
 const STOP = ['moon', 'sec', 'date'], S0 = 3, stopCh = (k) => S0 + STOP.indexOf(k);
 /* the three works can change places for one visit: whichever one a visitor jumps to from outside comes first, and the other two follow in their
    usual order, so scrolling on from it still passes through all three before the caseback. Back at the dial, the usual order returns */
-const WORK0 = ['moon', 'sec', 'date'], WNAME = { moon: 'Projects', sec: 'Articles', date: 'Film' }, seenW = new Set();
+const WORK0 = ['moon', 'sec', 'date'], WNAME = { moon: 'Projects', sec: 'Articles', date: 'Film' }, RNAME = { moon: 'Projects', sec: 'Articles / blogs', date: 'Film' }, seenW = new Set();
 // z: [crystal, hands, dial, movement, back]   o: ORDER   sy: how far the straps have come off
 const KD = { rx: -10, ry: 0, rz: 0, sc: 1.08, sy: 16, f: [0, 0, 6], z: [22, 11, 11, 0, 0], o: [0, 1, 1, 1, 1, 1, 1, 1, 0] };
 const K = [
@@ -1988,7 +1989,7 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 }
 NAMES.forEach((n, i) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); if (i >= S0 && i < S0 + 3) b.className = 'sub'; b.onclick = () => (i >= S0 && i < S0 + 3 ? goWork(STOP[i - S0]) : jumpTo(i)); rail.appendChild(b); });
 const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
-function workOrder(list) { STOP.splice(0, 3, ...list); [...rail.children].slice(S0, S0 + 3).forEach((b, j) => { b.textContent = WNAME[STOP[j]]; b.setAttribute('aria-label', 'Go to ' + WNAME[STOP[j]]); }); stopsPaint(); }
+function workOrder(list) { STOP.splice(0, 3, ...list); [...rail.children].slice(S0, S0 + 3).forEach((b, j) => { b.textContent = RNAME[STOP[j]]; b.setAttribute('aria-label', 'Go to ' + RNAME[STOP[j]]); }); stopsPaint(); }
 /* every way into the three works (the chips, the journey bar, the dial dots and rows, the links on the spec sheet) comes through here */
 function goWork(k) { audioOn(); if (!inWork() && STOP[0] !== k) workOrder([k, ...WORK0.filter((x) => x !== k)]); jumpTo(stopCh(k)); }
 const JUMPS = { career: [1], resume: [N - 1], contact: [N - 1], top: [0] };
@@ -2127,8 +2128,8 @@ function fryLoop(on, level) { if (on && !fry && actx && actx.state === 'running'
   if (fry) { if (!on || muted) { try { fry.g.gain.setTargetAtTime(0.0001, actx.currentTime, 0.08); fry.s.stop(actx.currentTime + 0.4); } catch (e) {} fry = null; } else { fry.g.gain.setTargetAtTime(0.05 + 0.16 * level, actx.currentTime, 0.06); fry.bp.frequency.setTargetAtTime(4600 + 2600 * level, actx.currentTime, 0.08); } } }
 /* ---- penalty shootout. Zoom on the rotor and a small pitch rises out of the open half of its well, opposite the gold weight, and turns with it.
    The lane is a curve round the big ball, with a low gilt lip on each edge: pull back from the ball, let go, and bank the shot round to the goal at the other end */
-const PIT = { ri: 3.36, ro: 4.74, a0: rad(104), a1: rad(256), z: ZR + 0.42, rb: 0.17, a: 0, flip: false, p: new THREE.Vector2(), v: new THREE.Vector2(), bz: 0, vz: 0, mode: 'ready', t: 0, shots: 0, goals: 0, kr: 0, kt: 0, res: '', aim: null, hop: 0, net: 0 };
-const gPit = new THREE.Group(); gRot.add(gPit); gPit.visible = false;
+const PIT = { ri: 3.36, ro: 4.74, a0: rad(104), a1: rad(256), z: ZR + 0.42, rb: 0.17, a: 0, flip: false, p: new THREE.Vector2(), v: new THREE.Vector2(), bz: 0, vz: 0, mode: 'ready', t: 0, shots: 0, goals: 0, kr: 0, kt: 0, res: '', aim: null, hop: 0, nb: 0, nv: 0, nc: false, nt: -1, nA: 0, nh: [0, 0.2] };
+const gPit = new THREE.Group(); gRot.add(gPit); gPit.visible = false; const kickEl = $('kick');   // the ball's dot steps aside while the ball is in play, so the shot and the net can be seen
 const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THREE.MeshStandardMaterial({ roughness: 0.35 })), gGoal = new THREE.Group(), gKeep = new THREE.Group(), gShoot = new THREE.Group(), pitAim = new THREE.Mesh(new THREE.BoxGeometry(1, 0.07, 0.02), new THREE.MeshBasicMaterial({ color: 0xff9a1f }));
 { const { ri, ro, a0, a1, z } = PIT, rm = (ri + ro) / 2, S = 1024, cv = document.createElement('canvas'); cv.width = cv.height = S; const g = cv.getContext('2d'), px = (x) => (x / ro + 1) / 2 * S, py = (y) => (1 - (y / ro + 1) / 2) * S, k = S / 2 / ro;
   g.fillStyle = '#1f7a3f'; g.fillRect(0, 0, S, S); for (let i = 0; i < 16; i++) { const b0 = a0 + (a1 - a0) * i / 16, b1 = a0 + (a1 - a0) * (i + 1) / 16; g.fillStyle = i % 2 ? '#248a47' : '#1c7039'; g.beginPath(); g.moveTo(S / 2, S / 2); g.arc(S / 2, S / 2, S, -b1, -b0); g.closePath(); g.fill(); }
@@ -2148,10 +2149,19 @@ const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THR
   /* goal: white posts and bar, a net behind. Its own x runs across the lane, its y points back up the pitch toward the taker */
   const white = new THREE.MeshStandardMaterial({ color: 0xf4f4f0, roughness: 0.35, metalness: 0.1 }), GW = 0.96, GH = 0.74, GD = 0.36, post = (x) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, GH, 10).rotateX(Math.PI / 2), white); p.position.set(x, 0, GH / 2); gGoal.add(p); };
   post(-GW / 2); post(GW / 2); { const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, GW + 0.07, 10).rotateZ(Math.PI / 2), white); bar.position.set(0, 0, GH); gGoal.add(bar); }
-  { const c3 = document.createElement('canvas'); c3.width = c3.height = 128; const q = c3.getContext('2d'); q.strokeStyle = 'rgba(255,255,255,.85)'; q.lineWidth = 2; for (let i = 0; i <= 128; i += 16) { q.beginPath(); q.moveTo(i, 0); q.lineTo(i, 128); q.moveTo(0, i); q.lineTo(128, i); q.stroke(); } const nt = new THREE.CanvasTexture(c3); nt.wrapS = nt.wrapT = THREE.RepeatWrapping; nt.repeat.set(2, 1.4);
-    const nm = new THREE.MeshBasicMaterial({ map: nt, transparent: true, side: THREE.DoubleSide, depthWrite: false }), pl = (w, hh, fn) => { const n = new THREE.Mesh(new THREE.PlaneGeometry(w, hh), nm); fn(n); gGoal.add(n); return n; };
-    PIT.netM = pl(GW, GH, (n) => { n.rotation.x = Math.PI / 2; n.position.set(0, -GD, GH / 2); }); pl(GW, GD, (n) => { n.position.set(0, -GD / 2, GH); }); pl(GD, GH, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(-GW / 2, -GD / 2, GH / 2); }); pl(GD, GH, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(GW / 2, -GD / 2, GH / 2); }); }
-  PIT.GW = GW; gPit.add(gGoal);
+  /* the net is one cloth in four panels (back, roof and two sides), each pegged along its edges to the frame and the turf. It is drawn as dark grey cord over a smoky veil, so it shows against the turf,
+     and is fine enough to bulge where the ball goes in */
+  { const pos = [], idx = [], ln = [], pin = [], pid = [], o3 = new THREE.Object3D();
+    const pl = (w, hh, sx, sy, k, fn) => { const g = new THREE.PlaneGeometry(w, hh, sx, sy); o3.position.set(0, 0, 0); o3.rotation.set(0, 0, 0); fn(o3); o3.updateMatrix(); g.applyMatrix4(o3.matrix); const b = pos.length / 3, P3 = g.attributes.position, U = g.attributes.uv;
+      for (let i = 0; i < P3.count; i++) { pos.push(P3.getX(i), P3.getY(i), P3.getZ(i)); pin.push(Math.sin(Math.PI * U.getX(i)) * Math.sin(Math.PI * U.getY(i))); pid.push(k); } g.index.array.forEach((q) => idx.push(b + q));
+      for (let r = 0; r <= sy; r++) for (let c = 0; c <= sx; c++) { const q = b + r * (sx + 1) + c; if (c < sx) ln.push(q, q + 1); if (r < sy) ln.push(q, q + sx + 1); } g.dispose(); };
+    pl(GW, GH, 14, 11, 0, (n) => { n.rotation.x = Math.PI / 2; n.position.set(0, -GD, GH / 2); }); pl(GW, GD, 14, 5, 1, (n) => { n.position.set(0, -GD / 2, GH); });
+    pl(GD, GH, 5, 11, 2, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(-GW / 2, -GD / 2, GH / 2); }); pl(GD, GH, 5, 11, 2, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(GW / 2, -GD / 2, GH / 2); });
+    const pa = new THREE.Float32BufferAttribute(pos, 3); pa.setUsage(THREE.DynamicDrawUsage);
+    const vg = new THREE.BufferGeometry(); vg.setAttribute('position', pa); vg.setIndex(idx); const veil = new THREE.Mesh(vg, new THREE.MeshBasicMaterial({ color: 0x23262b, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false })); veil.frustumCulled = false; gGoal.add(veil);
+    const cg = new THREE.BufferGeometry(); cg.setAttribute('position', pa); cg.setIndex(ln); const cord = new THREE.LineSegments(cg, new THREE.LineBasicMaterial({ color: 0x3d4148, transparent: true, opacity: 0.9, depthWrite: false })); cord.frustumCulled = false; gGoal.add(cord);
+    PIT.netN = { cord, pa, base: new Float32Array(pos), pin: new Float32Array(pin), id: new Uint8Array(pid), dirty: false }; }
+  PIT.GW = GW; PIT.GH = GH; PIT.GD = GD; gPit.add(gGoal);
   /* two figures: a keeper in yellow, a taker in red */
   const man = (grp, kit) => { const skin = new THREE.MeshStandardMaterial({ color: 0xe6bf98, roughness: 0.6 }), dark = new THREE.MeshStandardMaterial({ color: 0x16181d, roughness: 0.6 }), shirt = new THREE.MeshStandardMaterial({ color: kit, roughness: 0.55 }), cyl = (r, hh, mt, x, zz) => { const c = new THREE.Mesh(new THREE.CylinderGeometry(r, r, hh, 10).rotateX(Math.PI / 2), mt); c.position.set(x, 0, zz); c.castShadow = true; grp.add(c); };
     cyl(0.035, 0.26, dark, -0.05, 0.13); cyl(0.035, 0.26, dark, 0.05, 0.13); cyl(0.095, 0.26, shirt, 0, 0.39); cyl(0.028, 0.2, shirt, -0.125, 0.4); cyl(0.028, 0.2, shirt, 0.125, 0.4); const hd = new THREE.Mesh(new THREE.SphereGeometry(0.078, 12, 10), skin); hd.position.set(0, 0, 0.6); hd.castShadow = true; grp.add(hd); };
@@ -2159,14 +2169,31 @@ const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THR
   anchor('i-kick', gPit, 0, 0, z + PIT.rb); }
 function pitSet() { const P = PIT, rm = (P.ri + P.ro) / 2, s = P.flip ? -1 : 1, ag = P.flip ? P.a1 - 0.2 : P.a0 + 0.2, as = P.flip ? P.a0 + 0.3 : P.a1 - 0.3; P.ag = ag; P.as = as; P.s = s;
   gGoal.position.set(rm * Math.cos(ag), rm * Math.sin(ag), P.z); gGoal.rotation.z = ag; gGoal.scale.y = s; gShoot.position.set(rm * Math.cos(as + s * 0.085), rm * Math.sin(as + s * 0.085), P.z); pitReset(); }
-function pitReset() { const P = PIT, rm = (P.ri + P.ro) / 2; P.p.set(rm * Math.cos(P.as), rm * Math.sin(P.as)); P.v.set(0, 0); P.bz = 0; P.vz = 0; P.mode = 'ready'; P.res = ''; pitAim.visible = false; pitScore(); }
+function pitReset() { const P = PIT, rm = (P.ri + P.ro) / 2; P.p.set(rm * Math.cos(P.as), rm * Math.sin(P.as)); P.v.set(0, 0); P.bz = 0; P.vz = 0; P.mode = 'ready'; P.res = ''; pitAim.visible = false; P.nb = P.nv = 0; P.nc = false; P.nt = -1; if (P.netN) P.netN.dirty = true; pitScore(); }
 function pitScore(msg) { const el = $('int-score'); if (!el) return; const P = PIT; el.textContent = msg || (P.shots >= 5 ? P.goals + ' of 5. ' + (P.goals >= 4 ? 'Sign him up.' : P.goals >= 2 ? 'Not bad.' : 'Keep practising.') + ' Pull the ball back to go again.' : 'Penalties: pull back from the ball, aim, let go. Bank it round the big ball. ' + P.goals + ' scored, ' + (5 - P.shots) + ' to take.'); }
 function crowd(up) { if (!actx || muted || actx.state !== 'running') return; try { const sr = actx.sampleRate, dur = up ? 1.7 : 1.15, n = (sr * dur) | 0, b = actx.createBuffer(1, n, sr), d = b.getChannelData(0); let lp = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; lp += (w - lp) * 0.2; d[i] = lp * 2.4; }
     const s = actx.createBufferSource(), f1 = actx.createBiquadFilter(), f2 = actx.createBiquadFilter(), g = actx.createGain(), t = actx.currentTime + 0.02; s.buffer = b; f1.type = f2.type = 'bandpass'; f1.Q.value = 1.1; f2.Q.value = 2.2;
     if (up) { f1.frequency.setValueAtTime(650, t); f1.frequency.exponentialRampToValueAtTime(1500, t + 0.35); f2.frequency.setValueAtTime(1700, t); f2.frequency.exponentialRampToValueAtTime(3000, t + 0.4); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55, t + 0.16); g.gain.setValueAtTime(0.5, t + 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     else { f1.frequency.setValueAtTime(640, t); f1.frequency.exponentialRampToValueAtTime(250, t + 0.75); f2.frequency.setValueAtTime(1150, t); f2.frequency.exponentialRampToValueAtTime(480, t + 0.75); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.34, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     s.connect(f1).connect(g); s.connect(f2).connect(g); g.connect(master); s.start(t); s.stop(t + dur + 0.05); } catch (e) {} }
-function pitEnd(res) { const P = PIT; if (P.res) return; P.res = res; P.t = 0; P.shots++; if (res === 'goal') { P.goals++; P.net = 1; P.hop = 1; ping({ f: 5200, q: 0.5, dur: 0.24, vol: 0.22, sharp: 2 }); crowd(true); buzz([18, 40, 30], true); pitScore('GOAL!'); } else { crowd(false); pitScore(res === 'save' ? 'Saved.' : res === 'out' ? 'Over the boards.' : res === 'post' ? 'Off the post.' : 'Not enough on it.'); } }
+function pitEnd(res) { const P = PIT; if (P.res) return; P.res = res; P.t = 0; P.shots++; if (res === 'goal') { P.goals++; P.hop = 1; ping({ f: 5200, q: 0.5, dur: 0.24, vol: 0.22, sharp: 2 }); crowd(true); buzz([18, 40, 30], true); pitScore('GOAL!'); } else { crowd(false); pitScore(res === 'save' ? 'Saved.' : res === 'out' ? 'Over the boards.' : res === 'post' ? 'Off the post.' : 'Not enough on it.'); } }
+/* the ball in the net. Past the line the net takes it like a soft spring: it gives, holds the ball, and lets it drop and roll back a touch. The side netting keeps it in,
+   and nothing lets it back out over the line. Where and how hard it went in is kept for the cloth */
+function pitNet(h) { const P = PIT, ca = Math.cos(P.ag), sa = Math.sin(P.ag), rm = (P.ri + P.ro) / 2, dx = P.p.x - rm * ca, dy = P.p.y - rm * sa, bx = sa * P.s, by = -ca * P.s, lx = dx * ca + dy * sa, dep = dx * bx + dy * by, vin = P.v.x * bx + P.v.y * by, pen = dep - (P.GD - P.rb);
+  P.v.multiplyScalar(Math.exp(-2.6 * h));
+  if (pen > 0) { const a = -150 * pen - 6 * vin; P.v.x += bx * a * h; P.v.y += by * a * h; if (P.nt < 0) { P.nt = 0; P.nA = 0.08 * clamp(vin / 3, 0.35, 1.2); } P.nb = pen; P.nv = vin; P.nh[0] = lx; P.nh[1] = P.rb + P.bz; }
+  P.nc = pen > 0;
+  const vl = P.v.x * ca + P.v.y * sa, side = P.GW / 2 - P.rb - 0.03; if (Math.abs(lx) > side && lx * vl > 0) { P.v.x -= ca * vl * 1.5; P.v.y -= sa * vl * 1.5; }
+  if (dep < P.rb + 0.05 && vin < 0) { P.v.x -= bx * vin; P.v.y -= by * vin; } }
+/* the cloth: a bulge round the spot the ball went in, deepest there and held at the posts, the bar and the pegs, and a ripple that runs out over all four panels and dies away.
+   Once the ball has come off the back, the netting springs back past its rest and settles */
+function netTick(dt) { const P = PIT, N = P.netN; if (!N) return;
+  if (P.nt < 0) { if (N.dirty) { N.pa.array.set(N.base); N.pa.needsUpdate = true; N.dirty = false; N.cord.material.opacity = 0.72; } return; }
+  P.nt += dt; if (!P.nc || P.mode !== 'fly') { const w = 24, z = 0.2, n = 4, h = dt / n; for (let i = 0; i < n; i++) { P.nv += (-w * w * P.nb - 2 * z * w * P.nv) * h; P.nb += P.nv * h; } }
+  const pos = N.pa.array, b0 = N.base, hx = P.nh[0], hz = P.nh[1], t = P.nt, ph = Math.sin(Math.PI * clamp(hx / P.GW + 0.5, 0, 1)) * Math.sin(Math.PI * clamp(hz / P.GH, 0, 1)), A = P.nb / Math.max(0.3, ph), rip = P.nA * Math.exp(-t / 0.42) * (1 - Math.exp(-t * 30)), k = TAU / 0.3, om = TAU * 3.2;
+  for (let i = 0, n = b0.length / 3; i < n; i++) { const x = b0[i * 3], y = b0[i * 3 + 1], z = b0[i * 3 + 2], f = N.pin[i], r = Math.hypot(x - hx, y + P.GD, z - hz), wv = f * rip * Math.sin(k * r - om * t) * Math.exp(-r * 1.6);
+    if (N.id[i] === 0) pos[i * 3 + 1] = y - f * A * Math.exp(-((x - hx) * (x - hx) + (z - hz) * (z - hz)) / 0.05) - wv; else if (N.id[i] === 1) pos[i * 3 + 2] = z + 0.7 * wv; else pos[i * 3] = x + Math.sign(x) * 0.7 * wv; }
+  N.pa.needsUpdate = true; N.dirty = true; N.cord.material.opacity = 0.9 + 0.1 * Math.min(1, Math.abs(P.nb) * 6 + rip * 8); }
 function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P.a; P.a += (want - P.a) * Math.min(1, dt * 4); gPit.visible = P.a > 0.02; if (!gPit.visible) { if (was > 0.02) { P.shots = P.goals = 0; } return; }
   gPit.position.z = (sSmooth(P.a) - 1) * 0.95;
   if (was <= 0.02 || P.ag === undefined) { /* the taker stands on whichever end is to the right on screen */ gPit.updateWorldMatrix(true, false); const rm = (P.ri + P.ro) / 2, sx = (a) => new THREE.Vector3(rm * Math.cos(a), rm * Math.sin(a), P.z).applyMatrix4(gPit.matrixWorld).project(camera).x; P.flip = sx(P.a0) > sx(P.a1); P.shots = P.goals = 0; pitSet(); }
@@ -2179,24 +2206,41 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
       if (r < P.ri + P.rb && vr < 0) { P.v.x -= 1.85 * vr * ux; P.v.y -= 1.85 * vr * uy; P.p.setLength(P.ri + P.rb); ping({ f: 1100, q: 3, dur: 0.03, vol: 0.1, sharp: 5 }); }
       else if (r > P.ro - P.rb && vr > 0) { if (vr > 13) { P.out = true; P.vz = 5.5; P.bz = 0.02; ping({ f: 1500, q: 5, dur: 0.05, vol: 0.14, sharp: 4 }); pitEnd('out'); } else { P.v.x -= 1.85 * vr * ux; P.v.y -= 1.85 * vr * uy; P.p.setLength(P.ro - P.rb); ping({ f: 1300, q: 4, dur: 0.03, vol: 0.1, sharp: 5 }); } }
       /* the taker's end is boarded; the goal end is the goal line */
-      const back = P.s > 0 ? th > P.a1 - 0.05 : th < P.a0 + 0.05; if (back && vt * P.s > 0) { P.v.x += 1.7 * vt * uy; P.v.y -= 1.7 * vt * ux; }
+      const back = P.s > 0 ? th > P.a1 - 0.05 : th < P.a0 + 0.05; if (back && vt * P.s > 0) { P.v.x += 1.4 * vt * uy; P.v.y -= 1.4 * vt * ux; }
       const over = P.s > 0 ? th < P.ag : th > P.ag; if (over && !P.res) { const rr = r - rm; if (Math.abs(rr - P.kr) < 0.19) { P.v.multiplyScalar(-0.45); P.p.set(r * Math.cos(P.ag + P.s * 0.03), r * Math.sin(P.ag + P.s * 0.03)); ping({ f: 220, q: 1, dur: 0.07, vol: 0.25, sharp: 3, thump: 80 }); pitEnd('save'); }
-        else if (Math.abs(rr) < P.GW / 2 - P.rb * 0.6) { pitEnd('goal'); P.v.multiplyScalar(0.25); }
+        else if (Math.abs(rr) < P.GW / 2 - P.rb * 0.6) { pitEnd('goal'); const sp = P.v.length() || 1, ns = Math.min(sp * 0.55, 4.5); P.v.multiplyScalar(ns / sp); if (P.bz <= 0) { P.vz = Math.min(3.2, ns * 0.8); P.bz = 0.001; } }
         else if (Math.abs(rr) < P.GW / 2 + P.rb) { P.v.multiplyScalar(-0.6); P.p.set(r * Math.cos(P.ag + P.s * 0.03), r * Math.sin(P.ag + P.s * 0.03)); ping({ f: 1250, q: 16, dur: 0.5, vol: 0.3, sharp: 3 }); ping({ f: 2610, q: 14, dur: 0.35, vol: 0.14, sharp: 3 }); pitEnd('post'); }
-        else { P.v.x += 1.7 * vt * uy; P.v.y -= 1.7 * vt * ux; P.p.set(r * Math.cos(P.ag + P.s * 0.02), r * Math.sin(P.ag + P.s * 0.02)); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); } }
-      if (P.res === 'goal') { const lim = P.ag - P.s * 0.07, deep = P.s > 0 ? th < lim : th > lim; if (deep) { P.v.set(0, 0); } }
+        else { P.v.x += 1.4 * vt * uy; P.v.y -= 1.4 * vt * ux; P.v.multiplyScalar(0.8); P.p.set(r * Math.cos(P.ag + P.s * 0.02), r * Math.sin(P.ag + P.s * 0.02)); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); } }
+      if (P.res === 'goal') pitNet(hh);
       if (P.v.length() < 0.45 && P.bz <= 0) { if (!P.res) pitEnd('short'); P.mode = 'dead'; } } }
   if (P.res) { P.t += dt; if (P.t > (P.res === 'goal' ? 1.9 : 1.4) && P.mode !== 'ready') { P.out = false; if (P.shots >= 5) { pitReset(); pitScore(); P.over = true; } else pitReset(); } }
-  P.net = Math.max(0, P.net - dt * 1.6); P.hop = Math.max(0, P.hop - dt * 1.1); if (P.netM) P.netM.position.y = -0.36 - 0.12 * P.net * Math.abs(Math.sin(P.net * 9)); gShoot.position.z = P.z + 0.22 * Math.abs(Math.sin(P.hop * 9.4)) * P.hop;
+  P.hop = Math.max(0, P.hop - dt * 1.1); netTick(dt); if (kickEl && kickEl.classList.contains('busy') !== (P.mode !== 'ready')) kickEl.classList.toggle('busy', P.mode !== 'ready'); gShoot.position.z = P.z + 0.22 * Math.abs(Math.sin(P.hop * 9.4)) * P.hop;
   pitBall.position.set(P.p.x, P.p.y, P.z + P.rb + P.bz); if (P.mode === 'fly') { pitBall.rotation.x += P.v.y * dt / P.rb; pitBall.rotation.y -= P.v.x * dt / P.rb; } anchors['i-kick'].position.set(P.p.x, P.p.y, P.z + P.rb);
   if (P.aim) { const L = 0.5 + 1.9 * P.aim.pw; pitAim.visible = true; pitAim.scale.x = L; pitAim.position.set(P.p.x + P.aim.dx * (L / 2 + 0.2), P.p.y + P.aim.dy * (L / 2 + 0.2), P.z + 0.03); pitAim.rotation.z = Math.atan2(P.aim.dy, P.aim.dx); } else pitAim.visible = false; }
 { const hd = $('kick'); if (hd) { const P = PIT, sc = (x, y) => { const rc = canvas.getBoundingClientRect(), v = new THREE.Vector3(x, y, P.z + P.rb).applyMatrix4(gPit.matrixWorld).project(camera); return [rc.left + (v.x * 0.5 + 0.5) * rc.width, rc.top + (0.5 - v.y * 0.5) * rc.height]; }; let d0 = null;
     const aimAt = (e) => { gPit.updateWorldMatrix(true, false); const O = sc(P.p.x, P.p.y), X = sc(P.p.x + 1, P.p.y), Y = sc(P.p.x, P.p.y + 1), ax = X[0] - O[0], ay = X[1] - O[1], bx = Y[0] - O[0], by = Y[1] - O[1], det = ax * by - ay * bx || 1, dx = e.clientX - O[0], dy = e.clientY - O[1], lx = (dx * by - dy * bx) / det, ly = (ax * dy - ay * dx) / det, l = Math.hypot(lx, ly); return l < 0.12 ? null : { dx: -lx / l, dy: -ly / l, pw: clamp((l - 0.12) / 2.4, 0, 1) }; };
     hd.addEventListener('pointerdown', (e) => { e.preventDefault(); if (P.mode !== 'ready') return; if (P.shots >= 5) { P.shots = P.goals = 0; pitScore(); } hd.setPointerCapture(e.pointerId); audioOn(); d0 = true; P.aim = null; hd.classList.add('grab'); });
     hd.addEventListener('pointermove', (e) => { if (d0) P.aim = aimAt(e); });
-    const end = (e) => { if (!d0) return; d0 = null; hd.classList.remove('grab'); const A = P.aim; P.aim = null; if (!A || A.pw < 0.06 || e.type === 'pointercancel') return; const sp = 6 + 15 * A.pw; P.v.set(A.dx * sp, A.dy * sp); P.mode = 'fly'; P.out = false; P.res = ''; P.hop = 0.5; ping({ f: 170, q: 1, dur: 0.09, vol: 0.32, sharp: 3, thump: 90 }); buzz(10, true); };
+    const end = (e) => { if (!d0) return; d0 = null; hd.classList.remove('grab'); const A = P.aim; P.aim = null; if (!A || A.pw < 0.06 || e.type === 'pointercancel') return; const sp = 6 + 15 * A.pw; P.v.set(A.dx * sp, A.dy * sp); P.mode = 'fly'; P.out = false; P.res = ''; P.hop = 0.5; ping({ f: 170, q: 1, dur: 0.09, vol: 0.32, sharp: 3, thump: 90 }); buzz(10, true); pullSeen(); };
     hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end); } }
 window.__pit = PIT;
+/* one way back out of any close-up: from a piece of work to the dial, from a caseback part to the caseback */
+{ const zb = $('zback'); if (zb) zb.addEventListener('click', () => { audioOn(); if (zoomK) zoomOut(); else if (focus) jumpTo(CD); }); }
+/* a first time hint on the pitch: a ghost fingertip settles on the ball, draws back along a dotted line, and lets go, and a small chevron flicks off toward goal.
+   It plays only in the shootout, never while the ball is held or in flight, and once a shot has been taken it is gone for this visit and the next.
+   With reduced motion it is one still drawing: the fingertip drawn back, the line, and the chevron */
+const pull = { el: null, seen: false, lw: 0, lh: 0, v: new THREE.Vector3() };
+try { pull.seen = localStorage.getItem('nk-pull') === '1'; } catch (e) {}
+{ const el = document.createElement('div'); el.id = 'pull'; el.setAttribute('aria-hidden', 'true'); el.innerHTML = '<div class="pa"><i class="pb"></i><i class="pg"></i><i class="pt"></i></div><span class="pl">Pull back to shoot</span>'; if (reduce) el.classList.add('still'); const k = $('kick'); if (k && k.parentNode) k.parentNode.insertBefore(el, k); pull.el = el; }
+function pullSeen() { if (pull.seen) return; pull.seen = true; pull.el.classList.remove('on'); kickEl.classList.remove('hinting'); try { localStorage.setItem('nk-pull', '1'); } catch (e) {} }
+function pullTick(W, H) { const P = PIT, el = pull.el, k = $('kick'), show = !pull.seen && zoomK === 'soccer' && P.a > 0.97 && P.mode === 'ready' && !P.aim && !!k && k.classList.contains('on') && !k.classList.contains('grab');
+  if (el.classList.contains('on') !== show) { el.classList.toggle('on', show); if (k) k.classList.toggle('hinting', show); } if (!show) return;   /* while the hint plays, the ball's dot pulses small so the two do not compete */
+  const sc = (x, y) => { pull.v.set(x, y, P.z + P.rb).applyMatrix4(gPit.matrixWorld).project(camera); return [(pull.v.x * 0.5 + 0.5) * W, (0.5 - pull.v.y * 0.5) * H]; };
+  const th = Math.atan2(P.p.y, P.p.x), ux = -P.s * Math.sin(th), uy = P.s * Math.cos(th), O = sc(P.p.x, P.p.y), B = sc(P.p.x + ux, P.p.y + uy), R = sc(P.p.x + Math.cos(th), P.p.y + Math.sin(th));   // back along the lane, away from goal; and straight out from the big ball
+  const bx = B[0] - O[0], by = B[1] - O[1], bl = Math.hypot(bx, by) || 1, L = clamp(bl * 1.3, 46, 92), rx = R[0] - O[0], ry = R[1] - O[1], rl = Math.hypot(rx, ry) || 1, nx = rx / rl, ny = ry / rl;
+  el.firstChild.style.transform = 'translate(' + O[0].toFixed(1) + 'px,' + O[1].toFixed(1) + 'px) rotate(' + Math.atan2(by, bx).toFixed(4) + 'rad)'; el.style.setProperty('--L', L.toFixed(1) + 'px');
+  const lab = el.lastChild; if (!pull.lw) { pull.lw = lab.offsetWidth; pull.lh = lab.offsetHeight; }
+  const d = 16 + Math.abs(nx) * pull.lw / 2 + Math.abs(ny) * pull.lh / 2; lab.style.transform = 'translate(' + clamp(O[0] + nx * d - pull.lw / 2, 8, W - pull.lw - 8).toFixed(1) + 'px,' + clamp(O[1] + ny * d - pull.lh / 2, 8, H - pull.lh - 8).toFixed(1) + 'px)'; }
 /* the sound of a board going downhill: a low cold wind that wanders, and the hiss of an edge biting and letting go, turn after turn */
 let slope = null;
 function snowLoop(on) { if (on && !slope && actx && actx.state === 'running' && !muted) try { const sr = actx.sampleRate, n = sr * 4, b = actx.createBuffer(1, n, sr), d = b.getChannelData(0); let lp = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; lp += (w - lp) * 0.12; d[i] = 0.55 * w + 1.6 * lp; }
@@ -2280,7 +2324,9 @@ const BW = 104, BH = 56, BL = 18, BWT = 4;   // footprint, base height, lid heig
 const boxGrain = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 14000; i++) { g.fillStyle = 'rgba(' + (Math.random() > 0.5 ? '255,255,255' : '0,0,0') + ',' + Math.random() * 0.22 + ')'; g.fillRect(Math.random() * 256, Math.random() * 256, 1.6, 1.6); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 6); return t; })();
-const mBoxOut = new THREE.MeshPhysicalMaterial({ color: 0x1d2333, roughness: 0.55, metalness: 0, bumpMap: boxGrain, bumpScale: 0.6, clearcoat: 0.35, clearcoatRoughness: 0.45 });   // plain grained leatherette
+/* plain grained leatherette in a midnight blue, a shade lighter than the page so the box still reads at the back of the room. A soft sheen on the grain
+   lifts the faces turned away from the light, and a thin satin lacquer gives the edges a highlight */
+const BOXC = 0x26304a, mBoxOut = new THREE.MeshPhysicalMaterial({ color: BOXC, roughness: 0.5, metalness: 0, bumpMap: boxGrain, bumpScale: 0.6, clearcoat: 0.45, clearcoatRoughness: 0.35, sheen: 0.35, sheenColor: new THREE.Color(0x7d8fb8), sheenRoughness: 0.55, envMapIntensity: 1.4 });
 const mBoxIn = new THREE.MeshStandardMaterial({ color: 0x12151b, roughness: 1, metalness: 0, bumpMap: boxGrain, bumpScale: 0.3 });
 /* the pillow's cloth is a short napped microfibre. One tile of it, 20 mm square: every fibre is laid as a little ramp that rises from root to tip along the local nap,
    and the nap swirls slowly, so patches of it are brushed different ways. The relief becomes a normal map; the colour is lighter on the fibre tips and darker between them */
@@ -2449,6 +2495,10 @@ const doors = [-1, 1].map((sd) => { const piv = new THREE.Group(); piv.position.
   const sat = new THREE.Mesh(new THREE.PlaneGeometry(BW / 2 - BWT - 0.2, BW - 2 * BWT), mSatin); sat.rotation.x = Math.PI / 2; sat.position.set(-sd * (BW / 4 + BWT / 2 - 0.1), -0.06, 0); piv.add(sat);
   [-0.3, 0, 0.3].forEach((f, j) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, j === 1 ? 20 : 12, 16).rotateX(Math.PI / 2), mHinge); b.position.set(sd * (BW / 2 + 0.55), 0.2, f * BW); gBox.add(b); });
   return { piv, sd }; });
+/* a fine gilt piping round the top of the base, just under the lid's edge: it outlines the box when it is small at the back of the room */
+{ const h = BW / 2 + 0.35, rc = 1.9, pts = [], C = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
+  C.forEach((c, i) => { for (let k = 0; k <= 5; k++) { const a = (i + k / 5) * Math.PI / 2; pts.push(new THREE.Vector3(c[0] * (h - rc) + rc * Math.cos(a), 0, c[1] * (h - rc) + rc * Math.sin(a))); } const n = C[(i + 1) % 4], a1 = (i + 1) * Math.PI / 2, p0 = [c[0] * (h - rc) + rc * Math.cos(a1), c[1] * (h - rc) + rc * Math.sin(a1)], p1 = [n[0] * (h - rc) + rc * Math.cos(a1), n[1] * (h - rc) + rc * Math.sin(a1)]; for (let k = 1; k < 12; k++) pts.push(new THREE.Vector3(lerp(p0[0], p1[0], k / 12), 0, lerp(p0[1], p1[1], k / 12))); });
+  const pipe = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true, 'centripetal'), 240, 0.65, 8, true), mHinge); pipe.position.y = -1.05; gBox.add(pipe); }
 const soft = (t, k = 4.6) => t <= 0 ? 0 : 1 - Math.exp(-k * t) * (1 + k * t);
 const qTw = new THREE.Quaternion(), vTw = new THREE.Vector3(1, 0, 0);
 const setDoors = (dl, dr, tw = 0) => { doors[0].piv.quaternion.setFromAxisAngle(doorAxis, DOOR * dl).multiply(qTw.setFromAxisAngle(vTw, tw)); doors[1].piv.quaternion.setFromAxisAngle(doorAxis, -DOOR * dr).multiply(qTw.setFromAxisAngle(vTw, -tw * 0.7)); };
@@ -2488,7 +2538,7 @@ const RP = { home: new THREE.Vector2(), bin: new THREE.Vector3(), mouth: new THR
 function restPoses(visW, visH, mob) { const z = RP.z, f = (camera.position.z - z) / camera.position.z, hw = visW / 2 * f, hh = visH / 2 * f; RP.hw = hw; RP.hh = hh;
   const bw = mob ? 0.115 * 2 * hw : 0.05 * 2 * hh, bs = bw / BW, yF = mob ? 0.07 * hh : -0.94 * hh; RP.bs = bs; RP.yF = yF;
   RP.a = 0.5 * BW * (Math.cos(rad(32)) + Math.sin(rad(32))) * bs; RP.b = 0.5 * (BH + BL) * bs; RP.R = BINR * bs;
-  RP.home.set(mob ? 0.66 * hw : -0.14 * hw, yF + RP.b); RP.bin.set((mob ? -0.66 : -0.74) * hw, yF, z - 4); RP.mouth.copy(RP.bin).y += BINH * bs; }
+  RP.home.set(mob ? 0.66 * hw : -0.14 * hw, yF + RP.b); RP.bin.set((mob ? -0.66 : -0.6) * hw, yF, z - 4); RP.mouth.copy(RP.bin).y += BINH * bs; }
 /* the box is a 2D rigid body in that back plane: a centre, a velocity, a spin about the line of sight. Its corners decide where it touches */
 const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rad(-32)), qZr = new THREE.Quaternion(), vZ = new THREE.Vector3(0, 0, 1), cOff = new THREE.Vector3();
 function boxPose(cx, cy, th, s, z, outP, outQ) { qZr.setFromAxisAngle(vZ, th); outQ.copy(qZr).multiply(qYaw); cOff.set(0, -19 * s, 0).applyQuaternion(outQ); outP.set(cx - cOff.x, cy - cOff.y, z - cOff.z); }
@@ -2594,13 +2644,13 @@ canvas.addEventListener('touchstart', (e) => { if (grab) e.preventDefault(); }, 
 canvas.addEventListener('touchmove', (e) => { if (grab) e.preventDefault(); }, { passive: false });
 /* it sounds like what it hits: a padded box on the floor, a lighter tap at the edges, steel when it meets the bin */
 /* every hard knock leaves its mark: creases pressed into the leatherette, lids that no longer sit flush. Past a point, a nudge toward the bin */
-let boxDmg = 0, dmgAsked = false, dentTex = null; const dv = new THREE.Vector3();
+let boxDmg = 0, dmgAsked = false, dentTex = null; const dv = new THREE.Color();   // a colour, not a vector: a Color lerped toward a Vector3 turns to NaN and the box renders black
 function dentBox(n) { const d = Math.min(boxS.bud || 0, Math.max(0.05, (boxS.bud0 || 0) * 0.6)); if (d < 0.01) return; boxS.bud -= d; boxDmg = Math.min(1, boxDmg + d);
   if (!dentTex) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; cv.getContext('2d').drawImage(boxGrain.image, 0, 0); dentTex = new THREE.CanvasTexture(cv); dentTex.wrapS = dentTex.wrapT = THREE.RepeatWrapping; dentTex.repeat.copy(boxGrain.repeat); mBoxOut.bumpMap = dentTex; }
   const g = dentTex.image.getContext('2d'), k = 2 + Math.round(d * 30);
   for (let i = 0; i < k; i++) { const x = Math.random() * 256, y = Math.random() * 256, r = 18 + Math.random() * 34; [[0, 0], [-256, 0], [256, 0], [0, -256], [0, 256]].forEach(([ox, oy]) => { const gr = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r); gr.addColorStop(0, 'rgba(0,0,0,0.75)'); gr.addColorStop(0.7, 'rgba(70,70,70,0.3)'); gr.addColorStop(0.88, 'rgba(235,235,235,0.3)'); gr.addColorStop(1, 'rgba(128,128,128,0)'); g.fillStyle = gr; g.fillRect(x + ox - r, y + oy - r, 2 * r, 2 * r); });
     g.strokeStyle = 'rgba(0,0,0,0.7)'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (Math.random() - 0.5) * 120, y + (Math.random() - 0.5) * 120); g.stroke(); }
-  dentTex.needsUpdate = true; mBoxOut.bumpScale = 0.6 + 7 * boxDmg; mBoxOut.roughness = 0.55 + 0.25 * boxDmg; mBoxOut.color.setHex(0x1d2333).lerp(dv.set(0.2, 0.21, 0.25), 0.5 * boxDmg);
+  dentTex.needsUpdate = true; mBoxOut.bumpScale = 0.6 + 7 * boxDmg; mBoxOut.roughness = 0.5 + 0.25 * boxDmg; mBoxOut.color.setHex(BOXC).lerp(dv.setRGB(0.2, 0.21, 0.25), 0.5 * boxDmg);
   /* and a corner of a lid crumples in */
   { const me = lidHalves[(Math.random() * 2) | 0], P = me.geometry.attributes.position, i0 = (Math.random() * P.count) | 0, cx = P.getX(i0), cy = P.getY(i0), cz = P.getZ(i0), R = 16 + 60 * d, dep = 2.5 + 22 * d;
     for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), q = Math.hypot(x - cx, y - cy, z - cz); if (q < R) { const f = (1 - q / R) ** 2 * dep, l = Math.hypot(x, z) || 1; P.setXYZ(i, x - x / l * f * 0.8, y - Math.sign(y) * f * 0.35, z - z / l * f * 0.8); } } P.needsUpdate = true; me.geometry.computeVertexNormals(); }
@@ -2859,6 +2909,7 @@ function frame(now) {
   [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === act); bt.classList.toggle('past', k < act); }); rail.style.setProperty('--p', clamp(pe / (N - 1), 0, 1).toFixed(4));
   const near = !jump && Math.abs(pe - act) < 0.15 && !focus && fe < 0.2;
   hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
+  pullTick(W, H);
   $('hint').style.opacity = cv < 0.3 && !intro.on ? 1 : 0;
   scrim.style.opacity = fe; renderer.toneMappingExposure = 1 - 0.36 * fe;
   if (fe > 0.01) { const px = H / visH, rr = FZ.r * sc * px; spot.style.setProperty('--sx', ((cx / visW + 0.5) * W) + 'px'); spot.style.setProperty('--sy', ((0.5 - cy / visH) * H) + 'px'); spot.style.setProperty('--sr', rr + 'px'); } spot.style.opacity = fe;

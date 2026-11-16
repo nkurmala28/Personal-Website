@@ -68,6 +68,21 @@ body.nogl #load .msg::after{content:" This needs WebGL, which this browser has t
 #top .tr{display:flex;align-items:center;gap:14px}
 #spot{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--sx,30%) var(--sy,50%),rgba(11,13,18,0) var(--sr,120px),rgba(11,13,18,.6) calc(var(--sr,120px)*1.3),rgba(11,13,18,.94) calc(var(--sr,120px)*2))}
 #vol{pointer-events:auto;width:84px;accent-color:var(--brass);margin:0}
+/* sound: a small speaker whose waves show the level. The slider slides out only when the speaker is pointed at, focused or tapped */
+.sndw{display:inline-flex;align-items:center;pointer-events:auto}
+.sndw #vol{width:0;opacity:0;margin-left:0;transition:width .25s ease,opacity .2s ease,margin .25s ease}
+.sndw:hover #vol,.sndw:focus-within #vol{width:84px;opacity:1;margin-left:8px}
+#snd svg{display:block;width:22px;height:22px}
+#snd .wx{display:none}
+#snd[data-lv="1"] .w2{opacity:.25}
+#snd[data-lv="0"] .w1,#snd[data-lv="0"] .w2{display:none}
+#snd[data-lv="0"] .wx{display:block}
+/* the way back out of a close-up */
+#zback{position:fixed;z-index:30;left:50%;bottom:26px;transform:translate(-50%,10px);display:inline-flex;align-items:center;gap:8px;padding:9px 14px 9px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(13,16,22,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--ink);font:500 12px 'JetBrains Mono',monospace;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease,border-color .2s}
+#zback svg{width:16px;height:16px}
+#zback:hover,#zback:focus-visible{border-color:var(--brass);color:var(--brass)}
+body.focused #zback,body.zoomed #zback{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+@media (max-width:800px){#zback{left:12px;bottom:auto;top:58px;transform:none;padding:8px 12px 8px 9px}body.focused #zback,body.zoomed #zback{transform:none}}
 #top .ways{pointer-events:auto}
 #top .wayname{min-width:9em}
 #snd{pointer-events:auto;background:none;border:0;padding:10px 0;cursor:pointer;color:var(--mut);font:500 12px 'JetBrains Mono',monospace}
@@ -97,6 +112,25 @@ body.zoomed .hot[data-int].sel,body.zoomed #rail,body.zoomed #top .ways{opacity:
 #int-back{align-self:flex-start;margin-top:4px}
 #arm,#pan,#kick{touch-action:none;cursor:grab}#arm.grab,#pan.grab,#kick.grab{cursor:grabbing}
 body:not(.pitch) #kick{display:none}
+#kick.busy{opacity:0;pointer-events:none}
+#kick.hinting:not(.done)::before{animation-name:pulsepks}
+/* the first time hint on the pitch: a ghost fingertip pulls back from the ball on a dotted line and lets go, and a chevron flicks off toward goal. It never takes a touch */
+#pull{position:absolute;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .4s}
+#pull.on{opacity:1;transition:opacity .8s .6s}
+body:not(.pitch) #pull{display:none}
+#pull .pa{position:absolute;left:0;top:0;transform-origin:0 0}
+#pull i{position:absolute;left:0;top:0;display:block}
+#pull .pb{top:-1.5px;width:var(--L,60px);height:3px;background:radial-gradient(circle,rgba(236,204,140,1) 0 1.3px,transparent 1.7px) 0 50%/7px 3px repeat-x;filter:drop-shadow(0 0 1px rgba(0,0,0,.7));clip-path:inset(0 100% 0 0);animation:pullb 3.2s ease-in-out infinite}
+#pull .pt{width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:rgba(236,204,140,.24);border:2px solid rgba(240,214,156,.95);box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 12px rgba(220,184,114,.5);opacity:0;animation:pullt 3.2s ease-in-out infinite}
+#pull .pg{width:9px;height:9px;margin:-6px 0 0 -3px;border-left:2.5px solid #ecc88c;border-bottom:2.5px solid #ecc88c;filter:drop-shadow(0 0 1px rgba(0,0,0,.7));opacity:0;transform:translateX(-12px) rotate(45deg);animation:pullg 3.2s ease-out infinite}
+#pull .pl{position:absolute;left:0;top:0;white-space:nowrap;font:500 11px 'JetBrains Mono',monospace;color:var(--brass);background:rgba(10,14,18,.86);padding:3px 9px;border-radius:99px;border:1px solid rgba(220,184,114,.3)}
+@keyframes pullt{0%{opacity:0;transform:translateX(0) scale(1.35)}10%{opacity:1;transform:translateX(0) scale(1)}17%{transform:translateX(0)}47%{transform:translateX(var(--L,60px))}57%{opacity:1;transform:translateX(var(--L,60px))}60%{opacity:0;transform:translateX(var(--L,60px)) scale(.75)}100%{opacity:0;transform:translateX(var(--L,60px)) scale(.75)}}
+@keyframes pullb{0%,17%{clip-path:inset(0 100% 0 0)}47%,57%{clip-path:inset(0 0 0 0)}59.5%,100%{clip-path:inset(0 100% 0 0)}}
+@keyframes pullg{0%,58%{opacity:0;transform:translateX(-12px) rotate(45deg)}61%{opacity:1}78%,100%{opacity:0;transform:translateX(-44px) rotate(45deg)}}
+#pull.still .pt,#pull.still .pb,#pull.still .pg{animation:none}
+#pull.still .pt{opacity:.9;transform:translateX(var(--L,60px))}
+#pull.still .pb{clip-path:none}
+#pull.still .pg{opacity:.9;transform:translateX(-30px) rotate(45deg)}
 body:not(.deck) #arm{display:none}
 body:not(.cook) #pan{display:none}
 #arm::before,#pan::before,#kick::before{inset:13px;background:rgba(255,61,154,.3);border:2px solid #ff3d9a;box-shadow:0 0 0 0 rgba(255,61,154,.75);animation:pulsepk 1.5s ease-out infinite;transition:transform .2s,background .35s,border-color .35s,inset .35s}
@@ -335,6 +369,7 @@ body.focused #focus>*{pointer-events:auto}
   h1.name{font-size:54px}h2{font-size:28px}
 }
 @media (prefers-reduced-motion:reduce){.hot::before{animation:none}}
+@media (max-width:800px){#snd::before{display:none}#snd{font-size:12px;display:grid;place-items:center}}
 </style>
 </head>
 <body>
@@ -350,17 +385,15 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   <canvas id="gl" aria-label="A 3D mechanical watch that comes apart as you scroll" role="img"></canvas>
   <div id="spot"></div>
   <div id="scrim"></div>
-  <div id="load" role="status"><svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="52" fill="none" stroke="rgba(255,255,255,.14)"/><g id="ld-ticks"></g><circle class="arc" cx="66" cy="66" r="56" fill="none" stroke="#dcb872" stroke-width="1.5" transform="rotate(-90 66 66)"/><line id="ld-h" x1="66" y1="66" x2="66" y2="40" stroke="#eef1f4" stroke-width="2.4" stroke-linecap="round"/><line id="ld-m" x1="66" y1="66" x2="66" y2="24" stroke="#eef1f4" stroke-width="1.6" stroke-linecap="round"/><line class="sec" x1="66" y1="74" x2="66" y2="20" stroke="#dcb872" stroke-width="1"/><circle cx="66" cy="66" r="2.4" fill="#dcb872"/></svg><p class="flapline" aria-label="Would you still love me if I was a watch?"><span aria-hidden="true">Would you still</span><span class="flap" id="flap" aria-hidden="true"></span><span aria-hidden="true">me if I was a watch?</span></p><div class="msg"></div></div>
+  <button id="zback" aria-label="Zoom back out"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14M5 7h4"/></svg><span>Zoom out</span></button>
+  <div id="load" role="status"><svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="52" fill="none" stroke="rgba(255,255,255,.14)"/><g id="ld-ticks"></g><circle class="arc" cx="66" cy="66" r="56" fill="none" stroke="#dcb872" stroke-width="1.5" transform="rotate(-90 66 66)"/><line id="ld-h" x1="66" y1="66" x2="66" y2="40" stroke="#eef1f4" stroke-width="2.4" stroke-linecap="round"/><line id="ld-m" x1="66" y1="66" x2="66" y2="24" stroke="#eef1f4" stroke-width="1.6" stroke-linecap="round"/><line class="sec" x1="66" y1="74" x2="66" y2="20" stroke="#dcb872" stroke-width="1"/><circle cx="66" cy="66" r="2.4" fill="#dcb872"/></svg><p class="flapline" hidden style="display:none" aria-label="Would you still love me if I was a watch?"><span aria-hidden="true">Would you still</span><span class="flap" id="flap" aria-hidden="true"></span><span aria-hidden="true">me if I was a watch?</span></p><div class="msg"></div></div>
   <div id="intro"><button id="i-open" aria-label="Open the box"></button></div>
   <div id="wash" aria-hidden="true"></div>
   <div id="toast" role="status"></div>
   <div id="nudge" role="dialog" aria-label="A question" hidden><p id="nudge-t"></p><div class="links" id="nudge-btns"><button class="btn sm" id="nudge-talk">Talk to Nikhil already</button><button class="btn sm" id="nudge-shy">I’m shy</button></div></div>
-  <div id="top"><button id="home" aria-label="Home" title="Home"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 10 6.4 7.6M10 10l4.3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.1" fill="currentColor"/></svg></button><div class="ways" role="group" aria-label="Dial"><span class="small">Dial</span><button data-way="silver" aria-label="Opaline silver dial"></button><button data-way="orge" aria-label="Grain d'orge guilloché dial"></button><button data-way="sky" aria-label="Day and night dial"></button><button data-way="ecru" aria-label="Écru sector dial"></button><button data-way="snow" aria-label="Snowdrift dial"></button><span class="small wayname"></span></div><span class="tr"><button id="snd" aria-pressed="true">Sound</button><input id="vol" type="range" min="0" max="100" value="60" aria-label="Volume"><a href="#">Resume</a></span></div>
+  <div id="top"><button id="home" aria-label="Home" title="Home"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 10 6.4 7.6M10 10l4.3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.1" fill="currentColor"/></svg></button><div class="ways" role="group" aria-label="Dial"><span class="small">Dial</span><button data-way="silver" aria-label="Opaline silver dial"></button><button data-way="orge" aria-label="Grain d'orge guilloché dial"></button><button data-way="sky" aria-label="Day and night dial"></button><button data-way="ecru" aria-label="Écru sector dial"></button><button data-way="snow" aria-label="Snowdrift dial"></button><span class="small wayname"></span></div><span class="tr"><span class="sndw"><button id="snd" aria-pressed="true" aria-label="Sound on" data-lv="2"><svg viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h3l4-3.5v12l-4-3.5h-3z"/><path class="w1" d="M14 8.6a3.4 3.4 0 0 1 0 4.8"/><path class="w2" d="M16.4 6.2a6.8 6.8 0 0 1 0 9.6"/><path class="wx" d="M14.5 8.5l5 5M19.5 8.5l-5 5"/></svg></button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"></span><a href="#">Resume</a></span></div>
 
   <div id="hots">
-    <button class="hot" data-ch="2" data-k="sec" data-open="sec"><span>Articles</span></button>
-    <button class="hot" data-ch="2" data-k="moon" data-open="moon"><span>Projects</span></button>
-    <button class="hot" data-ch="2" data-k="date" data-open="date"><span>Film</span></button>
     <button class="hot" data-ch="6" data-k="i-soccer" data-int="soccer" aria-label="Football"></button>
     <button class="hot" data-ch="6" data-k="i-cooking" data-int="cooking" aria-label="Cooking and baking"></button>
     <button class="hot" data-ch="6" data-k="i-snow" data-int="snow" aria-label="Snowboarding"></button>
@@ -373,10 +406,9 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   <div id="copy">
     <section class="panel" data-ch="0">
       <h1 class="name" aria-label="Nikhil Kurmala"><span class="first" aria-hidden="true">Nikhil</span><span class="last" aria-hidden="true"><i>K</i><i>U</i><i>R</i><i>M</i><i>A</i><i>L</i><i>A</i></span></h1>
-      <div class="chips"><a href="#" data-jump="career">Career</a><a href="#" data-jump="projects">Projects</a><a href="#" data-jump="writing">Articles</a><a href="#" data-jump="film">Film</a><a href="#" data-jump="resume">Resume</a><a href="#" data-jump="contact">Contact</a></div>
     </section>
     <section class="panel" data-ch="1">
-      <div class="part">Strap, experience</div>
+      <div class="part">Experience</div>
       <h2>High velocity generalist</h2>
       <p><span class="sr">I’ve worn many caps over the years.</span><span aria-hidden="true">I’ve worn many <span class="fix" id="fix"><span class="was">straps</span><svg class="strike" viewBox="0 0 100 20" preserveAspectRatio="none"><path pathLength="1" vector-effect="non-scaling-stroke" d="M1 13.5C16 12 34 14.5 52 11.5S84 8.5 99 9"/></svg><span class="now">caps</span></span> over the years.</span></p>
       <div class="chips">
@@ -385,7 +417,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <div class="detail" style="min-height:0"><div class="part" id="s-name"></div><h3 id="s-title"></h3><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
     </section>
     <section class="panel" data-ch="2">
-      <div class="part">Dial</div>
+      <div class="part">Side projects</div>
       <h2>Selected work</h2>
       <p>Three complications, three kinds of work. Scroll and the camera takes you through each in turn.</p>
       <div class="rows work">
@@ -395,7 +427,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       </div>
     </section>
     <section class="panel" data-ch="6">
-      <div class="part">Caseback, under the hood</div>
+      <div class="part">Background and interests</div>
       <h2>What makes me tick</h2>
       <p id="int-hint">A few parts of this movement are not quite standard. Tap a dot to go in close.</p>
       <div class="detail" id="int-d" style="min-height:0" hidden><div class="part" id="int-k"></div><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><p id="int-score" hidden></p><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><button class="btn sm" id="int-needle">Drop the needle</button></div><button class="btn sm" id="int-back">Back to the movement</button></div>
@@ -407,7 +439,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       </div>
     </section>
     <section class="panel" data-ch="7">
-      <div class="part">Reassembled</div>
+      <div class="part">Contact</div>
       <h2>The full set</h2>
       <dl class="spec">
         <div><dt>Name</dt><dd>Nikhil Kurmala<span class="opt">. Senior Analyst, <a href="https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/" target="_blank" rel="noopener">Analysis Group</a>, San Francisco.</span></dd></div>
@@ -461,20 +493,20 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   if (typeof window.__flapEnd !== 'number') window.__flapEnd = Infinity;
   /* pacing: the question stays up long enough to read, counted from when it is really on screen (a cached page can be busy building the watch before
      it paints anything), each answer gets a beat, and the last one lands before the page opens. About five seconds in all */
-  var w = -1, shown = null, begun = false;
-  requestAnimationFrame(function () { shown = performance.now(); if (reduce && window.__flapEnd !== 0) window.__flapEnd = shown + 2500; });
-  if (reduce) return;
+  var w = -1, shown = null, begun = false, QUIET = true;   /* QUIET: the board and its question are put away for now; the ring alone runs for about two seconds. Set it to false to bring them back */
+  requestAnimationFrame(function () { shown = performance.now(); if ((reduce || QUIET) && window.__flapEnd !== 0) window.__flapEnd = shown + (QUIET ? 1900 : 2500); });
+  if (reduce && !QUIET) return;
   function next() { w++; if (w >= W.length) return; var last = w === W.length - 1; if (last && window.__flapEnd !== 0) window.__flapEnd = performance.now() + 250;   // the page comes in while the last word is still flipping: INVITE ME, as the box arrives
     to(W[w], function () { if (!last) setTimeout(next, HOLD[w]); }); }
-  function begin() { if (begun) return; begun = true; var now = performance.now(); setTimeout(next, Math.max(300, (shown === null ? now : shown) + BLANK - now)); }
+  function begin() { if (begun || QUIET || reduce) return; begun = true; var now = performance.now(); setTimeout(next, Math.max(300, (shown === null ? now : shown) + BLANK - now)); }
   /* the brass ring is the wait itself: it fills in step with the board, and closes as the page opens. Its estimate firms up when the last word starts */
-  (function () { var arc = document.querySelector('#load .arc'), p = 0, t0 = null, EST = 7000; function f(now) { if (t0 === null) t0 = shown === null ? now : shown; var end = isFinite(window.__flapEnd) && window.__flapEnd > 0 ? window.__flapEnd : t0 + EST, rdy = document.body.classList.contains('ready'), tgt = rdy ? 1 : Math.max(0, Math.min(0.97, (now - t0) / Math.max(400, end - t0)));
+  (function () { var arc = document.querySelector('#load .arc'), p = 0, t0 = null, EST = QUIET ? 1900 : 7000; function f(now) { if (t0 === null) t0 = shown === null ? now : shown; var end = isFinite(window.__flapEnd) && window.__flapEnd > 0 ? window.__flapEnd : t0 + EST, rdy = document.body.classList.contains('ready'), tgt = rdy ? 1 : Math.max(0, Math.min(0.97, (now - t0) / Math.max(400, end - t0)));
       p += (tgt - p) * (rdy ? 0.18 : 0.08); arc.style.strokeDashoffset = (352 * (1 - p)).toFixed(1); if (!(rdy && p > 0.998)) requestAnimationFrame(f); } requestAnimationFrame(f); })();
   window.__flapGo = begin;   // the page calls this after its first frame, so the board never stalls mid flip while the watch is being built
   setTimeout(begin, 3500);   // or it starts anyway, if that frame is slow or never comes
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.75a3088b.js"></script>
+<script src="./bundle.b4d58406.js"></script>
 </body>
 </html>

@@ -99,12 +99,12 @@ seed = 997550894;   // hand the shared dice on exactly as the stripes used to le
 
 /* ---------- content for the three complications ---------- */
 const DATA = {
-  date: { kicker: 'Film', hint: 'Next brings up the next frame.', items: ['Husky crossing', 'Counter seat', 'Snow platform', 'No parking', 'Limit 40', 'Carrera', 'Departures'].map((t, i) => ({ t, d: '[WHERE AND WHEN]. 35mm film.', r: i === 4 ? 1.418 : 0.705 })) },
-  moon: { kicker: 'Projects', hint: 'Next turns the disc to the next project.', items: [
+  date: { kicker: 'Date window, film', hint: 'Next brings up the next frame.', items: ['Husky crossing', 'Counter seat', 'Snow platform', 'No parking', 'Limit 40', 'Carrera', 'Departures'].map((t, i) => ({ t, d: '[WHERE AND WHEN]. 35mm film.', r: i === 4 ? 1.418 : 0.705 })) },
+  moon: { kicker: 'Moonphase, projects', hint: 'Next turns the disc to the next project.', items: [
     { t: 'Notch', d: 'A Mac notch app with agents built in. Drop in a resume or an article and get a summary.', link: 'See it' },
     { t: 'Overflow clone', d: '[ONE OR TWO LINES ON WHAT IT DOES]', link: 'See it' },
     { t: 'On device agents', d: 'Open source models running locally, on my own data.', link: 'See it' }] },
-  sec: { kicker: 'Articles', hint: 'Next steps the hand to the next article.', note: 'These are the bylined ones. I have ghostwritten many more.', items: [
+  sec: { kicker: 'Small seconds, articles', hint: 'Next steps the hand to the next article.', note: 'These are the bylined ones. I have ghostwritten many more.', items: [
     { t: "A Rare Vintage Panerai Radiomir 'Type A' ref.6152 Watch Auctioned For 226.000€", d: "Wrist Review, February 2019. A 1953 Radiomir that belonged to an Italian rear admiral sold for nearly twice its top estimate, and its case and movement came from Rolex.", link: 'Read it', url: 'https://wristreview.com/a-rare-vintage-panerai-radiomir-type-a-ref-6152-watch-auctioned-for-226-000e/' },
     { t: 'Ulysse Nardin Freak X Silicium Marquetry Watch', d: "Wrist Review, February 2019. Dials set from about 120 hand-fitted silicon pieces, on a watch with no hands: the movement itself turns once an hour and points to the minutes.", link: 'Read it', url: 'https://wristreview.com/ulysse-nardin-freak-x-silicium-marquetry-watch/' },
     { t: 'SIHH 2019: Piaget Polo S Green Dial Limited Edition Watch (Live Pics)', d: "Wrist Review, January 2019. The green dial Polo S from SIHH, limited to 500 pieces, on Piaget's thin in-house automatic.", link: 'Read it', url: 'https://wristreview.com/sihh-2019-piaget-polo-s-green-dial-limited-edition-watch-live-pics/' },
@@ -980,8 +980,7 @@ const tanAt = (V, c, r, s) => Math.atan2(V[1] - c[1], V[0] - c[0]) + s * Math.ac
    sharp inward corner, runs round the ratchet and out to the rim again. */
 const chain = (pts, r) => sdU(0, ...pts.slice(1).map((p, i) => sdS(pts[i], p, r)));
 const clickArc = Array.from({ length: 9 }, (_, i) => { const a = rad(lerp(231, 184, i / 8)); return [PB[0] + 5.22 * Math.cos(a), PB[1] + 5.22 * Math.sin(a)]; }), clickTip = [PB[0] - 4.18, PB[1]];   // a blade click: screwed down at one end, its beak in the ratchet
-/* the bridge's four big screws. The top one sits midway between the bridge's edge by the balance cock and the rotor's well, so its whole head lies on the frosted face with a margin all round */
-const NOTCH = [-2.9, -0.85], BIGS = [[-2.8, 11.05], [-12.15, 2.45], [-9.6, -8.2], [5.25, -10.45]];
+const NOTCH = [-2.9, -0.85], BIGS = [[-2.12, 11.0], [-12.15, 2.45], [-9.6, -8.2], [5.25, -10.45]];
 { const L = [], arc = (c, r, a0, a1, n) => { for (let i = 0; i <= n; i++) { const a = lerp(a0, a1, i / n); L.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]); } }, spl = (pts, n) => { new THREE.SplineCurve([L[L.length - 1]].concat(pts).map((p) => new THREE.Vector2(p[0], p[1]))).getPoints(n).slice(1).forEach((p) => L.push([p.x, p.y])); };
   const RL = 5.4, WL = 6.0, BC = RBS + 0.42, J = meet(MR, WL, PBAL, BC, -1), ang = (p, c) => Math.atan2(p[1] - c[1], p[0] - c[0]);
   arc(PC, 14.55, rad(99), rad(301), 110);
@@ -1305,6 +1304,7 @@ add(gBack, new THREE.RingGeometry(RI, RO, 160), mBackFace, 0, 0, ZBACK - 0.02).r
 add(gBack, new THREE.CircleGeometry(13.05, 96), M('back', Object.assign({}, glassP, { color: 0x090b10 })), 0, 0, ZB - 2.25).rotation.y = Math.PI;
 
 /* ---------- straps: one watch, many jobs ---------- */
+const RAIL = true;   // the straps hang on a brass rail beside the watch. false brings back the row of chips
 let natoP = 1;
 const gStrap = LAY.strap.g;
 /* strap surfaces are baked per pixel, in mm: a height field (it becomes the normal map), a colour and a roughness, then the seam and the scratches are drawn on top.
@@ -1454,7 +1454,7 @@ const STRAPS = {
     maps: (i) => petMaps({ H: Math.ceil(CALF.L[i] * SPX), holes: i ? CALF.holes : null, thread: '#dfe4e8', creases: [[3.4, 0.03, 0.4, 0.05]] }) },
   banking: { name: 'Brown cowhide', base: 0x5f3319, back: 0xffffff, rest: rad(-75), rests: [rad(-70), rad(-56)], len: true, droop: 0.42, k: 100, c: 16, th: [3.4, 2.0], w: [19.7, 16],
     maps: (i) => leatherMaps({ H: Math.ceil(CALF.L[i] * SPX), holes: i ? CALF.holes : null, cross: i ? null : [CALF.L[0] - 4.6], sd: 23, cell: 9, gw: 0.3, gh: 0.02, gcol: 0.04, pore: 0.16, foll: [0.7, 1], crown: 0.3, growth: i ? [[17, 0.022, 0.09], [34.5, 0.018, 0.08], [88, 0.018, 0.07]] : [[19.5, 0.022, 0.09], [47, 0.018, 0.08]], base: [112, 62, 33], hi: [158, 99, 56], wear: 0.9, mottle: 0.2, edge: 0.34, lug: 0.2, ro: 0.62, shine: 0.2, thread: '#d2c19c', shade: 1, scratches: 9, tone: '214,160,110', creases: [[3.2, 0.07, 0.34, 0.1], [4.6, 0.05, 0.3, 0.08], [7.9, 0.035, 0.3, 0.06], [9.6, 0.045, 0.4, 0.07], [12.4, 0.03, 0.4, 0.05], [24, 0.03, 0.45, 0.05], [27.5, 0.025, 0.4, 0.04]] }) },
-  writing: { name: 'Striped nylon', base: 0x16233f, rest: rad(-10), droop: 0.85, k: 290, c: 34, under: true, dz: 0.85, dy: 0.95, th: [1.3, 1.3], w: [19.7, 19.7], sheen: 0.3, sheenC: 0x9fb0d0, maps: natoMaps }
+  writing: { name: 'Striped nylon', base: 0x16233f, rest: rad(-10), droop: 0.85, k: 290, c: 34, under: true, sn: [26, 44], dz: 0.85, dy: 0.95, th: [1.3, 1.3], w: [19.7, 19.7], sheen: 0.3, sheenC: 0x9fb0d0, maps: natoMaps }
 };
 /* the cross-section, as [across, height]: a padded strap is domed between its seams and thin at its edges, webbing is flat with a rolled selvedge. Faces are one smooth sheet; groups are face, lining, edges (with the cut ends) */
 function ribbonGeo(center, width, thick, sy = 1, into, flat) {
@@ -1581,6 +1581,64 @@ const endGeo = (() => { const Rc = 19.62, hw = 9.82, a0 = Math.acos(hw / Rc), s 
   const g = new THREE.ExtrudeGeometry(s, { depth: 3.3, bevelEnabled: true, bevelThickness: 0.28, bevelSize: 0.28, bevelSegments: 1, curveSegments: 32 }); g.translate(0, 0, -3.58); uvMap(g, (u, v) => [v, u]);   // grain along the bracelet
   const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setZ(i, p.getZ(i) + 1.0 - 0.75 * (y - 17)); } g.computeVertexNormals(); return g; })();
 const steel2 = (geo, mats, parent) => { const m = new THREE.Mesh(geo, mats); m.castShadow = m.receiveShadow = true; parent.add(m); return m; };
+/* ----- the bracelet, whole: an end link and rows of three piece links on each side, and between them a compact folding clasp, a short cover with a flip lock and two thin blades that fold away inside it.
+   It is one chain of pins from the end link at twelve to the end link at six: end link, the twelve side's rows, blade 2, the middle hinge, blade 1, the cover, the six side's rows, end link.
+   Closed round the wrist the two blades lie folded under the cover; opened they straighten out, and the bracelet becomes a strip. Every way it can lie is the same pins with the joints turned ----- */
+const BRC = { p: 4.4, e: 1.2, nA: 12, nB: 12, Lc: 20.5, Lb1: 18.5, Lb2: 16.5, d1: 0.9, d2: 1.5 };   // link pitch, end link pin, rows each side, cover and blade lengths, how deep the blades lie under the cover
+BRC.m = BRC.nA + 2; BRC.S = BRC.nA + BRC.nB + 5;   // the middle hinge's pin, and the number of pieces between pins
+const brWrap = (x) => x - TAU * Math.round(x / TAU);
+/* closed on the wrist: the pins on an oval that leaves each lug in the end link's own line and wraps the wrist; the oval is sized until the six side's end link lands exactly on its lug */
+const BRSH = (() => { const P0 = [LH[0] - 0.6, LH[1] + 0.2], tn = Math.tan(-TH0), M = 2400;
+  const lay = (k) => { const zc = P0[1] - k * k * P0[0] / tn, a = Math.hypot(P0[0], (P0[1] - zc) / k), b = k * a, f0 = Math.atan2((P0[1] - zc) / b, P0[0] / a), f1 = -Math.PI - f0, P = [], N = [], U = [0];
+    for (let i = 0; i <= M; i++) { const f = lerp(f0, f1, i / M), c = Math.cos(f), s = Math.sin(f), gy = c / a, gz = s / b, gl = Math.hypot(gy, gz); P.push([a * c, zc + b * s]); N.push([-gy / gl, -gz / gl]); if (i) U.push(U[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1])); }
+    const at = (u, d = 0) => { u = clamp(u, 0, U[M]); let lo = 0, hi = M; while (hi - lo > 1) { const md = (lo + hi) >> 1; if (U[md] <= u) lo = md; else hi = md; } const t = (u - U[lo]) / (U[hi] - U[lo] || 1); return [lerp(P[lo][0], P[hi][0], t) + d * lerp(N[lo][0], N[hi][0], t), lerp(P[lo][1], P[hi][1], t) + d * lerp(N[lo][1], N[hi][1], t)]; };
+    const next = (q, u0, L, d = 0) => { let lo = u0, hi = u0 + L + 4; for (let it = 0; it < 40; it++) { const md = (lo + hi) / 2, p = at(md, d); if (Math.hypot(p[0] - q[0], p[1] - q[1]) < L) lo = md; else hi = md; } return hi; };
+    const pts = [P0.slice()]; let u = next(P0, 0, BRC.e); pts.push(at(u));
+    for (let r = 1; r < BRC.nA; r++) { u = next(pts[pts.length - 1], u, BRC.p); pts.push(at(u)); }
+    const uH = next(pts[pts.length - 1], u, BRC.p, BRC.d2), u1 = uH - (BRC.Lb1 - BRC.Lb2); pts.push(at(uH, BRC.d2));   /* the last row dips under the cover to the end of blade 2 */
+    pts.push(at(u1 + BRC.Lb1, (BRC.d1 + BRC.d2) / 2)); pts.push(at(u1, BRC.d1 / 2)); u = u1 + BRC.Lc; pts.push(at(u));
+    for (let r = 0; r < BRC.nB; r++) { u = next(pts[pts.length - 1], u, BRC.p); pts.push(at(u)); }
+    pts.push([-P0[0], P0[1]]); const m0 = at(u1 + BRC.Lc / 2), c0 = at(u1), c1 = at(u1 + BRC.Lc), cl = Math.hypot(c1[0] - c0[0], c1[1] - c0[1]), sag = Math.abs((c1[0] - c0[0]) * (m0[1] - c0[1]) - (c1[1] - c0[1]) * (m0[0] - c0[0])) / cl;
+    return { pts, res: U[M] - u - BRC.e, a, b, zc, k, sag }; };
+  let lo = 0.3, hi = 2.2, r = lay(1); for (let it = 0; it < 48; it++) { const md = (lo + hi) / 2; r = lay(md); if (r.res > 0) hi = md; else lo = md; }
+  r.L = []; for (let j = 0; j < BRC.S; j++) r.L.push(Math.hypot(r.pts[j + 1][0] - r.pts[j][0], r.pts[j + 1][1] - r.pts[j][1])); return r; })();
+/* a pose: where the middle hinge is, which way blade 1 points, and how much each joint is turned from the piece before it. The two hinges either side of blade 1 fold right over when the clasp is shut,
+   one each way, so their turns are kept on the side they fold to and never read back from the points */
+const brAng = (c, j) => Math.atan2(c[j + 1][1] - c[j][1], c[j + 1][0] - c[j][0]);
+function brPose(c, fl) { const S = BRC.S, ph = new Float64Array(S); for (let j = 1; j < S; j++) ph[j] = brWrap(brAng(c, j) - brAng(c, j - 1)); return { r: c[BRC.m].slice(), a: brAng(c, BRC.m), ph, fl }; }
+const brCopy = (P, Q) => { Q = Q || { r: [0, 0], a: 0, ph: new Float64Array(BRC.S), fl: 0 }; Q.r[0] = P.r[0]; Q.r[1] = P.r[1]; Q.a = P.a; Q.ph.set(P.ph); Q.fl = P.fl; return Q; };
+function brPts(P, out) { const m = BRC.m, L = BRSH.L; out[m][0] = P.r[0]; out[m][1] = P.r[1]; let th = P.a;
+  for (let j = m; j < BRC.S; j++) { if (j > m) th += P.ph[j]; out[j + 1][0] = out[j][0] + L[j] * Math.cos(th); out[j + 1][1] = out[j][1] + L[j] * Math.sin(th); }
+  th = P.a; for (let j = m - 1; j >= 0; j--) { th -= P.ph[j + 1]; out[j][0] = out[j + 1][0] - L[j] * Math.cos(th); out[j][1] = out[j + 1][1] - L[j] * Math.sin(th); } return out; }
+const BRWP = (() => { const P = brPose(BRSH.pts, 1), m = BRC.m; if (P.ph[m] < 0) P.ph[m] += TAU; if (P.ph[m + 1] > 0) P.ph[m + 1] -= TAU; return P; })();   // shut: blade 2 turns back under blade 1, blade 1 back under the cover
+/* the pose on the watch, the end links lifted off the lugs by lift (the whole bracelet drops away from the case) */
+const brWornP = (lift, Q) => { Q = brCopy(BRWP, Q); Q.r[1] -= lift; return Q; };
+/* between two poses: the links turn with t, the clasp keeps its own time. Coming off it opens early (the safety first, then the blades); going on it shuts late, the safety last */
+function brMix(A, B, t, on, Q) { const m = BRC.m, cl = on ? sSmooth((t - 0.45) / 0.47) : sSmooth((t - 0.06) / 0.4), fl = on ? sSmooth((t - 0.86) / 0.13) : sSmooth(t / 0.14);
+  Q.r[0] = lerp(A.r[0], B.r[0], t); Q.r[1] = lerp(A.r[1], B.r[1], t); Q.a = A.a + brWrap(B.a - A.a) * t; Q.fl = lerp(A.fl, B.fl, fl);
+  const tl = on ? sSmooth(t * 1.35) : t; for (let j = 1; j < BRC.S; j++) Q.ph[j] = lerp(A.ph[j], B.ph[j], j >= m - 1 && j <= m + 2 ? cl : tl); return Q; }   /* going on, the links curl round early, so the long strip never sweeps the page */
+/* a clasp plate: w wide, t thick, L between its pins, bowed by sag toward its outer face (local z) to follow the wrist. Brushed faces, polished edges and ends */
+function brPlate(w, L, t, sag, r) { const sec = []; [[1, 1], [-1, 1], [-1, -1], [1, -1]].forEach(([sx, sz], q) => { for (let k = 0; k <= 3; k++) { const f = (q + k / 3) * Math.PI / 2; sec.push([sx * (w / 2 - r) + r * Math.cos(f), sz * (t / 2 - r) + r * Math.sin(f)]); } });
+  const ns = sec.length, ny = 16, pos = [], uv = [], iF = [], iE = [], bow = (y) => sag * (1 - 4 * y * y / (L * L)), flat = (k) => Math.abs(Math.abs(sec[k][1]) - t / 2) < 1e-4;
+  for (let i = 0; i <= ny; i++) { const y = -L / 2 + L * i / ny; sec.forEach(([x, z]) => { pos.push(x, y, z + bow(y)); uv.push(y / 20, x / 20 + 0.5); }); }
+  for (let i = 0; i < ny; i++) for (let k = 0; k < ns; k++) { const a = i * ns + k, b = i * ns + (k + 1) % ns, c = a + ns, d = b + ns; (flat(k) && flat((k + 1) % ns) ? iF : iE).push(a, c, b, b, c, d); }
+  [0, ny].forEach((i) => { const o = pos.length / 3, y = -L / 2 + L * i / ny; pos.push(0, y, bow(y)); uv.push(0.5, 0.5); sec.forEach(([x, z]) => { pos.push(x, y, z + bow(y)); uv.push(0.5 + x / 20, 0.5 + z / 20); }); for (let k = 0; k < ns; k++) i ? iE.push(o, o + 1 + (k + 1) % ns, o + 1 + k) : iE.push(o, o + 1 + k, o + 1 + (k + 1) % ns); });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(iF.concat(iE)); g.addGroup(0, iF.length, 0); g.addGroup(iF.length, iE.length, 1); g.computeVertexNormals(); return g; }
+/* seen from the back, whatever of the bracelet lies between the eye and the caseback thins to a faint steel outline, so the back reads through it. A piece that may cover the back wears a twin of its
+   material that works this out pixel by pixel: the line of sight through the pixel, carried on to the plane of the caseback, lands inside it or not. Everything else stays solid */
+const GHU = { uGhM: { value: new THREE.Matrix4() }, uGhC: { value: new THREE.Vector3() }, uGhP: { value: new THREE.Vector4(0, ZBACK, 20.5, 3.5) } };   // world to the strap frame; the eye in that frame; [on, the back's plane, its radius, the soft edge]
+const mLinkBG = M('strap', Object.assign({}, brushP, { roughness: 0.9, transparent: true, depthWrite: false })), mLinkPG = M('strap', { color: STEEL, metalness: 0.9, roughness: 0.3, roughnessMap: scuffTex, envMapIntensity: 1.25, transparent: true, depthWrite: false });
+mLinkBG.normalScale.set(0.24, 0.24);
+const ghostPatch = (m) => { m.customProgramCacheKey = () => 'brGhost'; m.onBeforeCompile = (s) => { Object.assign(s.uniforms, GHU);
+  s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nuniform mat4 uGhM; varying vec3 vGhP;').replace('#include <project_vertex>', '#include <project_vertex>\nvGhP = (uGhM * modelMatrix * vec4(transformed, 1.0)).xyz;');
+  s.fragmentShader = s.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uGhC; uniform vec4 uGhP; varying vec3 vGhP;').replace('#include <opaque_fragment>', `{ float gh = 0.0; vec3 gd = vGhP - uGhC;
+  if (uGhC.z < uGhP.y && vGhP.z < uGhP.y + 0.5 && gd.z > 1e-4) { vec3 gq = uGhC + gd * ((uGhP.y - uGhC.z) / gd.z); gh = (1.0 - smoothstep(uGhP.z - uGhP.w, uGhP.z + uGhP.w, length(gq.xy))) * smoothstep(0.02, 0.16, (uGhP.y - uGhC.z) / length(gd)); }
+  float gr = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition))); diffuseColor.a *= mix(1.0, 0.06 + 0.5 * gr * gr, gh * uGhP.x); }
+#include <opaque_fragment>`); }; return m; };
+[mLinkBG, mLinkPG].forEach(ghostPatch);
+/* the NATO's own steel (its buckle and keepers), with its ghost twin */
+const mNatoSt = M('strap', { color: 0xd4d6d9, metalness: 1, roughness: 0.16, envMapIntensity: 1.3, side: THREE.DoubleSide }), mNatoStG = ghostPatch(M('strap', { color: 0xd4d6d9, metalness: 1, roughness: 0.16, envMapIntensity: 1.3, side: THREE.DoubleSide, transparent: true, depthWrite: false }));
+const GHT = new Map([[mLinkB, mLinkBG], [mLinkP, mLinkPG], [mNatoSt, mNatoStG]]);
 const edgeTint = tex(4, (g, S) => { g.fillStyle = '#b6b6b6'; g.fillRect(0, 0, S, S); });   // edge paint: the strap's own colour, a good deal darker
 /* the bloom on a napped leather is its own dye, lifted and a little washed out: fibres standing on end scatter light back at grazing angles */
 const napSheen = (out, c) => { const m = Math.max(c.r, c.g, c.b, 0.02), k = 0.75 / m; out.setRGB(lerp(c.r * k, 0.75, 0.35), lerp(c.g * k, 0.75, 0.35), lerp(c.b * k, 0.75, 0.35)); };
@@ -1593,9 +1651,36 @@ function dress(st) { if (st.dressed || !st.maps) return; st.dressed = true;
 function makeStrap(st, sy) {
   const g = new THREE.Group(); gStrap.add(g); const bar = add(g, barGeo, mBar), tips = add(g, tipGeo, mBar);
   const seat = (lift) => { bar.position.set(0, sy * (LH[0] + HEAD[0] * lift), LH[1] + HEAD[1] * lift); tips.position.copy(bar.position); tips.visible = lift < 0.05; };
-  if (st.links) { const end = steel2(endGeo, [mLinkB, mLinkP], g), links = []; if (sy < 0) end.rotation.z = Math.PI;
-    for (let i = 0; i < 7; i++) { const taper = lerp(1, 0.86, i / 6); [-1, 1].forEach((sx) => { const m = steel2(linkGeo[0], [mLinkP, mLinkB], g); m.scale.x = taper; links.push({ m, s: 3.4 + i * 4.4, x: sx * 7.35 * taper }); }); const m = steel2(linkGeo[1], [mLinkP, mLinkB], g); m.scale.x = taper; links.push({ m, s: 5.45 + i * 4.4, x: 0 }); }
-    return { sy, obj: g, update(c, lift) { seat(lift); end.position.set(0, sy * HEAD[0] * lift, HEAD[1] * lift); links.forEach((L) => { const o = along(c, L.s); L.m.position.set(L.x, sy * o.y, o.z); L.m.rotation.x = sy * o.ang; }); } }; }
+  if (st.links) { bar.visible = tips.visible = false; if (sy < 0) return { sy, obj: g, update() {} };   /* the bracelet is one piece, built on the twelve side; the six side is an empty place holder */
+    const L = BRSH.L, S = BRC.S, m = BRC.m, parts = [], twin = (x) => Array.isArray(x) ? x.map((y) => GHT.get(y) || y) : GHT.get(x) || x;
+    const put = (geo, mats, par) => { const x = steel2(geo, mats, par); if (!geo.boundingSphere) geo.computeBoundingSphere(); parts.push({ m: x, sol: mats, gho: twin(mats), g: false, c: geo.boundingSphere.center, rad: geo.boundingSphere.radius }); return x; };   /* each piece's own middle and reach, for deciding which may cover the back */
+    /* the end links, each with its spring bar, cut to the case: they ride rigidly on the first and the last piece of the chain */
+    const ends = [0, 1].map((k) => { const e = new THREE.Group(); g.add(e); const end = put(endGeo, [mLinkB, mLinkP], e), b = add(e, barGeo, mBar), t = add(e, tipGeo, mBar); if (k) end.rotation.z = Math.PI; b.position.set(0, (k ? -1 : 1) * LH[0], LH[1]); t.position.copy(b.position); return { e, t }; });
+    /* the rows: two outer links on each pitch, a centre link over each joint between them, tapering from the lugs to the clasp */
+    const tA = (r, n) => lerp(1, 0.82, r / (n - 1)), rows = [], cens = [];
+    for (let j = 1; j <= BRC.nA; j++) rows.push({ j, k: tA(j - 1, BRC.nA) });
+    for (let j = m + 2; j <= S - 2; j++) rows.push({ j, k: tA(S - 2 - j, BRC.nB) });
+    for (let p = 2; p <= BRC.nA; p++) cens.push({ p, k: (tA(p - 2, BRC.nA) + tA(p - 1, BRC.nA)) / 2 });
+    for (let p = m + 3; p <= S - 2; p++) cens.push({ p, k: (tA(S - 2 - p, BRC.nB) + tA(S - 1 - p, BRC.nB)) / 2 });
+    rows.forEach((R) => { R.o = [-1, 1].map((sx) => { const x = put(linkGeo[0], [mLinkP, mLinkB], g); x.scale.x = R.k; return { x, sx }; }); });
+    cens.forEach((C) => { C.o = put(linkGeo[1], [mLinkP, mLinkB], g); C.o.scale.x = C.k; });
+    /* the clasp, after the Oyster pattern: a short cover no longer than four or five links and no thicker than they are, its top flush with them, polished down the middle and satin on the
+       shoulders, with shallow skirts down its sides. The two thin blades fold away inside it (blade 1 hinged to the cover, blade 2 to blade 1 and to the twelve side's last row), and a small
+       polished flip lock lies on its end */
+    const cover = new THREE.Group(), b1 = new THREE.Group(), b2 = new THREE.Group(), flap = new THREE.Group(); [cover, b1, b2].forEach((x) => g.add(x));
+    const CL = L[m + 1], sg = BRSH.sag, cw = 16.4, mid = 7.9, sh = (cw - mid) / 2;
+    put(brPlate(mid, CL, 1.0, sg, 0.18), [mLinkP, mLinkP], cover).position.z = 1.0;
+    [-1, 1].forEach((sx) => { put(brPlate(sh, CL, 1.0, sg, 0.18), [mLinkB, mLinkP], cover).position.set(sx * (mid + sh) / 2, 0, 1.0); put(brPlate(0.7, CL - 0.6, 2.9, sg, 0.2), [mLinkP, mLinkB], cover).position.set(sx * (cw / 2 - 0.35), 0, -0.35); });
+    put(brPlate(9, L[m], 0.55, 0, 0.2), [mLinkB, mLinkP], b1); put(brPlate(9, L[m - 1], 0.55, 0, 0.2), [mLinkB, mLinkP], b2);
+    [[0.5, 9.4, b1, L[m]], [0.55, 14.6, cover, CL], [0.5, 9.4, b2, L[m - 1]]].forEach(([r, w, par, l]) => { put(new THREE.CylinderGeometry(r, r, w, 14).rotateZ(Math.PI / 2), mLinkP, par).position.y = -l / 2; });   // the hinge pins
+    flap.position.set(0, -CL / 2 - 0.3, 1.2); cover.add(flap); put(brPlate(mid + 0.5, 4.8, 0.75, 0, 0.3), [mLinkP, mLinkP], flap).position.set(0, 2.4, 0.72); put(new THREE.CylinderGeometry(0.55, 0.55, mid + 0.5, 12).rotateZ(Math.PI / 2), mLinkP, flap);
+    const ang = (c, j) => Math.atan2(c[j + 1][1] - c[j][1], c[j + 1][0] - c[j][0]), seg = (o, c, j) => { o.position.set(0, (c[j][0] + c[j + 1][0]) / 2, (c[j][1] + c[j + 1][1]) / 2); o.rotation.x = ang(c, j); };
+    const P0 = BRSH.pts[0], PS = BRSH.pts[S];
+    return { sy, obj: g, parts, ends, fl: 1, onW: false, update(c, lift) {
+      [[0, 0, TH0, c[0], P0], [1, S - 1, -TH0, c[S], PS]].forEach(([k, j, a0, P, Q]) => { const E = ends[k].e, d = ang(c, j) - a0, cs = Math.cos(d), sn = Math.sin(d); E.rotation.x = d; E.position.set(0, P[0] - (Q[0] * cs - Q[1] * sn), P[1] - (Q[0] * sn + Q[1] * cs)); ends[k].t.visible = this.onW && lift < 0.05; });
+      rows.forEach((R) => { const j = R.j, y = (c[j][0] + c[j + 1][0]) / 2, z = (c[j][1] + c[j + 1][1]) / 2, a = ang(c, j); R.o.forEach((o) => { o.x.position.set(o.sx * 7.35 * R.k, y, z); o.x.rotation.x = a; }); });
+      cens.forEach((C) => { const a1 = ang(c, C.p - 1), a = a1 + brWrap(ang(c, C.p) - a1) / 2; C.o.position.set(0, c[C.p][0], c[C.p][1]); C.o.rotation.x = a; });
+      seg(b2, c, m - 1); seg(b1, c, m); seg(cover, c, m + 1); flap.rotation.x = -2.5 * (1 - this.fl); } }; }   /* open, the flip lock stands back off the cover */
   if (!st.mat) { const cloth = st.sheen ? { sheen: st.sheen, sheenRoughness: st.sheenR || 0.5, sheenColor: new THREE.Color(st.sheenC ?? 0xffffff) } : {}, lp = { color: st.back, map: null, normalMap: null, metalness: 0, roughness: 0.9, side: THREE.DoubleSide, envMapIntensity: 0.4 };
     st.mat = M('strap', Object.assign({ map: null, normalMap: null, roughnessMap: null, metalness: 0, roughness: 1, side: THREE.DoubleSide, envMapIntensity: 0.6 }, cloth), !!st.sheen);
     st.matEnd = M('strap', Object.assign({ color: st.base, metalness: 0, roughness: st.under ? 0.9 : st.edgeRo || 0.5, side: THREE.DoubleSide, envMapIntensity: 0.5 }, st.under ? {} : { map: edgeTint }));
@@ -1609,7 +1694,7 @@ function makeStrap(st, sy) {
     return { sy, obj: g, update(c, lift) { seat(lift); tube.position.set(0, sy * (c[0][0] + 0.25), c[0][1]); ribbonGeo(c, wf, tf, sy, geo); } }; }
   if (st.under) {   // one piece of webbing: over the 12 o'clock bar, down behind it, flat under the caseback, up behind the 6 o'clock bar and away
     if (sy < 0) return { sy, obj: g, update(c, lift) { seat(lift); st.cs[-1] = c; st.thread(lift); } };
-    st.cs = { 1: strapCenter(st.rest, 0, 0, st.dz, st.dy), [-1]: strapCenter(st.rest, 0, 0, st.dz, st.dy) }; const WR = 9, UN = 25;
+    st.cs = { 1: strapCenter(st.rest, 0, 0, st.dz, st.dy, st.sn[0]), [-1]: strapCenter(st.rest, 0, 0, st.dz, st.dy, st.sn[1]) }; const WR = 9, UN = 25;
     const loop = (lift) => { const zb = ZBACK - 0.78 - lift * 0.9, out = [], side = (sg) => { const c = st.cs[sg], p0 = [15.2, zb], p1 = c[0], dl = Math.hypot(c[1][0] - c[0][0], c[1][1] - c[0][1]), m1 = [5 * (c[1][0] - c[0][0]) / dl, 5 * (c[1][1] - c[0][1]) / dl], pts = [];
         for (let i = 0; i < WR; i++) { const t = (i + 1) / (WR + 1), a = 2 * t * t * t - 3 * t * t + 1, b = t * t * t - 2 * t * t + t, d = -2 * t * t * t + 3 * t * t, e = t * t * t - t * t; pts.push([a * p0[0] + b * 5 + d * p1[0] + e * m1[0], a * p0[1] + d * p1[1] + e * m1[1]]); } return pts.concat(c).map((p) => [sg * p[0], p[1]]); };
       side(-1).reverse().forEach((p) => out.push(p)); for (let i = 0; i < UN; i++) out.push([-15.2 + 30.4 * i / (UN - 1), zb]); side(1).forEach((p) => out.push(p));
@@ -1619,21 +1704,74 @@ function makeStrap(st, sy) {
         const shift = (1 - natoP) * cum[cum.length - 1]; let j = 1;
         for (let i = 0; i < n; i++) { const a = Math.max(0, cum[i + 1] - shift); while (j < E.length - 1 && cum[j] < a) j++; const t = cum[j] > cum[j - 1] ? clamp((a - cum[j - 1]) / (cum[j] - cum[j - 1]), 0, 1) : 0; out[n - 1 - i] = [lerp(E[j - 1][0], E[j][0], t), lerp(E[j - 1][1], E[j][1], t)]; } }
       return out; };
-    const geo = ribbonGeo(loop(0), () => st.w[0], () => st.th[0], 1, null, true), m = steel2(geo, [st.mat, st.mat, st.matEnd], g); m.frustumCulled = false; m.castShadow = false; st.thread = (lift) => ribbonGeo(loop(lift), () => st.w[0], () => st.th[0], 1, geo, true);
+    const geo = ribbonGeo(loop(0), () => st.w[0], () => st.th[0], 1, null, true), m = steel2(geo, [st.mat, st.mat, st.matEnd], g); m.frustumCulled = false; m.castShadow = false; st.natoMesh = m; st.thread = (lift) => { st.path = loop(lift); ribbonGeo(st.path, () => st.w[0], () => st.th[0], 1, geo, true); natoHard(st, false); }; st.loop = loop; st.geo = geo;
+    /* its hardware, on the end at twelve (the end that never passes under the bars): a steel pin buckle with the webbing turned round its bar, and two flat steel keepers behind it */
+    { const hw = st.hw = { parts: [], keeps: [] }, pt = (x) => { hw.parts.push({ m: x, sol: mNatoSt, gho: mNatoStG, g: false, c: (x.geometry.boundingSphere || (x.geometry.computeBoundingSphere(), x.geometry.boundingSphere)).center, rad: x.geometry.boundingSphere.radius }); return x; };
+      const b = hw.buck = gBuckle.clone(true); b.children.slice().forEach((ch) => { if (ch.isMesh && ch.material === STRAPS.consulting.ml) b.remove(ch); }); b.traverse((x) => { if (x.isMesh) { x.material = mNatoSt; x.castShadow = false; pt(x); } }); b.scale.x = 1.27; m.add(b);
+      const fold = hw.fold = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 19.7 / 1.27, 16).rotateZ(Math.PI / 2), st.matEnd); b.add(fold);
+      const hw2 = 10.25, b0 = -0.85, b1 = 2.35, t = 0.9, sh = new THREE.Shape(), rr = (P, x0, y0, x1, y1, r) => { P.moveTo(x0 + r, y0); P.lineTo(x1 - r, y0); P.quadraticCurveTo(x1, y0, x1, y0 + r); P.lineTo(x1, y1 - r); P.quadraticCurveTo(x1, y1, x1 - r, y1); P.lineTo(x0 + r, y1); P.quadraticCurveTo(x0, y1, x0, y1 - r); P.lineTo(x0, y0 + r); P.quadraticCurveTo(x0, y0, x0 + r, y0); };
+      rr(sh, -hw2 - t, b0 - t, hw2 + t, b1 + t, 1.1); const ho = new THREE.Path(); rr(ho, -hw2, b0, hw2, b1, 0.5); sh.holes.push(ho);
+      const kg = new THREE.ExtrudeGeometry(sh, { depth: 2.2, bevelEnabled: true, bevelThickness: 0.15, bevelSize: 0.15, bevelSegments: 1, curveSegments: 5 }); kg.translate(0, 0, -1.1); kg.applyMatrix4(new THREE.Matrix4().makeBasis(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, -1, 0)));
+      [7, 15].forEach((d) => { const k = pt(new THREE.Mesh(kg, mNatoSt)); m.add(k); hw.keeps.push({ m: k, d }); }); st.matG = [st.mat, st.matEnd].map((x) => { const g2 = ghostPatch(x.clone()); g2.userData = { src: x }; g2.transparent = true; return g2; }); }
     return { sy, obj: g, update(c, lift) { seat(lift); st.cs[1] = c; } }; }
   const geo = ribbonGeo(strapCenter(st.rest, 0), w, th, sy), m = steel2(geo, [st.mat, sy > 0 ? st.matBack : st.matBackM, st.matEnd], g); m.frustumCulled = false; m.castShadow = false;   // a domed sheet shadowing itself only makes acne; the case still shades it
   const tr = st.th[0] * 0.47, tube = add(g, uvMap(new THREE.CylinderGeometry(tr, tr, st.w[0] - 0.1, 20).rotateZ(Math.PI / 2), (u, v) => [v, (0.25 + 2.2 * Math.abs(2 * u - 1)) / 19.7]), st.mat);   // the strap end folded round its spring bar, in the clean leather above the seam
   return { sy, obj: g, update(c, lift) { seat(lift); tube.position.set(0, sy * (c[0][0] + 0.25), c[0][1]); ribbonGeo(c, w, th, sy, geo); } };
 }
 Object.values(STRAPS).forEach((st) => { st.objs = [1, -1].map((sy) => { const o = makeStrap(st, sy); o.obj.visible = false; return o; }); });
+const BRT0 = brCopy(BRWP), BRB0 = BRSH.pts.map((p) => p.slice());
+/* every frame, the bracelet's ghost: eased on while it is worn; a piece that may lie over the back takes its ghost twin, with a margin each way so none flickers between the two, and casts no shadow on the back */
+const brV = new THREE.Vector3(), brMi = new THREE.Matrix4();
+/* the buckle and the keepers ride on the webbing's last rows, whichever way it is being laid: flat in the watch's own section (st.path), or row by row through space (the rows ribbon3 keeps) */
+const nhM = new THREE.Matrix4(), nhT = new THREE.Vector3();
+function natoHard(st, rows3) { const hw = st.hw; if (!hw) return; const n = rows3 ? NT.rows.length : st.path.length;
+  const put = (obj, d, sx) => { const i = clamp(n - 1 - Math.round(d / SSTEP), 1, n - 1);
+    if (rows3) { const R = NT.rows, r = R[i]; nhT.subVectors(R[Math.min(n - 1, i + 1)].p, R[i - 1].p).normalize(); nhM.makeBasis(r.x, nhT, r.n); obj.quaternion.setFromRotationMatrix(nhM); obj.position.copy(r.p); obj.scale.set(sx * NT.rG[i], NT.rG[i], NT.rG[i]); }
+    else { const P = st.path, a = P[i - 1], b = P[Math.min(n - 1, i + 1)], p = P[i]; obj.position.set(0, p[0], p[1]); obj.rotation.set(Math.atan2(b[1] - a[1], b[0] - a[0]), 0, 0); obj.scale.set(sx, 1, 1); } };
+  put(hw.buck, 0, 1.27); hw.keeps.forEach((K) => put(K.m, K.d, 1)); }
+function braceTick(dt) { const o = STRAPS.engineering.objs[0], U = GHU.uGhP.value, sn = STRAPS.writing, wornB = o.onW && o.obj.parent === gStrap && o.obj.visible && LAY.strap.o > 0.01, wornN = strapNow === 'writing' && LAY.strap.o > 0.01 && (!RAIL || RS.writing.state === 'worn'), worn = wornB || wornN;
+  U.x += ((worn ? 1 : 0) - U.x) * (snap ? 1 : 1 - Math.exp(-dt * 5)); if (U.x < 0.002) U.x = 0;
+  gStrap.updateWorldMatrix(true, false); brMi.copy(gStrap.matrixWorld).invert(); GHU.uGhM.value.copy(brMi); const C = GHU.uGhC.value.copy(camera.position).applyMatrix4(brMi);
+  const each = (parts, back) => { for (const P of parts) { let v = 0; if (back) { P.m.localToWorld(brV.copy(P.c)).applyMatrix4(brMi); const dz = brV.z - C.z; if (brV.z < ZBACK + 1 + P.rad && dz > 1e-3) { const t = (ZBACK - C.z) / dz, r = Math.hypot(C.x + (brV.x - C.x) * t, C.y + (brV.y - C.y) * t) - P.rad * Math.max(1, t); v = (1 - sSmooth((r - 19) / 8)) * sSmooth((ZBACK - C.z) / brV.distanceTo(C) / 0.12) * U.x; } }   /* the nearest the piece could come to the back's middle, seen along the line of sight */
+    const g = P.g ? v > 0.004 : v > 0.015; if (g !== P.g) { P.g = g; P.m.material = g ? P.gho : P.sol; P.m.castShadow = !g && parts === o.parts; } } };
+  each(o.parts, wornB && U.x > 0 && C.z < ZBACK); if (!sn.hw) return; const backN = wornN && U.x > 0 && C.z < ZBACK - 0.5; each(sn.hw.parts, backN);
+  /* the webbing is one piece: seen from behind it wears its twin whole, which thins only where the line of sight lands on the back */
+  const mesh = sn.natoMesh; if (backN !== !!sn.gOn) { sn.gOn = backN; mesh.material = backN ? [sn.matG[0], sn.matG[0], sn.matG[1]] : [sn.mat, sn.mat, sn.matEnd]; sn.hw.fold.material = backN ? sn.matG[1] : sn.matEnd; }
+  if (backN) sn.matG.forEach((g) => { const x = g.userData.src; g.opacity = LAY.strap.o; g.depthWrite = true; if (g.map !== x.map) { g.map = x.map; g.normalMap = x.normalMap; g.roughnessMap = x.roughnessMap; g.needsUpdate = true; } g.color.copy(x.color); }); }
 seed = 77;   // leave the shared random sequence where the dial expects it
 dress(STRAPS.consulting); { const rest = Object.values(STRAPS), idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump || performance.now() - (window.__act || 0) < 3000) { setTimeout(next, 700); return; } const st = rest.find((q) => q.maps && !q.dressed); if (st) { dress(st); idle(next); } }; setTimeout(() => idle(next), 1200); }
 let pendTint = null, tintHold = false, strapNow = 'consulting', strapNext = null, swapT = -1, swapHold = false; STRAPS[strapNow].objs.forEach((o) => { o.obj.visible = true; });
 /* the leather takes a new colour only when the strap tool has it off the watch: a dial that brings its own leather asks for it here, and the swap fits it */
 function tintNow() { if (pendTint == null) return; const sc = STRAPS.consulting; sc.mat.color.setHex(pendTint); sc.matEnd.color.setHex(pendTint); pendTint = null; }
-function retint(hex) { const sc = STRAPS.consulting; pendTint = sc.mat.color.getHex() === hex ? null : hex; if (pendTint == null) return; if (snap || !wayFlash || document.body.classList.contains('intro') || strapNow !== 'consulting') { tintNow(); return; } if (!tintHold) setStrap('consulting'); }
-function showStrap(k) { tintNow(); dress(STRAPS[k]); STRAPS[strapNow].objs.forEach((o) => { o.obj.visible = false; }); strapNow = k; STRAPS[k].objs.forEach((o) => { o.obj.visible = true; }); const S0 = STRAPS[k]; if (S0.len) { const bg = S0.objs[0].obj; bg.add(gBuckle); cKeep.forEach((K) => bg.add(K.m)); } SIDES.forEach((S, i) => { S.turn = S0.rests ? S0.rests[i] : S0.rest; S.v = 0; }); }
-function setStrap(k) { if (k === strapNow && pendTint == null) { strapNext = null; return; } if (snap) { showStrap(k); return; } strapNext = k; if (swapT < 0) swapT = 0; }
+function retint(hex) { const sc = STRAPS.consulting; pendTint = sc.mat.color.getHex() === hex ? null : hex; if (pendTint == null) return; if (RAIL && !snap && railOff('consulting')) return;   /* hanging on the rail, the leather eases to its new colour there */ if (snap || !wayFlash || document.body.classList.contains('intro') || strapNow !== 'consulting') { tintNow(); return; } if (!tintHold) setStrap('consulting'); }
+function showStrap(k) { if (RAIL) { railShow(k); return; } tintNow(); dress(STRAPS[k]); if (strapNow === 'consulting' && upGone && k !== 'consulting' && !snap) strapFall(STRAPS.consulting.objs.map((o) => o.obj), 0); STRAPS[strapNow].objs.forEach((o) => { o.obj.visible = false; }); strapNow = k; STRAPS[k].objs.forEach((o) => { o.obj.visible = true; }); const S0 = STRAPS[k]; if (S0.len) { const bg = S0.objs[0].obj; bg.add(gBuckle); cKeep.forEach((K) => bg.add(K.m)); } SIDES.forEach((S, i) => { S.turn = S0.rests ? S0.rests[i] : S0.rest; S.v = 0; }); }
+/* ----- once the recycled dial is unlocked, the consulting strap is the recycled bottle webbing for the rest of the visit, whatever dial is chosen later. The navy suede it replaces is never seen
+   again: it falls away from wherever it is (the watch, its place on the display, or the air), and the webbing takes its place there ----- */
+let upGone = false;
+/* a strap that is done with drops: a copy of it, exactly as it is that moment, falls under its own weight with a slow tumble round its own middle and is gone below the page.
+   push is a little throw, in screen heights a second. The fall keeps its own clock (fallHold stops it, for tests) */
+const FALL = [], fBox = new THREE.Box3(), fB2 = new THREE.Box3(), fC = new THREE.Vector3(); let fallHold = false;
+function strapFall(objs, push) { objs.forEach((o, i) => { if (!o.visible || !o.parent) return; o.updateWorldMatrix(true, true); fBox.makeEmpty();
+    o.traverseVisible((m) => { if (m.isMesh && !(m.material.opacity === 0)) { m.geometry.computeBoundingBox(); fBox.union(fB2.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld)); } }); if (fBox.isEmpty()) return; fBox.getCenter(fC);   /* it turns about the middle of what can be seen of it */
+    const ud = []; o.traverse((x) => { if (x.userData.qr) { ud.push([x, x.userData]); x.userData = {}; } }); const pv = new THREE.Group(), c = o.clone(true); ud.forEach(([x, u]) => { x.userData = u; }); scene.add(pv);   /* the release levers' hit spheres point back at themselves: left out of the copy */ pv.position.copy(fC); pv.add(c); o.matrixWorld.decompose(c.position, c.quaternion, c.scale); c.position.sub(fC); pv.userData.railFly = true; o.visible = false;
+    if (reduce) { scene.remove(pv); return; }
+    FALL.push({ pv, t: 0, p0: fC.clone(), v: [(i ? -0.05 : 0.05) + (push || 0) * 0.3, 0.12 + (push || 0) * 0.05, (push || 0) * 0.3], ax: new THREE.Vector3(0.35 + 0.3 * i, 0.2, 1).normalize(), w: (i ? -1 : 1) * 1.9 }); }); }
+function fallTick(dt) { if (!FALL.length) return; const vh = 2 * camera.position.z * Math.tan(rad(camera.fov / 2));
+  for (let i = FALL.length - 1; i >= 0; i--) { const F = FALL[i]; if (!fallHold) F.t += dt; const t = F.t;
+    F.pv.position.set(F.p0.x + F.v[0] * vh * t, F.p0.y + F.v[1] * vh * t - 1.8 * vh * t * t, F.p0.z + F.v[2] * vh * t); F.pv.quaternion.setFromAxisAngle(F.ax, F.w * t * (1 + 0.6 * t));
+    if (t > 2.2 || F.pv.position.y < -0.9 * vh - 40) { scene.remove(F.pv); FALL.splice(i, 1); } } }
+/* the dial has just been unlocked: the webbing becomes the consulting strap, and the suede goes from the display or from the air now (from the watch, when the swap takes it off) */
+function upReplace() { if (upGone) return; upGone = true; const sw = STRAPS.upcycle; dress(sw); if (sw.mats && !sw.km && cKeep.length) keepMat(sw, KEEPS.upcycle);
+  if (strapNext === 'consulting') strapNext = 'upcycle';
+  if (!RAIL || !RS.consulting) return; const R = RS.consulting; railVis(RS.upcycle);
+  if (R.state === 'worn') return;
+  const wasIn = rs.inK === 'consulting'; strapFall(R.halves.map((H) => H.o.obj), R.state === 'hang' ? 0.25 : 0); R.halves.forEach((H) => { H.tr = null; }); R.state = 'gone'; railVis(R); rl.opDirty = true;
+  if (wasIn) { rs.inK = 'upcycle'; const U = RS.upcycle, T = Math.max(0, swapT);   /* the suede was on its way to the watch: the webbing goes instead */
+    railFly('upcycle', 'watch', T, 0); rs.arrAt = T + 0.9; rs.toolIn = rs.arrAt - 0.28; } }
+/* everything that happens once the recycled dial is won: its swatch, the webbing in for the suede, the dial; a beat later the webbing goes on the watch (whatever the dial by then, if the suede was on it) */
+function upUnlocked(bt, animate) { WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(animate); upReplace(); tintHold = true; pickWay('upcycle'); tintHold = false;
+  setTimeout(() => { if (strapNow === 'consulting' || way === 'upcycle') pickStrap('consulting'); }, 1700); }
+function setStrap(k) { if (RAIL && railSet(k)) return; if (k === strapNow && pendTint == null) { strapNext = null; return; } if (snap) { showStrap(k); return; } strapNext = k; if (swapT < 0) swapT = 0; }
 const SIDES = [1, -1].map((sy) => ({ sy, turn: STRAPS.consulting.rests[sy > 0 ? 0 : 1], v: 0, wob: 0, wv: 0, c: null }));
 /* quick release: every leather and sailcloth half hangs on a spring bar with a little lever that shows through a slot in the lining by the lug. Flick it and that half drops off the watch; a moment later it is clicked back on.
    Built the way the real ones are: a narrow window, 1.1 by 4.5 mm with round ends (the size a 1 x 4.5 mm strap notching punch cuts), is let through the lining over the bar's tunnel. Its cut edge is painted and burnished, standing a hair proud,
@@ -1706,14 +1844,16 @@ function qrTick(dt) { for (const q of QR) { if (q.t < 0) continue; q.t += dt; co
     else if (q.t >= 3.1 && q.t < 3.6) { if (on) g.visible = true; const e = 1 - sSmooth((q.t - 3.1) / 0.5); q.p.set(0, q.o.sy * HEAD[0] * 18 * e, HEAD[1] * 18 * e); s = 1 - sSmooth((q.t - 3.53) / 0.07); }   /* the pin springs home as the bar snaps into the lug */
     else if (q.t >= 3.6) { q.t = -1; q.p.set(0, 0, 0); s = 0; if (on) { g.visible = true; ping({ f: 3000, q: 3, dur: 0.03, vol: 0.14, sharp: 5 }); } }
     g.position.copy(q.p); q.pin.position.x = q.U.uOff.value.x = QRS.x0 - QRS.run * s; } }
-function strapPhysics(dt, lift, extra) {
+function strapPhysics(dt, lift, extra) { braceTick(dt); fallTick(dt);
+  if (RAIL && railBare()) { qrTick(dt); return; }   // between straps the watch wears nothing: the rail moves them
   const st = STRAPS[strapNow], n = 3, h = dt / n, cal = !!st.len, box = cal && ubk.on;
+  if (st.links) { const o = st.objs[0]; o.onW = true; o.fl = 1; o.update(brPts(brWornP(lift, BRT0), BRB0), lift); qrTick(dt); return; }   /* the bracelet is shut round the wrist: it keeps its shape, and drops away from the case as the bars are drawn */
   SIDES.forEach((S, i) => { const up = st.under && natoP < 0.999 && S.sy > 0, fl = up ? -1 : 1, gu = fl * S.sy * gv.y, gz = fl * gv.z, mag = Math.min(1, Math.hypot(gu, gz)); let dg = Math.atan2(gz, gu) - TH0; dg = ((dg + Math.PI) % TAU + TAU) % TAU - Math.PI; dg = clamp(dg, rad(-170), rad(up ? 130 : 36));
     const target = lerp(cal ? st.rests[i] : st.rest, dg, (up ? 1 : st.droop) * mag) + extra;
     /* while the webbing is being fed in, its tail is held up above the watch; let go, it falls. Buckled in the box, the free curve just waits at rest */
     if (box && ubk.u < CALF.uc) { S.turn = target; S.v = 0; S.wob = 0; S.wv = 0; }
     else for (let q = 0; q < n; q++) { const a = st.k * (target - S.turn) - st.c * S.v; S.v += a * h; S.turn += S.v * h; const wa = 120 * (-S.v * 0.03 - S.wob) - 9 * S.wv; S.wv += wa * h; S.wob = clamp(S.wob + S.wv * h, -0.45, 0.45); }
-    S.c = box ? cPt[i] : strapCenter(S.turn, S.wob, lift, st.dz || 0, st.dy || 0, cal ? CALF.n[i] : SN, cal ? CALF.L[i] / CALF.n[i] : SSTEP); });
+    S.c = box ? cPt[i] : strapCenter(S.turn, S.wob, lift, st.dz || 0, st.dy || 0, cal ? CALF.n[i] : st.sn ? st.sn[i] : SN, cal ? CALF.L[i] / CALF.n[i] : SSTEP); });
   if (box) cIntro(SIDES);
   SIDES.forEach((S, i) => st.objs[i].update(S.c, lift)); qrTick(dt);
   if (cal) { st.mats[1].color.copy(st.mat.color); st.ml.roughness = st.nap ? 0.95 : 0.52; if (st.nap) st.mats.forEach((m) => napSheen(m.sheenColor, st.mat.color)); if (strapNow === 'consulting' || strapNow === 'upcycle') st.ml.color.copy(st.mat.color).multiplyScalar(0.6); else st.ml.color.setHex(st.base).multiplyScalar(0.8); keepTick(st); cBuckle(dt, SIDES[0].c, box, !snap); }
@@ -1809,6 +1949,396 @@ function keepTick(st) { const o = KEEPS[strapNow]; if (!o || !cKeep.length) retu
 /* and in idle time once the box is open, starting with the one on the watch: small enough not to wait for the visitor to sit still, as the straps do */
 { const idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump) { setTimeout(next, 700); return; } const k = [strapNow].concat(Object.keys(KEEPS)).find((q) => KEEPS[q] && STRAPS[q].mats && !STRAPS[q].km); if (k && cKeep.length) { keepMat(STRAPS[k], KEEPS[k]); idle(next); } }; setTimeout(() => idle(next), 1400); }
 
+/* ---------- the strap display: the straps that are not on the watch wait beside it, oldest job on the left, newest on the right. The page picks one of two ways to show them
+   (window.STRAPVIEW). 'hanger': a workshop pegboard, a dark powder coated steel sheet with a grid of round holes, and one single prong hook per strap set in a hole. Every strap hangs as a
+   shop hangs it, at full length: a two piece strap by its buckle, the long half slipped through the buckle half's keepers so the pair stays together; the NATO by its buckle; the bracelet,
+   clasp open, straight down from a small printed cradle that takes its top end link. 'tray': a walnut tray with one suede lined channel per job, each strap held at the channel's ends by
+   its spring bars, the way a jeweller's band tray holds them; the NATO lies loose in its channel, the bracelet lies opened out flat in its own. A strap is only ever in one place: on the
+   watch, in the air, or in its place. Everything here is in mm, in the display's own frame (x along the board, y up, z toward the visitor, the hooks' prongs at y = 0); the group is
+   scaled to the page. RAIL, at the top of the straps section, switches it all off ---------- */
+const SV = window.STRAPVIEW === 'tray' ? 'tray' : 'hanger', TRAY = SV === 'tray';
+const RJ = (() => { const def = ['writing', 'banking', 'quant', 'engineering', 'consulting'], o = Array.isArray(CT.jobOrder) ? CT.jobOrder.filter((k, i, a) => def.includes(k) && a.indexOf(k) === i) : [];
+  def.forEach((k) => { if (!o.includes(k)) o.push(k); });
+  const yrs = { consulting: '2023 to now', engineering: '[years]', quant: '[years]', banking: '[years]', writing: '2019' }; if (CT.jobs) def.forEach((k) => { const y = CT.jobs[k] && CT.jobs[k].years; if (typeof y === 'string' && y.trim()) yrs[k] = y.trim(); });
+  return { order: o, years: yrs }; })();
+/* the board: an industrial pegboard, a dark powder coated steel sheet with round holes on a square grid, stood a little off the wall on four screws. top and drop are how far it runs above
+   and below the row of holes' hooks (every strap hangs at full length, so the longest, the open bracelet, sets the drop); z is its back, t its thickness, hy how far the hooks' holes sit above
+   the prongs. PAIR: where a hung buckle's strap tip lies under the prong, how far the long half's tip stops short of the buckle bar, and how far it slides to come out of the keepers */
+const RB = { top: 13, drop: 177, z: -8.4, t: 1.6, hy: 5 }, PAIR = { tip: -7.5, gap: 3, D: 30 }, BRY = -3.6;   // BRY: the height of the cradle's spring bar
+const mBoard = new THREE.MeshStandardMaterial({ color: 0x2c3138, metalness: 0.45, roughness: 0.62, envMapIntensity: 0.55 });
+/* the printed cradle: matte, with the fine ridges a printer's layers leave */
+const mCradle = new THREE.MeshStandardMaterial({ color: 0x8a8f96, metalness: 0, roughness: 0.82, envMapIntensity: 0.35, bumpScale: 0.6, bumpMap: (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d'); for (let y = 0; y < 64; y++) { const v = Math.round(128 + 100 * Math.sin(y / 8 * TAU)); g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; g.fillRect(0, y, 4, 1); } const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })() });
+/* the tray: tipped back by e so its floor faces the visitor, channels L long and cw wide (a spring bar's tips just reach the walls), sunk dep into the walnut, a rim all round */
+const RTY = { e: rad(36), L: 206, cw: 26.4, dep: 3.2, rim: 7, slab: 6, bar: 1.75 };
+const mWood = new THREE.MeshStandardMaterial({ color: 0x4b3022, metalness: 0, roughness: 0.46, envMapIntensity: 0.75 }), mSteelR = new THREE.MeshStandardMaterial({ color: 0xcfd1d4, metalness: 1, roughness: 0.3, envMapIntensity: 1.15 });
+const mSuede = new THREE.MeshStandardMaterial({ color: 0x7c6d5e, metalness: 0, roughness: 0.97, envMapIntensity: 0.35 }), RFURN = [mWood, mSteelR, mSuede, mBoard, mCradle];
+const railG = new THREE.Group(); railG.visible = false; if (RAIL) scene.add(railG);
+const trayY = new THREE.Group(), trayG = new THREE.Group(), rF = new THREE.Group(); if (TRAY) { railG.add(trayY); trayY.add(trayG); trayG.add(rF); } else railG.add(rF);   // trayY turns the tray a little toward the eye about its front edge   // rF: the furniture, rebuilt only when the block on the page changes size
+const rl = { op: -1, opDirty: true, t: 0, inCh: false, desk: false, gx: 0, drop: 0, s: 0.3, ppm: 2, vis: 0, el: null, btns: [], key: '', rodL: 100, force: false, slots: [], cw: 0, ch: 0, top: 10, mobBg: '' };
+const R_LATCH = 1.1, N_IN = 2.4, N_OUT = 2.3, N_LATCH = 1.75;   /* when the next strap is fetched; how long the NATO takes to come in and to go back; when the next strap is fetched after a NATO */
+const rs = { dep: 0, inK: null, arr: -1, arrAt: 0, click: false, latch: R_LATCH, nOut: false, nIn: false, toolIn: -1 };   // the swap in progress: 1 once the old strap has left, 2 if it goes straight back on; the strap coming in; when it reached the watch
+const rsReset = () => { rs.dep = 0; rs.inK = null; rs.arr = -1; rs.click = false; rs.latch = R_LATCH; rs.nOut = false; rs.nIn = false; rs.toolIn = -1; };
+const RS = {}, RSV = [];   // per strap: its slot, its halves and where it is ('worn', 'hang', 'out' going back, 'in' coming to the watch)
+const bHold = new THREE.Group(); bHold.visible = false; gStrap.add(bHold);   // the one real buckle waits here while no calf strap is on the watch
+/* walnut, oiled: long grain with a figure that wanders and open pores; it tiles across the grain. And the suede lining, a fine nap. Small, baked once in idle time */
+function rBake() { const t0 = performance.now(), W = 512, H = 128, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'), im = g.createImageData(W, H), d = im.data, ph = [0.3, 1.9, 4.1];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const v = y / H * TAU, m = 2.2 * sNoise(x / 150 + 3, 7.5), w = 0.5 + 0.22 * Math.sin(3 * v + ph[0] + m) + 0.16 * Math.sin(7 * v + ph[1] + 1.6 * m + 0.8 * sNoise(x / 40, 2)) + 0.1 * Math.sin(17 * v + ph[2] + 2 * m), pore = sLat[(x * 7 + y * 1031) & 65535] > 0.94 ? 0.8 : 1, l = (0.7 + 0.42 * w + 0.05 * (sLat[(x * 3 + y * 977) & 65535] - 0.5)) * pore, j = (y * W + x) * 4;
+    d[j] = 96 * l; d[j + 1] = 62 * l; d[j + 2] = 41 * l; d[j + 3] = 255; }
+  g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; mWood.map = t; mWood.color.setHex(0xffffff); mWood.needsUpdate = true;
+  const S = 256, c2 = document.createElement('canvas'); c2.width = c2.height = S; const g2 = c2.getContext('2d'), i2 = g2.createImageData(S, S), d2 = i2.data;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const l = 1 + 0.1 * (sLat[(x * 3 + y * 977) & 65535] - 0.5) + 0.07 * (sLat[((x >> 1) * 13 + (y >> 1) * 1213) & 65535] - 0.5) + 0.035 * Math.sin(x / S * TAU * 2 + 2 * Math.sin(y / S * TAU)), j = (y * S + x) * 4; d2[j] = 124 * l; d2[j + 1] = 109 * l; d2[j + 2] = 94 * l; d2[j + 3] = 255; }
+  g2.putImageData(i2, 0, 0); const t2 = new THREE.CanvasTexture(c2); t2.colorSpace = THREE.SRGBColorSpace; t2.wrapS = t2.wrapT = THREE.RepeatWrapping; t2.anisotropy = 8; mSuede.map = t2; mSuede.color.setHex(0xffffff); mSuede.needsUpdate = true; rl.bakeMs = performance.now() - t0; }
+/* texture coordinates in mm: the grain runs along one axis (a 512 px tile is 256 mm of walnut), the lining's nap 40 mm to a tile */
+function rUV(g, along, k = 256, kv = 64) { const p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); uv.setXY(i, (along === 'z' ? z : x) / k + 0.31, (along === 'z' ? x + y : y + z) / kv); } uv.needsUpdate = true; return g; }
+/* a single prong peg hook, bent from steel wire: out of its hole, down the face of the board, forward as the prong, its tip turned up */
+const gHookWire = (() => { const zf = RB.z + RB.t, P = [[RB.hy, RB.z - 1.2], [RB.hy, zf + 1.0], [RB.hy - 1.6, zf + 2.2], [1.3, zf + 2.3], [0, zf + 3.7], [0, 4.5], [0.4, 6.8], [1.9, 8]].map((q) => new THREE.Vector3(0, q[0], q[1]));
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P, false, 'centripetal'), 48, 1.1, 10, false); })();
+/* the bracelet's cradle, printed: a head pegged flat to the board with two ears that take the top end link's spring bar, as a pair of lugs would, and a spine below that the links lie
+   against, so the bracelet hangs straight. yb is the height of the spring bar, zc the plane the bracelet's pins hang in */
+function rCradle(g, yb, zc) { const zf = RB.z + RB.t, zs = zc - 1.75, put = (geo, x, y, z) => { const m = new THREE.Mesh(geo, mCradle); m.position.set(x, y, z); g.add(m); return m; }, uvy = (geo, k) => { const u = geo.attributes.uv, q = geo.attributes.position; for (let i = 0; i < u.count; i++) u.setXY(i, q.getX(i) / 9, q.getY(i) / k); return geo; };
+  put(uvy(new RoundedBoxGeometry(28, 15, zs - zf, 2, 0.9), 0.42), 0, yb + 3, (zs + zf) / 2); put(uvy(new RoundedBoxGeometry(15, 50, zs - zf, 2, 0.9), 0.42), 0, yb - 28, (zs + zf) / 2);
+  [-1, 1].forEach((sx) => { put(uvy(new RoundedBoxGeometry(2.4, 6.4, 5.6, 2, 0.7), 0.42), sx * 11.7, yb, zs + 2.2); });
+  [[-9.5, 6], [9.5, 6]].forEach(([x, y]) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.8, 14).rotateX(Math.PI / 2), mSteelR); m.position.set(x, yb + y, zs + 0.3); g.add(m); }); }   // two screw heads
+/* the furniture: the pegboard (the sheet with its holes, four screws) or the tray (slab, lands between the channels, rim, lining, and a pair of bushings at each end of every channel) */
+function rFurn(len, xs) { const t0 = performance.now(); rF.children.slice().forEach((m) => { rF.remove(m); m.geometry.dispose(); });
+  const put = (g, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); rF.add(o); return o; };
+  if (!TRAY) { const p0 = xs.length > 1 ? xs[1] - xs[0] : 50, px = p0 / Math.max(1, Math.round(p0 / 25.4)), x0 = -len / 2, x1 = len / 2, y1 = RB.top, y0 = -RB.drop, cr = 3.5, sh = new THREE.Shape();   /* the holes' pitch divides the straps' pitch, so every hook sits in a real hole */
+    sh.moveTo(x0 + cr, y0); sh.lineTo(x1 - cr, y0); sh.quadraticCurveTo(x1, y0, x1, y0 + cr); sh.lineTo(x1, y1 - cr); sh.quadraticCurveTo(x1, y1, x1 - cr, y1); sh.lineTo(x0 + cr, y1); sh.quadraticCurveTo(x0, y1, x0, y1 - cr); sh.lineTo(x0, y0 + cr); sh.quadraticCurveTo(x0, y0, x0 + cr, y0);
+    for (let x = xs[0] - px * Math.floor((xs[0] - x0 - 7) / px); x < x1 - 6.5; x += px) for (let y = RB.hy; y > y0 + 7; y -= px) { const h = new THREE.Path(); h.absarc(x, y, 2.3, 0, TAU, true); sh.holes.push(h); }
+    put(new THREE.ExtrudeGeometry(sh, { depth: RB.t - 0.4, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.2, bevelSegments: 1, curveSegments: 10 }), mBoard, 0, 0, RB.z + 0.2);
+    [-1, 1].forEach((sx) => [y1 - 6, y0 + 6].forEach((y) => put(new THREE.CylinderGeometry(2.1, 2.1, 0.9, 16).rotateX(Math.PI / 2), mSteelR, sx * (len / 2 - 6), y, RB.z + RB.t + 0.4)));
+    rl.furnMs = performance.now() - t0; return; }
+  /* the channels sit under the labels, wherever the page puts them */
+  const cw = RTY.cw, dep = RTY.dep, x0 = xs[0] - cw / 2 - RTY.rim, x1 = xs[xs.length - 1] + cw / 2 + RTY.rim, TW = x1 - x0, cx = (x0 + x1) / 2, TD = RTY.L + 2 * RTY.rim;
+  put(rUV(new RoundedBoxGeometry(TW, RTY.slab, TD, 3, 1.6), 'x'), mWood, cx, -RTY.slab / 2);
+  [-TD / 2 + RTY.rim / 2, TD / 2 - RTY.rim / 2].forEach((z) => put(rUV(new RoundedBoxGeometry(TW, dep, RTY.rim, 2, 0.7), 'x'), mWood, cx, dep / 2, z));
+  const ed = [x0]; xs.forEach((x) => ed.push(x - cw / 2, x + cw / 2)); ed.push(x1);
+  for (let k = 0; k < ed.length; k += 2) put(rUV(new RoundedBoxGeometry(ed[k + 1] - ed[k], dep, RTY.L, 2, 0.7), 'z'), mWood, (ed[k] + ed[k + 1]) / 2, dep / 2);
+  xs.forEach((x) => { const fl = new THREE.PlaneGeometry(cw, RTY.L).rotateX(-Math.PI / 2); rUV(fl, 'x', 40, 40); put(fl, mSuede, x, 0.04);
+    [-1, 1].forEach((sx) => [-1, 1].forEach((sz) => put(new THREE.CylinderGeometry(1.15, 1.15, 0.5, 18).rotateZ(Math.PI / 2), mSteelR, x + sx * (cw / 2 - 0.15), RTY.bar, sz * (RTY.L / 2 - 3.5)))); });
+  rl.furnMs = performance.now() - t0; }
+/* a chain is a list of [y, z] points in a half's own frame: its start point, then the angle and length of each segment. Two chains are blended by angle, so a strap
+   bends from one shape into the other without stretching. The angles are unwrapped along the chain, so a curl stays a curl */
+const rWrap = (x) => x - TAU * Math.round(x / TAU);
+function chainMix(A, B, t, out) { const n = A.length; out[0][0] = lerp(A[0][0], B[0][0], t); out[0][1] = lerp(A[0][1], B[0][1], t); let pa = 0, pb = 0;
+  for (let j = 1; j < n; j++) { const ya = A[j][0] - A[j - 1][0], za = A[j][1] - A[j - 1][1], yb = B[j][0] - B[j - 1][0], zb = B[j][1] - B[j - 1][1], ra = Math.atan2(za, ya), rb2 = Math.atan2(zb, yb);
+    let a, b; if (j === 1) { a = ra; b = rb2 + TAU * Math.round((ra - rb2) / TAU); } else { a = pa + rWrap(ra - pa); b = pb + rWrap(rb2 - pb); } pa = a; pb = b;
+    const l = lerp(Math.hypot(ya, za), Math.hypot(yb, zb), t), m = lerp(a, b, t); out[j][0] = out[j - 1][0] + l * Math.cos(m); out[j][1] = out[j - 1][1] + l * Math.sin(m); } return out; }
+const chainBuf = (n) => { const b = []; for (let i = 0; i < n; i++) b.push([0, 0]); return b; }, chainCopy = (c, out) => { for (let i = 0; i < c.length; i++) { out[i][0] = c[i][0]; out[i][1] = c[i][1]; } return out; };
+/* the frame a half hangs in on the stand: down its chain is down the page, its outer face toward the visitor */
+const rBasis = (sy, f, yaw) => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw).multiply(new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(-sy * f, 0, 0), new THREE.Vector3(0, 0, sy * f), new THREE.Vector3(0, 1, 0))));
+/* lying face up in a channel: the half's own frame turned so its length runs along the channel and its face looks up out of the tray */
+const rQT = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2), rQC = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, -1, 0)));
+/* how each kind waits. On the stand calf and cloth fall straight from the spring bar; the hole half, worn into a curve, curls back a little at the tail */
+/* on the board a two piece strap hangs from one hook by its buckle, as a shop hangs them: the prong through the empty buckle frame, the buckle half hanging from it, lug end down, tang loose.
+   The long half is not buckled: its tail is slipped up through the buckle half's two keepers from below and stops short of the buckle bar, so the two lie face up one on the other and the
+   long half's lug end hangs free below. The keepers take only the tail (the lug end is too wide for them), which is why it goes in tail first. zo is how far the long half lies in front of the
+   buckle half's middle, by mm from its lug */
+const pairZ = (s) => { const s0 = CALF.L[1] - PAIR.gap - CALF.L[0]; return 1.2 + (3.0 - 1.2) * sSmooth(s / s0) - 0.6 * sSmooth((s - s0) / 24); };
+function hangLen(i) { const n = CALF.n[i], st = CALF.L[i] / n, c = [[LH[0] - 0.6, LH[1] + 0.2]]; let p = c[0];
+  for (let j = 0; j < n; j++) { const dz = i ? pairZ((j + 1) * st) - pairZ(j * st) : 0, th = Math.PI / 2 + Math.asin(clamp(dz / st, -0.9, 0.9)); p = [p[0] + st * Math.cos(th), p[1] + st * Math.sin(th)]; c.push(p); } return c; }
+/* where each half's spring bar hangs, from the prong */
+const hangAt = (i) => i ? new THREE.Vector3(0, PAIR.tip - PAIR.gap - CALF.L[1] - 0.2, pairZ(0) - 0.6) : new THREE.Vector3(0, PAIR.tip - CALF.L[0] - 0.2, -0.6);
+/* a strap in the air is not rigid: it bows along its length, most toward its free end, swelling and easing as it flies, with a slow ripple running through it */
+const rFxA = [], rFxL = [];
+function chainFlex(c, f, w, ph) { const n = c.length - 1; if (Math.abs(f) + Math.abs(w) < 1e-4) return;
+  for (let j = 0; j < n; j++) { rFxA[j] = Math.atan2(c[j + 1][1] - c[j][1], c[j + 1][0] - c[j][0]); rFxL[j] = Math.hypot(c[j + 1][0] - c[j][0], c[j + 1][1] - c[j][1]); }
+  for (let j = 0; j < n; j++) { const u = (j + 0.5) / n, a = rFxA[j] + f * Math.pow(u, 1.5) + w * u * Math.sin(TAU * u - ph); c[j + 1][0] = c[j][0] + rFxL[j] * Math.cos(a); c[j + 1][1] = c[j][1] + rFxL[j] * Math.sin(a); } }
+/* in a channel a half lies on the lining from its spring bar, with the gentle rise in the middle it was worn into */
+function hangTray(i) { const n = CALF.n[i], st = CALF.L[i] / n, z0 = LH[1] - RTY.bar, c = [[LH[0] - 0.6, LH[1] + 0.2]]; let p = c[0];
+  for (let j = 0; j < n; j++) { const s = (j + 1) * st, u = clamp(s / CALF.L[i], 0, 1), zt = z0 + cTh(i, Math.min(s, CALF.L[i] - 0.01)) / 2 + 0.02 + (i ? 0.9 : 0.6) * Math.pow(Math.sin(Math.PI * u), 2), dz = clamp(zt - p[1], -st * 0.6, st * 0.6), th = Math.asin(dz / st);
+    p = [p[0] + st * Math.cos(th), p[1] + st * Math.sin(th)]; c.push(p); } return c; }
+/* the bracelet on the board: its clasp opened right out, the whole of it hanging straight down at full length from the cradle that holds its top end link, face out, no curl anywhere */
+function brHangPose() { return { r: [0, 0], a: -Math.PI / 2, ph: new Float64Array(BRC.S), fl: 0 }; }
+/* in the tray: opened right out and laid flat along its channel, blades and cover down on the lining, its middle at the channel's middle */
+function brTrayPose() { const S = BRC.S, m = BRC.m, L = BRSH.L, z = new Array(S + 1).fill(1.55), c = chainBuf(S + 1); c[0][1] = z[0];   /* blade 1 rests on its middle, the cover and blade 2 bridge on their ends */
+  for (let j = 0; j < S; j++) { const dz = z[j + 1] - z[j]; c[j + 1][0] = c[j][0] + Math.sqrt(Math.max(0, L[j] * L[j] - dz * dz)); c[j + 1][1] = z[j + 1]; }
+  const mid = (c[0][0] + c[S][0]) / 2; c.forEach((p) => { p[0] -= mid; }); return brPose(c, 0); }
+/* the worn shape a strap must arrive in: what the physics will hold it at the moment it is clicked in, lifted off the lugs */
+function wornTurn(st, i, sy) { const gu = sy * gv.y, gz = gv.z, mag = Math.min(1, Math.hypot(gu, gz)); let dg = Math.atan2(gz, gu) - TH0; dg = rWrap(dg); dg = clamp(dg, rad(-170), rad(36)); return lerp(st.len ? st.rests[i] : st.rest, dg, st.droop * mag) - 0.9; }
+const wornChain = (st, i, lift) => strapCenter(wornTurn(st, i, i ? -1 : 1), 0, lift, st.dz || 0, st.dy || 0, st.len ? CALF.n[i] : SN, st.len ? CALF.L[i] / CALF.n[i] : SSTEP);
+/* the point each half is carried by in the air: its spring bar, or for the bracelet the clasp's middle hinge */
+function anchorOf(H, c, lift, out) { if (H.kind === 'len') return out.set(0, H.sy * (LH[0] + HEAD[0] * lift), LH[1] + HEAD[1] * lift); if (H.kind === 'brace') return out.set(0, c[BRC.m][0], c[BRC.m][1]); return out.set(0, H.sy * c[0][0], c[0][1]); }
+/* shape a half: the strap itself, plus whatever rides on it (the buckle and keepers follow the buckle half) */
+const rV = new THREE.Vector3();
+function shapeHalf(R, H, c, lift, rel) {
+  H.o.update(c, lift);
+  if (H.kind === 'len' && H.i === 0 && R.buck && R.buck.visible) { const n = CALF.n[0], tip = c[n], ta = Math.atan2(tip[1] - c[n - 1][1], tip[0] - c[n - 1][0]); R.buck.position.set(0, tip[0], tip[1]); R.buck.rotation.x = ta + rel;
+    R.keeps.forEach((K, j) => { const o = along(c, cKeep[j].s); K.position.set(0, o.y - Math.sin(o.ang) * cKeep[j].b0, o.z + Math.cos(o.ang) * cKeep[j].b0); K.rotation.x = o.ang; K.scale.z = R.kf ? lerp(0.6, 1, R.kf[j]) : 0.6; }); if (R.tangO) R.tangO.rotation.x = R.tang || 0; }
+  if (H.kind === 'len') H.o.obj.children[1].visible = false; }   /* off the watch a spring bar's pivots are drawn in */
+/* ----- the NATO is one piece of webbing, always. Off the watch it is drawn as a ribbon whose every row follows one path: out of its place (folded over the spring bar in its block, or
+   lying in its channel), through the air, down past twelve, under the 12 o'clock bar, flat under the case, under the 6 o'clock bar and out. Sliding along that path is how it is taken
+   and how it goes back: q is how far along it is, 0 in its place, 1 threaded. A click the other way just turns q round ----- */
+const NT = { tw: 0, q: 1, q0: 1, t0: 0, to: 1, bars: true, c12: null, c6: null, n: 0, s: null, L: 0, disp: null, P: [], X: [], G: [], rP: [], rX: [], rG: [], pu: [] };
+const NRUN = 16, NBR = 30;   /* the straight run the webbing is fed along above twelve, in mm; the points along its flight through the air */
+const nW = new THREE.Vector3(), nV = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], nM = new THREE.Matrix4(), nQ3 = new THREE.Matrix3();
+/* the flat webbing's cross-section, as ribbonGeo draws it */
+const NHALF = [[0, 1], [0.93, 1], [0.975, 0.9], [1, 0.55]], NBE = -0.55, NTOP = NHALF.slice(1).reverse().map((p) => [-p[0], p[1]]).concat(NHALF), NBOT = [[1, NBE], [0.975, -0.94], [0.93, -1], [-0.93, -1], [-0.975, -0.94], [-1, NBE]], NEB = (x) => { const a = Math.abs(x); return a <= 0.93 ? -1 : a <= 0.975 ? lerp(-1, -0.94, (a - 0.93) / 0.045) : lerp(-0.94, NBE, (a - 0.975) / 0.025); };
+/* lay the ribbon through rows given anywhere in space: P the centre of each row, X the way across, g the scale. Row order and vertex order are ribbonGeo's, so the two hand over without a jump */
+function ribbon3(P, X, g, w, th, geo) { const n = P.length, a = geo.attributes.position.array, T = nV[0], N = nV[1], Xo = nV[2]; let k = 0; const rows = NT.rows || (NT.rows = P.map(() => ({ p: new THREE.Vector3(), x: new THREE.Vector3(), n: new THREE.Vector3(), w: 0, h: 0 })));
+  for (let i = 0; i < n; i++) { T.subVectors(P[Math.min(n - 1, i + 1)], P[Math.max(0, i - 1)]); if (T.lengthSq() < 1e-12) T.set(0, 1, 0); T.normalize(); N.crossVectors(X[i], T); if (N.lengthSq() < 1e-12) N.set(0, 0, 1); N.normalize(); Xo.crossVectors(T, N).normalize(); const r = rows[i]; r.p.copy(P[i]); r.x.copy(Xo); r.n.copy(N); r.w = w / 2 * g[i]; r.h = th / 2 * g[i]; }
+  const pt = (r, x, e) => { a[k++] = r.p.x + r.x.x * x * r.w + r.n.x * e * r.h; a[k++] = r.p.y + r.x.y * x * r.w + r.n.y * e * r.h; a[k++] = r.p.z + r.x.z * x * r.w + r.n.z * e * r.h; };
+  const grid = (prof) => { for (let i = 0; i < n; i++) for (let j = 0; j < prof.length; j++) pt(rows[i], prof[j][0], prof[j][1]); };
+  grid(NTOP); grid(NBOT); grid([[-1, NBE], [-1, 0.55]]); grid([[1, 0.55], [1, NBE]]); [rows[0], rows[n - 1]].forEach((r) => NTOP.forEach((p) => { pt(r, p[0], p[1]); pt(r, p[0], NEB(p[0])); }));
+  geo.attributes.position.needsUpdate = true; geo.computeVertexNormals(); }
+/* the NATO's own frame on its hook or in its channel: u runs from the end that goes in last (the buckle end, at the hook or the back of the channel) to the end that goes in first */
+function natoDisp(u, out) { const L = NT.L;
+  if (TRAY) { const t = clamp(u / L, 0, 1); return out.set(1.4 * Math.sin(TAU * 0.9 * t + 0.5) * Math.sin(Math.PI * t), 0.66 + 0.45 * Math.pow(Math.sin(Math.PI * t * 2.2 + 0.4), 2) * Math.sin(Math.PI * t), -L / 2 + u); }
+  return out.set(0, PAIR.tip - u, 0.5 + 0.5 * Math.sin(Math.PI * clamp(u / L, 0, 1))); }   /* hung from its hook by the buckle, full length, a hair of belly in it */
+/* which way the webbing leaves its place when it is drawn out: down off the front of the block, or forward out of the channel */
+const natoOut = (out) => TRAY ? out.set(0, 0.3, 1).normalize() : out.set(0, -0.75, 0.66).normalize();
+function natoInit(st) { const W0 = st.loop(0), n = W0.length, s = [0]; for (let i = 1; i < n; i++) s.push(s[i - 1] + Math.hypot(W0[i][0] - W0[i - 1][0], W0[i][1] - W0[i - 1][1]));
+  Object.assign(NT, { n, s, L: s[n - 1] }); st.natoG = new THREE.Group(); st.natoG.add(st.natoMesh); gStrap.add(st.natoG);
+  const mk = (m) => { const a = []; for (let i = 0; i < m; i++) a.push(new THREE.Vector3()); return a; }; NT.rP = mk(n); NT.rX = mk(n); NT.rG = new Array(n).fill(1); NT.disp = mk(n);
+  for (let i = 0; i < n; i++) natoDisp(NT.L - s[i], NT.disp[i]); const m = 2 * n + NBR + 8; NT.P = mk(m); NT.X = mk(m); NT.G = new Array(m).fill(1); NT.pu = new Array(m).fill(0); }
+/* what the physics would hold each side at: the side at twelve held up out of the way while the webbing is fed in, or both falling as they hang */
+function natoTurn(sy, up) { const st = STRAPS.writing, fl = up ? -1 : 1, gu = fl * sy * gv.y, gz = fl * gv.z, mag = Math.min(1, Math.hypot(gu, gz)); let dg = Math.atan2(gz, gu) - TH0; dg = rWrap(dg); dg = clamp(dg, rad(-170), rad(up ? 130 : 36)); return lerp(st.rest, dg, (up ? 1 : st.droop) * mag); }
+const nC12 = chainBuf(STRAPS.writing.sn[0] + 1), nC6 = chainBuf(STRAPS.writing.sn[1] + 1);
+/* while it is fed in, the side at twelve is held up and turned toward the display it is coming from (on a desktop, toward the gutter it comes up), so the webbing runs in one easy curve from there to the lug */
+function natoAim(piv) { const tgt = nV[0].setFromMatrixPosition(piv.matrixWorld), lug = nV[1].set(0, LH[0], LH[1]); if (rl.desk) tgt.set(rl.gx, tgt.y - rl.drop, tgt.z);   /* on a desktop it is turned toward the gutter it comes up, not at the display under the text */ nM.copy(gStrap.matrixWorld).invert(); tgt.applyMatrix4(nM); const up = natoTurn(1, true), aim = clamp(rWrap(Math.atan2(tgt.z - lug.z, tgt.y - lug.y) - TH0), rad(-10), rad(150)); return up + rWrap(aim - up) * (rl.desk ? 1 : 0.74); }
+/* where the NATO is, by the swap's clock: eased from where it was when the last click came, to its place or to the watch */
+function natoQ(T) { const span = Math.abs(NT.to - NT.q0); if (span < 1e-4) return NT.to; const u = clamp((T - NT.t0) / ((NT.to ? N_IN : N_OUT) * span), 0, 1); if (u >= 1) return NT.to; return lerp(NT.q0, NT.to, u * u * u * (u * (u * 6 - 15) + 10)); }
+/* build the whole path in the scene's frame and slide the webbing to q along it. Each point carries the way across and the scale, so the webbing grows from the display's size to the watch's as it flies */
+function natoLay(R, q, T, sy0) { const st = R.st, n = NT.n, L = NT.L, s = NT.s, P = NT.P, X = NT.X, G = NT.G, pu = NT.pu, piv = R.slot.piv; let m = 0;
+  piv.updateWorldMatrix(true, false); gStrap.updateWorldMatrix(true, false); const gd = rl.s, gw = nV[3].setFromMatrixColumn(gStrap.matrixWorld, 0).length(), xd = nV[4].set(1, 0, 0).transformDirection(piv.matrixWorld), xw = nV[5].set(1, 0, 0).transformDirection(gStrap.matrixWorld);
+  for (let i = n - 1; i >= 0; i--) { P[m].copy(NT.disp[i]).applyMatrix4(piv.matrixWorld); X[m].copy(xd); G[m] = gd; pu[m] = L - s[i]; m++; }
+  /* on the watch: the side at twelve rises out of the way as it goes back, and is held up while it comes in; the side at six hangs */
+  const lift = sy0, wUp = R.state === 'out' && NT.c12 ? sSmooth((T - NT.t0) / 0.45) : 1, up12 = strapCenter(natoAim(piv), 0, lift, st.dz, st.dy, st.sn[0]), dn6 = strapCenter(natoTurn(-1, false), 0, lift, st.dz, st.dy, st.sn[1]);
+  if (R.state === 'out' && NT.c12) { chainMix(NT.c12, up12, wUp, nC12); chainMix(NT.c6, dn6, wUp, nC6); } else { chainCopy(up12, nC12); chainCopy(dn6, nC6); }
+  st.cs = { 1: nC12, [-1]: nC6 }; const W = st.loop(lift), mw = m + NBR, d0y = W[n - 1][0] - W[n - 2][0], d0z = W[n - 1][1] - W[n - 2][1], dl = Math.hypot(d0y, d0z) || 1;
+  /* the run in above twelve, then the loop from the tip at twelve to the tip at six */
+  for (let k = 0; k < 6; k++) { const f = (6 - k) / 6 * NRUN; P[mw + k].set(0, W[n - 1][0] + d0y / dl * f, W[n - 1][1] + d0z / dl * f); }
+  for (let i = n - 1; i >= 0; i--) P[mw + 6 + (n - 1 - i)].set(0, W[i][0], W[i][1]);
+  for (let k = 0; k < n + 6; k++) { P[mw + k].applyMatrix4(gStrap.matrixWorld); X[mw + k].copy(xw); G[mw + k] = gw; }
+  /* through the air: from where it leaves its place to the start of the run in, sagging a little and bowed toward the visitor, clear of the case */
+  const B0 = P[m - 1], B3 = P[mw], t0 = natoOut(nV[0]).transformDirection(piv.matrixWorld), t3 = nV[1].subVectors(P[mw + 1], P[mw]).normalize(), dist = B0.distanceTo(B3), k0 = 0.3 * dist, k3 = 0.34 * dist;
+  let bl = 0, prev = nV[2].copy(B0);
+  /* on a desktop it keeps below the text: off its place, along at the display's level to the gutter, up the gutter, and in over twelve */
+  const NC = NT.cv || (NT.cv = new THREE.CatmullRomCurve3([0, 1, 2, 3, 4, 5].map(() => new THREE.Vector3()), false, 'centripetal')); if (rl.desk) { const q = NC.points, gx = Math.min(rl.gx, B0.x), lo = B0.y - rl.drop;
+    q[0].copy(B0); q[1].copy(B0).addScaledVector(t0, 0.06 * dist); q[2].set(gx + 0.04 * dist, lo, B0.z); q[3].set(gx - 0.04 * dist, lerp(lo, B3.y, 0.55), B3.z);   /* kept at depth: anything nearer the eye would swing right in perspective, toward the text */ q[4].copy(B3).addScaledVector(t3, -0.18 * dist); q[5].copy(B3); }
+  for (let k = 1; k <= NBR; k++) { const u = k / (NBR + 1), a = (1 - u) * (1 - u) * (1 - u), b = 3 * (1 - u) * (1 - u) * u, c = 3 * (1 - u) * u * u, d = u * u * u, bow = Math.sin(Math.PI * u), V = P[m + k - 1];
+    if (rl.desk) NC.getPoint(u, V); else V.set(a * B0.x + b * (B0.x + t0.x * k0) + c * (B3.x - t3.x * k3) + d * B3.x, a * B0.y + b * (B0.y + t0.y * k0) + c * (B3.y - t3.y * k3) + d * B3.y - 0.085 * dist * bow, a * B0.z + b * (B0.z + t0.z * k0) + c * (B3.z - t3.z * k3) + d * B3.z + 0.14 * dist * bow);
+    const e = sSmooth(u); G[m + k - 1] = lerp(gd, gw, e);
+    if (!reduce) { const rp = nW.subVectors(B3, B0).cross(X[m + k - 1]).normalize(), wv = 0.035 * dist * bow * Math.sin(TAU * 1.6 * u - T * 8.5); V.addScaledVector(rp, wv); }   /* soft webbing does not fly flat: a slow ripple runs along it, driven by the swap's clock */ bl += V.distanceTo(prev) / G[m + k - 1]; prev = V; }
+  bl += B3.distanceTo(prev) / gw; for (let k = 0; k < NBR; k++) pu[m + k] = 0;
+  /* the webbing's way across is carried along the flight without turning about its own length; whatever turn is still owed where it meets the watch is then spread evenly over the whole
+     flight, so it never flips or kinks in the middle */
+  { const Tk = nW, Xp = nV[2].copy(xd); for (let k = 0; k < NBR; k++) { Tk.subVectors(k < NBR - 1 ? P[m + k + 1] : B3, k ? P[m + k - 1] : B0).normalize(); Xp.addScaledVector(Tk, -Tk.dot(Xp)).normalize(); X[m + k].copy(Xp); }
+    Xp.addScaledVector(t3, -t3.dot(Xp)).normalize(); const xe = Tk.copy(xw).addScaledVector(t3, -t3.dot(xw)).normalize(), phi = Math.atan2(nV[0].crossVectors(Xp, xe).dot(t3), Xp.dot(xe));
+    for (let k = 0; k < NBR; k++) { const u = (k + 1) / (NBR + 1); Tk.subVectors(k < NBR - 1 ? P[m + k + 1] : B3, k ? P[m + k - 1] : B0).normalize(); X[m + k].applyAxisAngle(Tk, phi * u * u * (3 - 2 * u)); } }
+  /* the length of each stretch, in mm of webbing */
+  { let acc = L, pv = P[m - 1]; for (let k = 0; k < NBR; k++) { acc += P[m + k].distanceTo(pv) / G[m + k]; pu[m + k] = acc; pv = P[m + k]; } acc = L + bl; for (let k = 0; k < 6; k++) pu[mw + k] = acc + NRUN * k / 6; acc += NRUN; for (let i = n - 1; i >= 0; i--) pu[mw + 6 + (n - 1 - i)] = acc + L - s[i]; }
+  const tot = mw + 6 + n, Pt = pu[tot - 1], p0 = q * (Pt - L); let j = 1;
+  for (let i = n - 1; i >= 0; i--) { const u = p0 + L - s[i]; while (j < tot - 1 && pu[j] < u) j++; const f = pu[j] > pu[j - 1] ? clamp((u - pu[j - 1]) / (pu[j] - pu[j - 1]), 0, 1) : 0;
+    NT.rP[i].lerpVectors(P[j - 1], P[j], f); NT.rX[i].lerpVectors(X[j - 1], X[j], f).normalize(); NT.rG[i] = lerp(G[j - 1], G[j], f); }
+  ribbon3(NT.rP, NT.rX, NT.rG, st.w[0], st.th[0], st.geo); natoHard(st, true);
+  { let tw = 0; const R = NT.rows; for (let i = 1; i < n; i++) tw = Math.max(tw, Math.acos(clamp(R[i].x.dot(R[i - 1].x), -1, 1))); NT.tw = tw; } }   /* a test aid: the most the way across turns between one row and the next */
+/* the NATO in its place: its ribbon is laid once in the slot's own frame and swings with it */
+function natoHome(R) { const st = R.st, n = NT.n; R.slot.piv.add(st.natoG); st.natoG.position.set(0, 0, 0); st.natoG.quaternion.identity(); st.natoG.scale.set(1, 1, 1);
+  for (let i = 0; i < n; i++) { NT.rP[i].copy(NT.disp[i]); NT.rX[i].set(1, 0, 0); NT.rG[i] = 1; } ribbon3(NT.rP, NT.rX, NT.rG, st.w[0], st.th[0], st.geo); natoHard(st, true); NT.q = 0; NT.bars = false; natoBarsSet(0); }
+/* its spring bars are fitted to the watch by the tool before it is threaded, and taken out after it has gone */
+function natoBarsSet(lift) { const st = STRAPS.writing; st.objs.forEach((o) => { o.obj.visible = NT.bars; if (o.obj.parent !== gStrap) gStrap.add(o.obj); o.obj.position.set(0, 0, 0); o.obj.quaternion.identity(); o.obj.scale.set(1, 1, 1);
+  const sy = o.sy, b = o.obj.children[0], t = o.obj.children[1]; b.position.set(0, sy * (LH[0] + HEAD[0] * lift), LH[1] + HEAD[1] * lift); t.position.copy(b.position); t.visible = true; }); }
+function natoGo(dir, T) { const R = RS.writing; if (!R) return;
+  if (R.state === 'worn') { NT.c12 = SIDES[0].c.map((p) => p.slice()); NT.c6 = SIDES[1].c.map((p) => p.slice()); NT.q = 1; }
+  else if (dir === 'in' && R.state === 'hang' && !TRAY && !reduce) R.slot.hkV -= 0.5;   // drawing it off the block sets the block swinging
+  if (R.state === 'hang' || R.state === 'worn') { scene.attach(R.st.natoG); R.st.natoG.position.set(0, 0, 0); R.st.natoG.quaternion.identity(); R.st.natoG.scale.set(1, 1, 1); }
+  if (dir === 'in') NT.c12 = null; NT.q0 = NT.q; NT.t0 = T; NT.to = dir === 'in' ? 1 : 0; R.state = dir === 'in' ? 'in' : 'out'; railSwapMats(R, true); railVis(R); }
+/* every frame of a NATO on its way: lay it along the path; at the end, hand it to the watch or leave it in its place */
+function natoTick(T, sy0) { const R = RS.writing; if (!R || (R.state !== 'in' && R.state !== 'out')) return;
+  const q = NT.q = natoQ(T); natoLay(R, q, T, sy0); natoBarsSet(sy0);
+  if (q !== NT.to) return;
+  if (R.state === 'in') { if (rs.inK === 'writing' && rs.arr < 0) { natoArrive(); rs.arr = T; rs.nIn = true; natoCheck(sy0); } return; }
+  railHang('writing'); if (!reduce && !TRAY) R.slot.phV += 0.16; ping({ f: 2400, q: 3, dur: 0.03, vol: 0.03, sharp: 3 }); }
+/* a test aid: how far, in mm, the webbing the watch takes over lies from where the path left it (the watch's own shape at the hand over, before the physics moves it) */
+function natoCheck(lift) { const st = STRAPS.writing, v = nV[0]; st.cs = { 1: strapCenter(SIDES[0].turn, 0, lift, st.dz, st.dy, st.sn[0]), [-1]: strapCenter(SIDES[1].turn, 0, lift, st.dz, st.dy, st.sn[1]) }; const W = st.loop(lift); gStrap.updateWorldMatrix(true, false); let g = 0; W.forEach((p, i) => { v.set(0, p[0], p[1]).applyMatrix4(gStrap.matrixWorld); g = Math.max(g, v.distanceTo(NT.rP[i])); }); NT.gap = g / nV[1].setFromMatrixColumn(gStrap.matrixWorld, 0).length(); }
+/* threaded: the watch takes it over exactly as it is, the side at twelve still held up, and the physics lets it fall */
+function natoArrive() { const R = RS.writing, a = natoAim(R.slot.piv); railPutOn('writing'); strapNow = 'writing'; SIDES.forEach((S, i) => { S.turn = i ? natoTurn(S.sy, false) : a; S.v = 0; S.wob = 0; S.wv = 0; }); if (RS.upcycle) railVis(RS.upcycle); }
+/* set every strap up: its slot, its halves, a buckle and keepers of its own for when it is off the watch */
+function railInit() { const home = TRAY ? trayG : railG;
+  RJ.order.forEach((job, j) => { const h = new THREE.Group(), hook = new THREE.Group(), piv = new THREE.Group(); home.add(h); h.add(hook); h.add(piv); const st0 = STRAPS[job], kind = st0.links ? 'brace' : st0.under ? 'nato' : 'len';
+    const S = { job, j, h, hook, piv, kind, drape: kind !== 'len', ph: 0, phV: 0, hk: 0, hkV: 0, w0: [3.45, 3.12, 3.82, 3.3, 3.62][j % 5], p0: [0.4, 2.3, 4.4, 1.3, 5.3][j % 5], e0: [0.19, 0.27, 0.15, 0.23, 0.31][j % 5] };
+    if (!TRAY) { if (kind === 'brace') rCradle(hook, BRY, 0.5); else hook.add(new THREE.Mesh(gHookWire, mSteelR)); }
+    S.amp = rad(kind === 'brace' ? 0.25 : kind === 'nato' ? 1.0 : 1.4); rl.slots.push(S); });
+  Object.keys(STRAPS).forEach((k) => { const st = STRAPS[k], slot = rl.slots[RJ.order.indexOf(k === 'upcycle' ? 'consulting' : k)], yaw = rad([-3, 2.5, -1.5, 3, -2][slot.j % 5]);
+    const R = RS[k] = { k, st, slot, state: 'hang', halves: [], aux: null, buck: null, keeps: [], mlR: null };
+    if (st.under) natoInit(st);
+    else if (st.links) { const pose = TRAY ? brTrayPose() : brHangPose(), hang = brPts(pose, chainBuf(BRC.S + 1)), a = new THREE.Vector3(0, hang[BRC.m][0], hang[BRC.m][1]), Q = TRAY ? rQT.clone() : rBasis(1, 1, 0);
+      R.halves.push({ o: st.objs[0], sy: 1, i: 0, tr: null, kind: 'brace', pose, hang, a, Q, A: TRAY ? a.clone().applyQuaternion(Q) : new THREE.Vector3(0, BRY + 0.6 - (hang[0][1] - hang[BRC.m][1]), 0.5), P0: brCopy(pose), PtW: brCopy(pose), Pt: pose, Pb: brCopy(pose), tgtB: chainBuf(BRC.S + 1), buf: chainBuf(BRC.S + 1), c0: chainBuf(BRC.S + 1) }); }
+    else st.objs.forEach((o, i) => { const sy = i ? -1 : 1, H = { o, sy, i, tr: null };
+      if (TRAY) Object.assign(H, { kind: 'len', hang: hangTray(i), a: new THREE.Vector3(0, sy * LH[0], LH[1]), A: new THREE.Vector3(0, RTY.bar, (i ? -1 : 1) * (RTY.L / 2 - 3.5)), Q: rQT.clone() });
+      else Object.assign(H, { kind: 'len', hang: hangLen(i), a: new THREE.Vector3(0, sy * LH[0], LH[1]), A: hangAt(i), Q: rBasis(sy, -1, yaw) });   /* both halves hang lug end down and face out, so their frames are turned over */
+      H.buf = chainBuf(H.hang.length); H.c0 = chainBuf(H.hang.length); R.halves.push(H); });
+    if (st.len) { R.mlR = st.ml.clone(); R.buck = gBuckle.clone(true); R.tangO = R.buck.children[gBuckle.children.indexOf(gTang)]; R.tangO.rotation.x = 0; R.buck.traverse((m) => { if (m.isMesh && m.material === st.ml) m.material = R.mlR; }); st.objs[0].obj.add(R.buck); R.keeps = cKeep.map((K) => { const m = K.m.clone(); m.material = R.mlR; st.objs[0].obj.add(m); return m; }); }
+    if (k === strapNow) { R.state = 'worn'; if (R.buck) { R.buck.visible = false; R.keeps.forEach((m) => { m.visible = false; }); } return; }
+    railHang(k); });
+  Object.keys(RS).forEach((k) => RSV.push(RS[k])); RSV.forEach((R) => { R.halves.forEach((H) => { H.o.obj.userData.railFly = true; }); if (R.st.natoG) R.st.natoG.userData.railFly = true; });   // a strap in the air is a child of the scene; the phone window draws it too
+  const idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 1500 }) : (f) => setTimeout(f, 200), go = () => { if (intro.on || jump) { setTimeout(go, 700); return; } idle(rBake); }; setTimeout(go, 600); }   // baked in idle time, never during the unboxing or a jump
+/* where a half sits in its place, in its slot's frame */
+const rM = new THREE.Matrix4(), rM2 = new THREE.Matrix4(), rQ2 = new THREE.Quaternion(), rQ = new THREE.Quaternion(), rA = new THREE.Vector3(), rB = new THREE.Vector3(), rC = new THREE.Vector3();
+function hangLocal(H, obj) { obj.quaternion.copy(H.Q); obj.scale.set(1, 1, 1); obj.position.copy(H.a).applyQuaternion(H.Q).negate().add(H.A); }
+function railHang(k) { const R = RS[k], P = R.slot.piv; if (R.st.len && !TRAY) { R.kf = [1, 1]; R.tang = 0.35; }
+  if (R.st.len && gBuckle.parent === R.st.objs[0].obj) { bHold.add(gBuckle); cKeep.forEach((K) => bHold.add(K.m)); }
+  if (R.buck) { R.buck.visible = true; R.keeps.forEach((m) => { m.visible = true; }); }
+  if (R.st.under) natoHome(R);
+  R.halves.forEach((H) => { H.tr = null; P.add(H.o.obj); hangLocal(H, H.o.obj); if (H.kind === 'brace') { H.o.onW = false; H.o.fl = H.pose.fl; brCopy(H.pose, H.Pb); } shapeHalf(R, H, H.hang, 0, 0); });   // off the watch a bracelet's spring bars sit flush in its end links
+  if (R.st.len && !TRAY) { const a = R.halves[0].o.obj, b = R.halves[1].o.obj; a.updateMatrix(); b.updateMatrix(); (R.rel || (R.rel = new THREE.Matrix4())).copy(a.matrix).invert().multiply(b.matrix); }   /* how the long half lies on the buckle half, for when the pair is carried as one */
+  if (R.swap) railSwapMats(R, true); R.state = 'hang'; rl.opDirty = true; railVis(R); }
+/* put a strap straight on the watch: back into the watch's own frame, where the strap physics takes it from here */
+function railPutOn(k) { const R = RS[k];
+  R.halves.forEach((H) => { H.tr = null; gStrap.add(H.o.obj); H.o.obj.position.set(0, 0, 0); H.o.obj.quaternion.identity(); H.o.obj.scale.set(1, 1, 1); H.o.obj.visible = true; if (H.kind === 'brace') { H.o.onW = true; H.o.fl = 1; } });
+  if (R.st.under) { const g = R.st.natoG; gStrap.add(g); g.position.set(0, 0, 0); g.quaternion.identity(); g.scale.set(1, 1, 1); g.visible = true; NT.q = 1; NT.bars = true; natoBarsSet(0); }
+  if (R.buck) { R.buck.visible = false; R.keeps.forEach((m) => { m.visible = false; }); const bg = R.st.objs[0].obj; bg.add(gBuckle); cKeep.forEach((K) => bg.add(K.m)); ubk.rel = 0; ubk.relV = 0; }
+  if (R.swap) { railSwapMats(R, false); railFade(R.own, LAY.strap.o); } R.state = 'worn'; }
+/* the webbing for the upcycled dial shares the consulting place: it shows once it has replaced the suede, and the suede never again */
+function railVis(R) { const vis = R.k === 'upcycle' ? upGone : R.state !== 'gone'; R.halves.forEach((H) => { H.o.obj.visible = vis; }); if (R.st.natoG) R.st.natoG.visible = true; }
+const railOff = (k) => !!RS[k] && RS[k].state !== 'worn';
+const railBare = () => rs.dep === 1 && rs.arr < 0;
+/* snap a strap onto the watch at once (the snapshots, and anything that asks for a strap with no time to show it) */
+function railShow(k) { const old = strapNow; dress(STRAPS[k]); if (k === old && RS[k].state === 'worn') { tintNow(); return; }
+  if (RS[old] && RS[old].state === 'worn') { if (old === 'consulting' && upGone) { RS[old].state = 'gone'; railVis(RS[old]); if (gBuckle.parent === RS[old].st.objs[0].obj) { bHold.add(gBuckle); cKeep.forEach((K) => bHold.add(K.m)); } } else railHang(old); } RS[k].halves.forEach((H) => { H.tr = null; }); railPutOn(k); strapNow = k; tintNow();
+  RS.upcycle && railVis(RS.upcycle); const S0 = STRAPS[k]; SIDES.forEach((S, i) => { S.turn = S0.rests ? S0.rests[i] : S0.rest; S.v = 0; S.wob = 0; S.wv = 0; }); }
+/* a click while the tool is busy: queue it, or turn back the strap already on its way */
+function railSet(k) { if (snap && !rl.force) return false; rl.force = false;
+  if (swapT < 0) { if (k === strapNow && pendTint == null) { strapNext = null; return true; } strapNext = k; swapT = 0; rsReset(); return true; }
+  if (rs.inK) { strapNext = k === rs.inK ? null : k; return true; }
+  if (rs.dep === 1) { strapNext = k; return true; }
+  strapNext = k === strapNow && pendTint == null ? null : k; return true; }
+/* start a flight from wherever the strap is now (on the watch, in its place, or already in the air) */
+function railFly(k, to, T, lift0) { const R = RS[k], toRail = to === 'rail';
+  if (R.state === 'worn' && R.st.len && gBuckle.parent === R.st.objs[0].obj) { bHold.add(gBuckle); cKeep.forEach((K) => bHold.add(K.m)); if (R.buck) { R.buck.visible = true; R.keeps.forEach((m) => { m.visible = true; }); } }
+  const from = R.state; R.state = toRail ? 'out' : 'in'; railSwapMats(R, true);
+  R.halves.forEach((H, h) => { const obj = H.o.obj, old = H.tr; obj.updateWorldMatrix(true, false); scene.attach(obj); obj.visible = true;
+    const tr = H.tr = { t0: T + (h ? 0.06 : 0), D: toRail ? 0.8 : 0.84, to, A0: new THREE.Vector3(), q0: obj.quaternion.clone(), s0: obj.scale.x, l0: 0, rel0: 0, done: false, vx: 0, pair: H.kind === 'len' && !TRAY && (toRail || from === 'hang') };
+    if (H.kind === 'brace') { H.o.onW = false; if (from === 'worn') brWornP(lift0, H.P0); else brCopy(old ? H.Pb : H.pose, H.P0); brPts(H.P0, H.c0); tr.l0 = from === 'worn' ? lift0 : old ? old.l : 0; }
+    else if (from === 'worn') { chainCopy(SIDES[H.i].c, H.c0); tr.l0 = lift0; tr.rel0 = H.kind === 'len' && !H.i ? ubk.rel : 0; }
+    else if (old) { chainCopy(H.buf, H.c0); tr.l0 = old.l; tr.rel0 = old.rel || 0; }
+    else { chainCopy(H.hang, H.c0); tr.l0 = 0; }
+    anchorOf(H, H.c0, tr.l0, tr.A0); obj.localToWorld(tr.A0); });
+  if (!toRail) { const S = R.slot; if (!reduce && !TRAY) S.hkV += (S.drape ? 0.18 : 0.75) * -1; }   // lifting it off leaves the block swinging
+  railVis(R); if (RS.upcycle) railVis(RS.upcycle); }
+/* the suede, replaced, comes off the watch and falls; the one real buckle and its keepers go back to waiting */
+function railDrop(k) { const R = RS[k], o = R.st.objs[0].obj; strapFall(R.halves.map((H) => H.o.obj), 0); if (gBuckle.parent === o) { bHold.add(gBuckle); cKeep.forEach((K) => bHold.add(K.m)); } R.halves.forEach((H) => { H.tr = null; }); R.state = 'gone'; railVis(R); }
+/* the swap's own clock. A strap the tool unpins leaves at 0.7 and the next is fetched at 1.1, fitted by the tool when it gets there. The NATO is never unpinned:
+   it is drawn out from under its bars at once, and the tool takes the bars when it has gone; coming in, the tool fits its bars first and it is threaded after */
+function railStep(was, T, sy0) { const sm = (x) => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }, nNow = !!STRAPS[strapNow].under;
+  if (!rs.dep && nNow && strapNext && strapNext !== strapNow && T >= 0.02) { natoGo('out', T); rs.dep = 1; rs.nOut = true; rs.latch = N_LATCH; }
+  if (was < 0.34 && T >= 0.34 && !rs.nOut && !nNow) snd.strap(0);
+  if (!rs.dep && T >= 0.7) { if (strapNext && strapNext !== strapNow) { if (strapNow === 'consulting' && upGone) railDrop('consulting'); else railFly(strapNow, 'rail', 0.7, sy0 + 12); rs.dep = 1; } else { if (strapNext === strapNow) tintNow(); strapNext = null; rs.dep = 2; } }
+  if (rs.dep === 2) { if (was < 0.98 && T >= 0.98) snd.strap(1); if (!nNow) toolPose(T); if (T >= 1.2) railDone(); return nNow ? 0 : T < 0.38 ? 0 : T < 0.7 ? sm((T - 0.38) / 0.32) : sm(1 - (T - 0.7) / 0.34); }
+  if (rs.dep === 1) {
+    if (!rs.inK && T >= rs.latch) { rs.inK = strapNext || strapNow; strapNext = null; dress(STRAPS[rs.inK]);
+      if (STRAPS[rs.inK].under) { natoGo('in', T); rs.toolIn = T; rs.arrAt = T + 9; } else { railFly(rs.inK, 'watch', rs.latch, 0); rs.arrAt = rs.latch + 0.06 + 0.84; rs.toolIn = rs.arrAt - 0.28; } }
+    /* the tool: out with the old strap's bars (at once, or after the NATO has gone), in with the new one's */
+    const tOut = rs.nOut ? T - 1.0 : T, tIn = rs.inK && rs.toolIn >= 0 ? T - rs.toolIn : -1; if (tIn >= 0 && tIn < 0.76) toolPose(tIn); else if (tOut >= 0 && tOut < 0.76) toolPose(tOut); else gTool.visible = false;
+    if (rs.nOut && NT.bars && RS.writing.state === 'out' && T >= 1.37) { NT.bars = false; natoBarsSet(sy0); snd.strap(0); }   /* flags, not crossings, so a held clock still lands on the right side of each */
+    if (rs.inK === 'writing' && !NT.bars && T >= rs.toolIn + 0.37) { NT.bars = true; natoBarsSet(sy0); snd.strap(1); }
+    if (rs.arr >= 0) { if (rs.nIn) { if (T >= rs.arr + 0.2) railDone(); return 0; } if (!rs.click && T >= rs.arr + 0.3) { rs.click = true; snd.strap(1); } if (T >= rs.arr + 0.52) { railDone(); return 0; } return sm(1 - (T - rs.arr) / 0.35); }
+    return 1; }
+  if (!nNow) toolPose(T); return nNow ? 0 : T < 0.38 ? 0 : sm((T - 0.38) / 0.32); }
+function railDone() { swapT = strapNext ? 0 : -1; gTool.visible = false; rsReset(); }
+/* the carrying point's path. On a phone: over the top in one arc, a touch toward the visitor, clear of the case. On a desktop the display stands under the text, which has no backing,
+   so a strap leaves it level or a little lower, runs out to the gutter left of the text (rl.gx, about 57vw) and only there turns up to the watch; going back it comes down the gutter and in */
+const rP1 = new THREE.Vector3(), rP2 = new THREE.Vector3();
+function flyPath(A, B, e, back, out) { const d = A.distanceTo(B);
+  if (!rl.desk) { rC.addVectors(A, B).multiplyScalar(0.5); rC.y += 0.16 * d; rC.z += 0.24 * d; return out.copy(A).multiplyScalar((1 - e) * (1 - e)).addScaledVector(rC, 2 * (1 - e) * e).addScaledVector(B, e * e); }
+  const D = back ? B : A, Wt = back ? A : B, low = D.y - rl.drop, gx = Math.min(rl.gx, D.x);
+  if (back) { rP1.set(gx, Wt.y, Wt.z + 0.02 * d); rP2.set(gx, low, D.z + 0.02 * d); } else { rP1.set(gx, low, D.z + 0.02 * d); rP2.set(gx, Wt.y, Wt.z + 0.02 * d); }
+  const a = (1 - e) * (1 - e) * (1 - e), b = 3 * (1 - e) * (1 - e) * e, c = 3 * (1 - e) * e * e, f = e * e * e;
+  return out.copy(A).multiplyScalar(a).addScaledVector(rP1, b).addScaledVector(rP2, c).addScaledVector(B, f); }
+/* each frame of a flight: the carrying point along its path, the turn by the shortest way, the size by ratio (so it reads as distance), the shape blended a little behind */
+const rT = { A: new THREE.Vector3(), q: new THREE.Quaternion(), s: 1 };
+function flyTarget(R, H, sy0) { const st = R.st;
+  if (H.tr.to === 'rail') { const P = R.slot.piv; rT.q.copy(P.getWorldQuaternion(rQ)).multiply(H.Q); rT.s = rl.s; rT.A.copy(H.A); P.localToWorld(rT.A); H.tgt = H.hang; H.tl = 0; if (H.kind === 'brace') H.Pt = H.pose; return; }
+  const lift = sy0 + 12; rT.q.copy(root.quaternion); rT.s = root.scale.x; H.tl = lift;
+  if (H.kind === 'brace') { H.Pt = brWornP(lift, H.PtW); H.tgt = brPts(H.Pt, H.tgtB); } else H.tgt = wornChain(st, H.i, lift); anchorOf(H, H.tgt, lift, rT.A); rT.A.multiplyScalar(rT.s).applyQuaternion(rT.q).add(root.position); }
+function railFlights(T, sy0) { let any = false;
+  for (let ri = 0; ri < RSV.length; ri++) { const R = RSV[ri]; if ((R.state !== 'out' && R.state !== 'in') || R.st.under) continue; let all = true;
+    R.halves.forEach((H) => { const tr = H.tr; if (!tr) return; any = true; flyTarget(R, H, sy0); const u = clamp((T - tr.t0) / tr.D, 0, 1), e = u * u * u * (u * (u * 6 - 15) + 10), er = sSmooth(u * 1.1 - 0.03), toR = tr.to === 'rail', obj = H.o.obj;
+      /* a pair leaves its hook as one: the buckle is lifted off the prong, the long half slides down out of the keepers, and only then do the two part, each to its own lug. Going back
+         they come together below the hook, the tail runs up into the keepers, and the buckle is set on the prong. pw is how much the two still move as one, pq how far the tail is out */
+      const pw = tr.pair ? (toR ? sSmooth((u - 0.5) / 0.28) : 1 - sSmooth((u - 0.2) / 0.3)) : 0, pq = toR ? 1 - sSmooth((u - 0.62) / 0.38) : sSmooth(u / 0.42), ec = tr.pair ? (toR ? sSmooth(u / 0.52) : sSmooth((u - 0.3) / 0.62)) : sSmooth((u - 0.06) / 0.78);
+      flyPath(tr.A0, rT.A, e, toR, rA); tr.vx = rT.A.x - tr.A0.x;
+      if (tr.pair) { const hop = Math.sin(Math.PI * clamp(toR ? (u - 0.72) / 0.28 : u / 0.3, 0, 1)) * rl.s; rA.y += 5 * hop; rA.z += 9 * hop; }
+      obj.quaternion.slerpQuaternions(tr.q0, rT.q, er); const es = tr.to === 'rail' ? sSmooth(u * 1.3) : sSmooth((u - 0.22) / 0.78), s = tr.s0 * Math.pow(rT.s / tr.s0, es); obj.scale.setScalar(s);   // it shrinks as it leaves, and grows as it comes, so size reads as distance
+      if (H.kind === 'brace') { brMix(H.P0, H.Pt, ec, tr.to !== 'rail', H.Pb); brPts(H.Pb, H.buf); H.o.fl = H.Pb.fl; if (tr.to !== 'rail' && !tr.clk && H.Pb.fl > 0.97) { tr.clk = true; ping({ f: 4300, q: 5, dur: 0.015, vol: 0.06, sharp: 6, ring: 6200, ringVol: 0.15, ringDur: 0.03 }); } } else { chainMix(H.c0, H.tgt, ec, H.buf); if (H.kind === 'len' && !reduce) { const b = Math.sin(Math.PI * u) * (1 - pw); chainFlex(H.buf, -0.55 * b * (H.i ? 1.15 : 1), 0.22 * b, 7 * u); } if (tr.pair && !H.i) { R.kf = [1 - sSmooth(pq * 2.4 - 1.2), 1 - sSmooth(pq * 2.4 - 0.2)]; R.tang = 0.35 * (toR ? e : 1 - e); } }   /* the clasp snaps shut; a strap bows as it flies */ tr.l = lerp(tr.l0, H.tl, e); tr.rel = tr.rel0 * (1 - e); shapeHalf(R, H, H.buf, tr.l, tr.rel);
+      anchorOf(H, H.buf, tr.l, rB).multiplyScalar(s).applyQuaternion(obj.quaternion); obj.position.copy(rA).sub(rB);
+      if (tr.pair && H.i && pw > 0 && R.rel) { const o0 = R.halves[0].o.obj; o0.updateMatrix(); rM.copy(o0.matrix).multiply(rM2.makeTranslation(0, 0, -pq * PAIR.D)).multiply(R.rel).decompose(rA, rQ2, rB); obj.position.lerp(rA, pw); obj.quaternion.slerp(rQ2, pw); obj.scale.lerp(rB, pw); }
+      tr.done = u >= 1; if (!tr.done) all = false; });
+    if (!all) continue;
+    if (R.state === 'out') { const S = R.slot, vx = R.halves[0].tr ? R.halves[0].tr.vx : 1; railHang(R.k); if (!reduce && !TRAY) S.phV += (S.drape ? 0.12 : 0.42) * Math.sign(vx || 1); ping({ f: 3900, q: 6, dur: 0.02, vol: 0.035, sharp: 5, ring: 5600, ringVol: 0.12, ringDur: 0.05 }); }
+    else if (R.state === 'in' && rs.inK === R.k && rs.arr < 0) { railArrive(R.k); rs.arr = swapT; } }
+  return any; }
+/* the new strap has reached the lugs: hand it to the watch exactly as it is, the physics holding the same curve */
+function railArrive(k) { const R = RS[k], st = R.st; railPutOn(k); strapNow = k; if (k === 'consulting' && pendTint != null) tintNow(); SIDES.forEach((S, i) => { S.turn = wornTurn(st, i, S.sy); S.v = 0; S.wob = 0; S.wv = 0; }); if (RS.upcycle) railVis(RS.upcycle); }
+/* the page tells the display where to be: the empty block under the heading, with one button per strap. Each strap's job and years are set under it; the one on the watch is marked */
+function railDom() { const p = panels.find((q) => q.dataset.ch === '1'); if (!p) return; p.classList.add('railed', 'sv-' + SV);
+  const box = document.createElement('div'); box.className = 'rail3d'; box.id = 's-rail'; box.setAttribute('role', 'group'); box.setAttribute('aria-label', (TRAY ? 'Straps in their tray' : 'Straps on their stand') + ', oldest to newest. Choose one to wear it');
+  RJ.order.forEach((k) => { const b = document.createElement('button'), j = CT.jobs && CT.jobs[k], chip = (j && j.chip) || { consulting: 'Consulting', engineering: 'Engineering', quant: 'Quant', banking: 'Banking', writing: 'Journalism' }[k];
+    b.dataset.strap = k; b.dataset.rail = k; b.innerHTML = '<span class="rj"></span><span class="ry"></span>'; b.children[0].textContent = chip; b.children[1].textContent = RJ.years[k]; b.setAttribute('aria-label', chip + ', ' + RJ.years[k] + ', ' + STRAPS[k].name.toLowerCase());
+    b.addEventListener('pointerenter', (e) => railNudge(k, e.movementX || 1, 1)); b.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') railNudge(k, e.movementX, 0.25); }); b.addEventListener('pointerdown', () => railNudge(k, 1, 1.4)); box.appendChild(b); rl.btns.push(b); });
+  box.addEventListener('keydown', (e) => { const i = rl.btns.indexOf(document.activeElement); if (i < 0) return; let n = -1; if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = Math.min(rl.btns.length - 1, i + 1); if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = Math.max(0, i - 1); if (e.key === 'Home') n = 0; if (e.key === 'End') n = rl.btns.length - 1; if (n >= 0) { e.preventDefault(); e.stopPropagation(); rl.btns[n].focus(); } });
+  const ch = p.querySelector('.chips'); ch.parentNode.insertBefore(box, ch.nextSibling); rl.el = box;
+  /* the test pages carry a quiet switch between the two displays, at the end of the chapter's label line */
+  if (window.STRAPVIEW) { const pt = p.querySelector('.part'), nv = document.createElement('nav'); nv.className = 'sview'; nv.setAttribute('aria-label', 'Strap display');
+    [['Hanger', './index.html', 'hanger'], ['Tray', './tray.html', 'tray']].forEach(([t, u, v], i) => { if (i) { const s = document.createElement('span'); s.setAttribute('aria-hidden', 'true'); s.textContent = '/'; nv.appendChild(s); } const a = document.createElement('a'); a.textContent = t; a.href = u; if (v === SV) a.setAttribute('aria-current', 'page'); nv.appendChild(a); });
+    if (pt) { const w = document.createElement('div'); w.className = 'partrow'; pt.parentNode.insertBefore(w, pt); w.appendChild(pt); w.appendChild(nv); } } }
+function railNudge(k, dx, g) { if (reduce || !rl.vis || TRAY) return; const S = rl.slots[RJ.order.indexOf(k)]; if (!S) return; S.phV += clamp(dx * 0.02, -0.09, 0.09) * g * (S.drape ? 0.4 : 1); }
+/* where the display is on the page and how big, in the scene: from the block's box, at the plane of the watch. Its size only changes when the block does */
+function railLayout(visW, visH, slide) { const el = rl.el, r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect(), w = r.width, h = r.height;
+  if (Math.abs(w - rl.cw) > 0.5 || Math.abs(h - rl.ch) > 0.5) { rl.cw = w; rl.ch = h; const n = rl.btns.length, pitch = w / n, b0 = rl.btns[0], lab = b0 ? b0.children[0].offsetHeight + b0.children[1].offsetHeight + 18 : 46;
+    if (TRAY) { const ce = Math.cos(RTY.e), se = Math.sin(RTY.e), TD = RTY.L + 2 * RTY.rim, ht = (RTY.dep + RTY.slab) * ce + TD * se; rl.ppm = Math.max(0.4, Math.min((h - lab - 6) / (ht + 2), pitch / (RTY.cw + 7))); rl.top = 2;
+      rFurn(0, rl.btns.map((b) => (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm)); trayG.rotation.x = RTY.e; const ybt = RTY.dep * ce + TD / 2 * se, yft = RTY.dep * ce - TD / 2 * se, zft = RTY.dep * se + TD / 2 * ce; trayY.position.set(0, -ybt - 1 + yft, 0); trayG.position.set(0, -yft, -zft); }
+    else { rl.ppm = Math.max(0.3, Math.min((h - lab - 6) / (RB.top + RB.drop + 2), pitch * 0.62 / 19.7)); rl.top = (RB.top + 1) * rl.ppm + 2; rl.rodL = W > 800 ? 0.93 * w / rl.ppm : w / rl.ppm + 10; rFurn(rl.rodL, rl.btns.map((b) => (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm)); }   /* on a desktop the board is drawn at about 93% of the column; on a phone it runs edge to edge */
+    rl.slots.forEach((S, i) => { const b = rl.btns[i]; S.h.position.x = (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm; }); }
+  const wpp = visH / H, px = r.left - sr.left + w / 2, py = r.top - sr.top + rl.top + slide; rl.s = rl.ppm * wpp;
+  railG.position.set((px / W - 0.5) * visW, (0.5 - py / H) * visH, 0); railG.scale.setScalar(rl.s); if (TRAY) trayY.rotation.y = -0.7 * Math.atan2(railG.position.x, camera.position.z); }
+/* phones: the sheet is opaque, except for a window where the display is */
+function railSheet(mob) { const p = rl.el.parentNode; let v = ''; if (mob) { const a = rl.el.offsetTop - p.scrollTop, b = a + rl.el.offsetHeight; v = Math.round(a) + 'px,' + Math.round(b) + 'px'; } if (v === rl.mobBg) return; rl.mobBg = v;
+  if (!mob) { p.style.removeProperty('--rh0'); p.style.removeProperty('--rh1'); return; } const ab = v.split(','); p.style.setProperty('--rh0', ab[0]); p.style.setProperty('--rh1', ab[1]); }
+/* every frame, while the strap chapter is anywhere near (or a strap is in the air): place the display, swing what hangs, fly what flies */
+let railDressAt = 0;
+function railTick(dt, pe, je, sy0, mob, visW, visH) { if (!rl.el) return;
+  const o = jump ? (jump.i === 1 ? clamp(je * 3 - 2, 0, 1) : clamp(1 - je * 3, 0, 1) * (rl.vis > 0.004 ? 1 : 0)) : clamp(1 - Math.abs(pe - 1) * 2.4, 0, 1), vis = intro.on ? 0 : o, busy = swapT >= 0 && rs.dep === 1;
+  if (vis <= 0.3 && !intro.on && !jump && railDressAt >= 0 && performance.now() > railDressAt) { const R = RSV.find((q) => q.st.maps && !q.st.dressed); if (R) { dress(R.st); railDressAt = performance.now() + 700; } else railDressAt = -1; }   /* straps are dressed ahead of time, one every 0.7 s away from the display, so it never shows bare leather */
+  rl.vis = vis; if (vis < 0.004 && !busy) { if (railG.visible) railG.visible = false; return; }
+  railG.visible = vis > 0.004; const dir = jump ? (jump.i === 1 ? 1 : -1) : (pe < 1 ? 1 : -1), slide = (1 - sSmooth(vis)) * 30 * dir;   // it fades in with the page, drifting up a little, and leaves the same way
+  railSheet(mob); railLayout(visW, visH, slide); rl.desk = !mob; rl.gx = 0.06 * visW; rl.drop = 0.04 * visH;   // the gutter at 56vw, just left of the text column
+  const op = sSmooth(vis), tr = op < 0.999; RFURN.forEach((m) => { m.opacity = op; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } });
+  if (Math.abs(op - rl.op) > 1e-4 || rl.opDirty) { rl.op = op; rl.opDirty = false; railFade(rl.rsh || (rl.rsh = [...RSH.values()]), op); for (let ri = 0; ri < RSV.length; ri++) if (RSV[ri].state === 'hang' || RSV[ri].state === 'out') railFade(RSV[ri].own, op); }
+  rl.t += dt; const t = rl.t;
+  /* scrolling into the chapter disturbs what hangs: each strap is set swinging about a fifth wider than its usual sway, each a little differently, and settles in two or three seconds */
+  if (vis > 0.5 && !rl.inCh) { rl.inCh = true; if (!reduce && !TRAY) rl.slots.forEach((S, i) => { S.phV += 0.2 * S.amp * S.w0 * (i & 1 ? -1 : 1) * (0.85 + 0.3 * Math.abs(Math.sin(S.p0 * 3))); }); } else if (vis < 0.08) rl.inCh = false;
+  if (!TRAY) for (let si = 0; si < rl.slots.length; si++) { const S = rl.slots[si]; let loaded = false; for (let ri = 0; ri < RSV.length; ri++) if (RSV[ri].slot === S && RSV[ri].state === 'hang') loaded = true;
+    const idle = reduce ? 0 : S.amp * (loaded ? 1 : 0.35) * (0.62 + 0.38 * Math.sin(t * S.e0 * S.w0 + S.p0 * 1.7)) * Math.sin(S.w0 * t + S.p0), w = S.w0, wh = 4.6, n = 3, h = dt / n;
+    for (let q = 0; q < n; q++) { S.phV += (-w * w * S.ph - 2 * 0.11 * w * S.phV) * h; S.ph += S.phV * h; S.hkV += (-wh * wh * S.hk - 2 * 0.09 * wh * S.hkV) * h; S.hk += S.hkV * h; }
+    /* whatever hangs from a prong swings on it as one pendulum (the hook itself is fixed in the board) */
+    S.piv.rotation.z = idle + S.ph + 0.5 * S.hk; }
+  railG.updateMatrixWorld(true);
+  for (let ri = 0; ri < RSV.length; ri++) { const R = RSV[ri], st = R.st; if (st.len && R.state !== 'worn') { st.mats[1].color.copy(st.mat.color); if (st.nap) st.mats.forEach((m) => napSheen(m.sheenColor, st.mat.color)); if (R.k === 'consulting' || R.k === 'upcycle') R.mlR.color.copy(st.mat.color).multiplyScalar(0.6); else R.mlR.color.setHex(st.base).multiplyScalar(0.8); R.mlR.roughness = st.nap ? 0.95 : 0.52; } }
+  if (RS.upcycle && RS.upcycle.state === 'hang' && RS.upcycle.halves[0].o.obj.visible !== upGone) railVis(RS.upcycle);
+  if (pendTint != null && railOff('consulting')) { const sc = STRAPS.consulting, tc = tintC.setHex(pendTint), k = 1 - Math.exp(-dt * 5); sc.mat.color.lerp(tc, k); sc.matEnd.color.lerp(tc, k); if (Math.abs(sc.mat.color.r - tc.r) + Math.abs(sc.mat.color.g - tc.g) + Math.abs(sc.mat.color.b - tc.b) < 0.004) tintNow(); }
+  if (vis > 0.3 && railDressAt >= 0 && performance.now() > railDressAt) { let st = null; for (let ri = 0; ri < RSV.length; ri++) { const R = RSV[ri]; if (R.state === 'hang' && (!R.halves[0] || R.halves[0].o.obj.visible) && R.st.maps && !R.st.dressed) st = R; } if (st) { dress(st.st); railDressAt = performance.now() + 120; } else if (RSV.every((R) => !R.st.maps || R.st.dressed)) railDressAt = -1; }   // anything still undressed when the display first shows is dressed here, one per beat
+  railFlights(swapT, sy0); natoTick(swapT, sy0); }
+const tintC = new THREE.Color();
+/* phones: the watch's own strap can reach down behind the sheet's window. The window is drawn once more on its own, with nothing in it but the display and what is flying to or from it */
+const rKeep = [];
+function railOverlay(mob) { if (!mob || !rl.el || rl.vis < 0.004 || !railG.visible) return; const r = rl.el.getBoundingClientRect(), sr = stage.getBoundingClientRect(), y = r.top - sr.top, bot = Math.min(H, y + r.height + 16), top = Math.max(0, y - 22);   /* over the sheet's fades into and out of the window too, so the watch never shows through them */
+  if (bot - top < 2) return; rKeep.length = 0;
+  for (let c = 0; c < scene.children.length; c++) { const o = scene.children[c]; if (!o.visible || o === railG || o === glow || o.isLight || o === key.target || o.userData.railFly) continue; o.visible = false; rKeep.push(o); }
+  const au = renderer.autoClear, su = renderer.shadowMap.autoUpdate; renderer.autoClear = false; renderer.shadowMap.autoUpdate = false; renderer.setScissorTest(true); renderer.setScissor(0, H - bot, W, bot - top); renderer.clear(true, true, false); renderer.render(scene, camera);
+  renderer.setScissorTest(false); renderer.autoClear = au; renderer.shadowMap.autoUpdate = su; rKeep.forEach((o) => { o.visible = true; }); }
+/* fading the display: a strap in its place fades with its own materials. The few it shares with the strap on the watch (spring bars, buckle steel, the quick release levers) are swapped for copies while it is off the watch */
+const RSH = new Map(), railMat = (m) => { if (!RSH.has(m)) { const c = m.clone(); c.userData = Object.assign({}, m.userData, { bo: m.opacity, bt: m.transparent }); RSH.set(m, c); } return RSH.get(m); };
+function railMats() { const shared = new Set([mBar]); gBuckle.traverse((o) => { if (o.isMesh && o.material !== STRAPS.consulting.ml) shared.add(o.material); }); QR.forEach((q) => q.piv.traverse((o) => { if (o.isMesh && o.material.opacity > 0) shared.add(o.material); }));
+  Object.values(RS).forEach((R) => { const own = new Set(); R.swap = []; const objs = R.halves.map((H) => H.o.obj).concat(R.st.natoG ? [R.st.natoG, R.st.objs[0].obj, R.st.objs[1].obj] : []);
+    objs.forEach((g) => g.traverse((o) => { if (!o.isMesh || o === gBuckle || cKeep.some((K) => K.m === o)) return; let p = o.parent; while (p) { if (p === gBuckle) return; p = p.parent; }
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach((x, j) => { if (x.opacity === 0) return; if (shared.has(x)) R.swap.push([o, j, x, railMat(x)]); else own.add(x); }); }));
+    R.own = [...own]; R.own.forEach((x) => { if (x.userData.bo == null) { x.userData.bo = x.opacity; x.userData.bt = x.transparent; } }); }); }
+function railSwapMats(R, rail) { if (!R.swap) return; R.swap.forEach(([o, j, a, b]) => { if (Array.isArray(o.material)) o.material[j] = rail ? b : a; else o.material = rail ? b : a; }); }
+function railFade(ms, op) { const tr0 = op < 0.999; ms.forEach((x) => { x.opacity = x.userData.bo * op; const tr = x.userData.bt || tr0; if (x.transparent !== tr) { x.transparent = tr; x.needsUpdate = true; } }); }
+if (RAIL) { railInit(); railMats(); Object.values(RS).forEach((R) => { if (R.state !== 'worn') railSwapMats(R, true); }); }
+
 /* ---------- hotspot anchors ---------- */
 const anchors = {};
 function anchor(k, parent, x, y, z) { const o = new THREE.Object3D(); o.position.set(x, y, z); parent.add(o); anchors[k] = o; }
@@ -1862,8 +2392,8 @@ function rotorPhysics(dt) {
 }
 
 /* ---------- sound: synthesised watch noises. Nothing plays until the visitor has touched the page. ---------- */
-let actx = null, muted = false, master = null, vol = 0.5;
-function audioOn() { if (muted) return; if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = vol * 0.7; master.connect(actx.destination); } catch (e) {} } else if (actx.state === 'suspended') actx.resume(); }
+let actx = null, muted = false, master = null, vol = 0.6;
+function audioOn() { if (muted) return; if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = vol * 1.4; master.connect(actx.destination); } catch (e) {} } else if (actx.state === 'suspended') actx.resume(); }
 function ping(o) { if (!actx || muted || actx.state !== 'running') return; try { const t = actx.currentTime + (o.when || 0), len = Math.max(64, Math.floor(actx.sampleRate * (o.dur || 0.02))), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, o.sharp || 5);
   const n = actx.createBufferSource(); n.buffer = buf; const f = actx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = o.f; f.Q.value = o.q || 3; const g = actx.createGain(); g.gain.value = o.vol; n.connect(f).connect(g).connect(master); n.start(t);
   if (o.ring) { const os = actx.createOscillator(), og = actx.createGain(); os.type = 'triangle'; os.frequency.value = o.ring; og.gain.setValueAtTime(o.vol * (o.ringVol || 0.2), t); og.gain.exponentialRampToValueAtTime(0.0001, t + (o.ringDur || 0.03)); os.connect(og).connect(master); os.start(t); os.stop(t + (o.ringDur || 0.03) + 0.01); }
@@ -1901,19 +2431,16 @@ const snd = {
   strap: (seat) => seat ? ping({ f: 1900, q: 3, dur: 0.02, vol: 0.1, thump: 150 }) : ping({ f: 3000, q: 4, dur: 0.012, vol: 0.11, ring: 4600, ringVol: 0.18, ringDur: 0.02 })
 };
 addEventListener('pointerdown', audioOn, { passive: true });
-const sndBtn = $('snd'), volEl = $('vol'); let lastVol = 50;
-const setVol = () => { vol = volEl.value / 100; muted = vol < 0.005; if (master) master.gain.value = vol * 0.7; sndBtn.dataset.lv = muted ? 0 : vol < 0.5 ? 1 : 2; sndBtn.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on'); sndBtn.setAttribute('aria-pressed', !muted); if (!muted) audioOn(); };
-sndBtn.onclick = () => { if (muted) volEl.value = lastVol || 50; else { lastVol = +volEl.value; volEl.value = 0; } setVol(); };
+const sndBtn = $('snd'), volEl = $('vol'); let lastVol = 60;
+const setVol = () => { vol = volEl.value / 100; muted = vol < 0.005; if (master) master.gain.value = vol * 1.4; sndBtn.textContent = muted ? 'Sound off' : 'Sound'; sndBtn.setAttribute('aria-pressed', !muted); if (!muted) audioOn(); };
+sndBtn.onclick = () => { if (muted) volEl.value = lastVol || 60; else { lastVol = +volEl.value; volEl.value = 0; } setVol(); };
 volEl.oninput = setVol;
 
 
 /* ---------- choreography ---------- */
-const NAMES = ['Start', 'Experience', 'Side projects', 'Projects', 'Articles / blogs', 'Film', 'Background and interests', 'Contact'], N = NAMES.length, CD = 2, CB = 6;
+const NAMES = ['Start', 'Strap', 'Dial', 'Projects', 'Articles', 'Film', 'Caseback', 'Full set'], N = NAMES.length, CD = 2, CB = 6;
 /* chapters 3 to 5 are the complications, visited in this order as you scroll: the camera goes in to each one and stops there */
 const STOP = ['moon', 'sec', 'date'], S0 = 3, stopCh = (k) => S0 + STOP.indexOf(k);
-/* the three works can change places for one visit: whichever one a visitor jumps to from outside comes first, and the other two follow in their
-   usual order, so scrolling on from it still passes through all three before the caseback. Back at the dial, the usual order returns */
-const WORK0 = ['moon', 'sec', 'date'], WNAME = { moon: 'Projects', sec: 'Articles', date: 'Film' }, RNAME = { moon: 'Projects', sec: 'Articles / blogs', date: 'Film' }, seenW = new Set();
 // z: [crystal, hands, dial, movement, back]   o: ORDER   sy: how far the straps have come off
 const KD = { rx: -10, ry: 0, rz: 0, sc: 1.08, sy: 16, f: [0, 0, 6], z: [22, 11, 11, 0, 0], o: [0, 1, 1, 1, 1, 1, 1, 1, 0] };
 const K = [
@@ -1926,36 +2453,11 @@ const BG = NAMES.map(() => [13, 17, 23]);   // the room stays the same; only the
 const track = $('track'), rail = $('rail'), panels = [...document.querySelectorAll('.panel')], hots = [...document.querySelectorAll('.hot')], scrim = $('scrim');
 /* once a dot or handle has been tried, it turns from pink to brass for the rest of the visit */
 ['pointerdown', 'click'].forEach((ev) => document.addEventListener(ev, (e) => { const h = e.target.closest && e.target.closest('.hot'); if (h) h.classList.add('done'); }, true));
-/* SNAP: each chapter is a stop the browser itself settles on (CSS scroll snap, one stop per flick, wheel notch or key), so nothing ever holds the page back.
-   false brings back free scrolling with the old detents. The stops sit one pitch apart; the pitch is set once from the screen height and only
-   changes when the width does (or a desktop window's height), so a phone's toolbar sliding in and out never moves them */
-const SNAP = true; let PITCH = 0, pitchW = 0;
-const marks = SNAP ? NAMES.map((n, k) => { const m = document.createElement('div'); m.className = 'snapm'; m.setAttribute('aria-hidden', 'true'); track.appendChild(m); return m; }) : [];
-function pitchSet() { const w = innerWidth, h = innerHeight; if (PITCH && w === pitchW && (w <= 800 || Math.abs(h * 1.05 - PITCH) < 2)) return;
-  const was = PITCH ? scrollY / PITCH : 0; pitchW = w; PITCH = Math.max(320, Math.round(h * 1.05));
-  if (SNAP) { track.style.height = 'calc(' + PITCH * (N - 1) + 'px + 100vh)'; marks.forEach((m, k) => { m.style.top = k * PITCH + 'px'; }); } else track.style.height = (1 + (N - 1) * 1.05) * 100 + 'vh';
-  if (was) window.scrollTo({ top: Math.round(was) * PITCH, behavior: 'instant' }); }
-pitchSet(); addEventListener('resize', pitchSet); window.__N = N - 1;
-if (SNAP) document.documentElement.classList.add('snap');
-/* a mouse wheel or trackpad under SNAP: the browser alone would snap a single wheel notch straight back to where it was, so each gesture moves
-   exactly one chapter, in its direction, the moment it starts. A gesture is a run of wheel events with no pause longer than 180 ms; a trackpad's
-   gliding tail belongs to the flick that started it, but a fresh, harder flick during that tail counts as new. Panels that scroll on their own
-   (the sheet on a phone) keep the wheel until they reach their end */
-const WG = { t: 0, t0: 0, sign: 0, abs: 0, acc: 0, done: false, to: -1, at: 0 };
-function wheelStep(dir) { const now = performance.now(), base = now - WG.at < 900 && WG.to >= 0 ? WG.to : Math.round(scrollY / PITCH), k = clamp(base + dir, 0, N - 1);
-  WG.at = now; if (k === base) return; WG.to = k; window.scrollTo({ top: k * PITCH, behavior: reduce ? 'instant' : 'smooth' }); }
-if (SNAP) addEventListener('wheel', (e) => {
-  if (intro.on || jump || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-  const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1); if (!d) return;
-  const sc = e.target.closest && e.target.closest('.panel, #focus'); if (sc && sc.scrollHeight > sc.clientHeight + 2 && (d > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0)) return;
-  e.preventDefault(); const now = e.timeStamp, sign = Math.sign(d), a = Math.abs(d), gap = now - WG.t;
-  if (gap > 180 || sign !== WG.sign || (a > WG.abs * 1.6 && a > 12 && now - WG.at > 280) || (now - WG.t0 > 1800 && a >= 4)) { WG.t0 = now; WG.acc = 0; WG.done = false; }
-  WG.t = now; WG.sign = sign; WG.abs = a; WG.acc += d;
-  if (!WG.done && Math.abs(WG.acc) >= 24) { WG.done = true; wheelStep(sign); } }, { passive: false });
-const total = () => SNAP ? PITCH * (N - 1) : track.offsetHeight - innerHeight;
+track.style.height = (1 + (N - 1) * 1.05) * 100 + 'vh'; window.__N = N - 1;   // an easy scroll between chapters
+const total = () => track.offsetHeight - innerHeight;
 /* the catch: someone skimming without touching anything gets a short pause the first time they reach each chapter, so they land on it once.
    Anyone who has used something on the page scrolls freely */
-const caught = new Array(N).fill(false); caught[0] = true; let brakeUntil = 0, brakeAt = 0, brakeY = 0, sPrev = 0, wheelLast = 0; const BRW = 0.13, DWELL = 650, braking = () => { if (SNAP) return false; const now = performance.now(); if (now < brakeUntil) return true; if (brakeAt && now - wheelLast < 160 && now - brakeAt < 2600) { brakeUntil = now + 60; return true; } return false; };   /* a detent holds for DWELL ms, and for as long as a flick's momentum is still arriving */
+const caught = new Array(N).fill(false); caught[0] = true; let brakeUntil = 0, brakeAt = 0, brakeY = 0, sPrev = 0, wheelLast = 0; const BRW = 0.13, DWELL = 650, braking = () => { const now = performance.now(); if (now < brakeUntil) return true; if (brakeAt && now - wheelLast < 160 && now - brakeAt < 2600) { brakeUntil = now + 60; return true; } return false; };   /* a detent holds for DWELL ms, and for as long as a flick's momentum is still arriving */
 addEventListener('wheel', (e) => { wheelLast = performance.now(); if (braking()) e.preventDefault(); }, { passive: false });
 addEventListener('wheel', (e) => { if (braking()) e.preventDefault(); }, { passive: false });
 /* anyone who has used something on the page (a chip, a dot, a dial, the watch itself) is looking, not skimming: from then on the scroll is free */
@@ -1965,9 +2467,9 @@ addEventListener('touchmove', (e) => { if (braking()) e.preventDefault(); }, { p
 addEventListener('keydown', (e) => { if (braking() && ['ArrowDown', 'PageDown', ' ', 'End'].includes(e.key)) e.preventDefault(); });
 let lockOff = false;
 function brakeCheck() { let s = clamp(scrollY / total(), 0, 1) * (N - 1);
-  if (!SNAP && !fixDone && !lockOff && !jump && !intro.on && s > 1.1) { window.scrollTo({ top: total() * 1.1 / (N - 1), behavior: 'instant' }); s = 1.1; }   // nobody scrolls past the strap chapter until the pen has made its correction
+  if (!fixDone && !lockOff && !jump && !intro.on && s > 1.1) { window.scrollTo({ top: total() * 1.1 / (N - 1), behavior: 'instant' }); s = 1.1; }   // nobody scrolls past the strap chapter until the pen has made its correction
   if (braking()) { if (Math.abs(scrollY - brakeY) > 2) scrollTo({ top: brakeY, behavior: 'instant' }); sPrev = s; return; }
-  if (!SNAP && !jump && !intro.on && s > sPrev) for (let k = Math.floor(sPrev + BRW) + 1; k <= Math.floor(s + BRW) && k < N; k++) if (k > 0) { caught[k] = true; brakeY = total() * k / (N - 1); brakeAt = performance.now(); brakeUntil = brakeAt + DWELL; ping({ f: 3200, q: 4, dur: 0.025, vol: 0.05, sharp: 5 }); scrollTo({ top: brakeY, behavior: 'instant' }); break; }   // a short pause, then they are free to go on
+  if (!jump && !intro.on && s > sPrev) for (let k = Math.floor(sPrev + BRW) + 1; k <= Math.floor(s + BRW) && k < N; k++) if (k > 0) { caught[k] = true; brakeY = total() * k / (N - 1); brakeAt = performance.now(); brakeUntil = brakeAt + DWELL; ping({ f: 3200, q: 4, dur: 0.025, vol: 0.05, sharp: 5 }); scrollTo({ top: brakeY, behavior: 'instant' }); break; }   // a short pause, then they are free to go on
   sPrev = clamp(scrollY / total(), 0, 1) * (N - 1); }
 const CHOLD = 0.12, settle = (s) => { const i = Math.floor(s), f = s - i; return i + clamp((f - CHOLD) / (1 - 2 * CHOLD), 0, 1); };   // each chapter holds still for a stretch of scroll before the next moves in
 const stopKey = (c) => c > S0 - 0.5 && c < S0 + 2.5 ? STOP[clamp(Math.round(c) - S0, 0, 2)] : null;
@@ -1987,30 +2489,24 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
   jump = { from: lastPose, to, i, c0: cur, t: 0, then, far: Math.abs(i - cur), zA: { fe: zNow.fe, c: zNow.c.slice(), s: zNow.s, r: zNow.r, k: zNow.k }, zB: zsnap(i) };
   window.scrollTo({ top, behavior: 'instant' }); cur = i;
 }
-NAMES.forEach((n, i) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); if (i >= S0 && i < S0 + 3) b.className = 'sub'; b.onclick = () => (i >= S0 && i < S0 + 3 ? goWork(STOP[i - S0]) : jumpTo(i)); rail.appendChild(b); });
-const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
-function workOrder(list) { STOP.splice(0, 3, ...list); [...rail.children].slice(S0, S0 + 3).forEach((b, j) => { b.textContent = RNAME[STOP[j]]; b.setAttribute('aria-label', 'Go to ' + RNAME[STOP[j]]); }); stopsPaint(); }
-/* every way into the three works (the chips, the journey bar, the dial dots and rows, the links on the spec sheet) comes through here */
-function goWork(k) { audioOn(); if (!inWork() && STOP[0] !== k) workOrder([k, ...WORK0.filter((x) => x !== k)]); jumpTo(stopCh(k)); }
-const JUMPS = { career: [1], resume: [N - 1], contact: [N - 1], top: [0] };
+/* the strap display's test pages (window.STRAPSKIP): no unboxing, and the page opens on the Strap chapter. Without the flag nothing here changes */
+const SKIP = !!window.STRAPSKIP;
+if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (N - 1)); }
+NAMES.forEach((n, i) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); if (i >= S0 && i < S0 + 3) b.className = 'sub'; b.onclick = () => jumpTo(i); rail.appendChild(b); });
+const JUMPS = { career: [1], projects: [stopCh('moon')], writing: [stopCh('sec')], film: [stopCh('date')], resume: [N - 1], contact: [N - 1], top: [0] };
 $('home').addEventListener('click', () => jumpTo(0));
-document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); const w = { projects: 'moon', writing: 'sec', film: 'date' }[b.dataset.jump]; if (w) { goWork(w); return; } const j = JUMPS[b.dataset.jump]; jumpTo(j[0], j[1]); }));
+document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); const j = JUMPS[b.dataset.jump]; jumpTo(j[0], j[1]); }));
 
 /* ---------- complication focus mode ---------- */
 /* focus follows the scroll: whichever complication chapter you are on is open. Next and Back browse inside it; scrolling moves on */
 let focus = null, idx = { date: 0, moon: 0, sec: 0 }, wDate = 0, wMoon = 0, slide = null;
-const fEl = $('focus'), nextOf = (k) => { const j = STOP.indexOf(k); return j < 2 ? WNAME[STOP[j + 1]].toLowerCase() : 'the caseback'; };
-const wCount = (k) => DATA[k].items.length;   // the same number the Back and Next counter shows
-/* the switch between the three works, under each one: in this visit's order, with how many are in each and a mark on the ones already seen */
-function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); }); }
-document.querySelectorAll('.rows.work .wn').forEach((e) => { e.textContent = wCount(e.dataset.n); }); { const wm = $('w-moon'); if (wm && DATA.moon.items.length) wm.textContent = DATA.moon.items.map((x) => x.t).filter(Boolean).join(', ') + '.'; }
-document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.innerHTML = WNAME[k] + ' <i>' + wCount(k) + '</i>'; b.setAttribute('aria-label', WNAME[k] + ', ' + wCount(k)); });
+const fEl = $('focus'), NEXT = { moon: 'articles', sec: 'film', date: 'the caseback' };
 function paint() {
   const D = DATA[focus], n = D.items.length, it = D.items[idx[focus]];
   $('f-kicker').textContent = D.kicker; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
   const l = $('f-link'); l.style.display = it.link && it.url ? 'inline-block' : 'none'; if (it.url) { l.textContent = it.link; l.href = it.url; l.target = '_blank'; l.rel = 'noopener'; }   // no button until there is somewhere to go
-  $('f-note').textContent = D.note || ''; $('f-count').textContent = (idx[focus] + 1) + ' of ' + n; $('f-hint').textContent = D.hint + ' Keep scrolling for ' + nextOf(focus) + '.';
-  stopsPaint();
+  $('f-note').textContent = D.note || ''; $('f-count').textContent = (idx[focus] + 1) + ' of ' + n; $('f-hint').textContent = D.hint + ' Keep scrolling for ' + NEXT[focus] + '.';
+  document.querySelectorAll('[data-stop]').forEach((b) => b.classList.toggle('cur', b.dataset.stop === focus));
 }
 function stepFocus(dir) {
   if (!focus || slide) return; const n = DATA[focus].items.length; idx[focus] = (idx[focus] + dir + n) % n;
@@ -2020,13 +2516,13 @@ function stepFocus(dir) {
   paint();
 }
 function enterStop(k) {
-  focus = k; seenW.add(k); document.body.classList.add('focused');
+  focus = k; document.body.classList.add('focused');
   if (k === 'date') { loadPhotos(); photoA.material.map = photos[idx.date]; }
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();
 }
 function leaveStop() { if (!focus) return; focus = null; document.body.classList.remove('focused'); }
-function openFocus(k) { goWork(k); }
+function openFocus(k) { audioOn(); jumpTo(stopCh(k)); }
 function closeFocus() {}
 $('f-prev').onclick = () => { audioOn(); stepFocus(-1); }; $('f-next').onclick = () => { audioOn(); stepFocus(1); };
 document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => openFocus(b.dataset.open)));
@@ -2053,22 +2549,36 @@ addEventListener('pointermove', (e) => { if (!down) return; const dx = e.clientX
 
 
 /* ---------- strap and dial selectors ---------- */
+/* each job: [title, the paragraph, the link's words, the link, the place]. content.js overrides any of it */
 const ROLES = {
-  consulting: ['Economic consulting', 'Analysis Group, 2023 to now. Antitrust, pricing and market strategy for Fortune 100 clients across AI, consumer tech, adtech and energy.', 'My Analysis Group profile', 'https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/'],
-  engineering: ['Software engineering', '[COMPANY AND YEARS]. [ONE LINE ON WHAT YOU BUILT]'],
-  quant: ['Quant research', '[COMPANY AND YEARS]. [ONE LINE ON WHAT YOU MODELED]'],
-  banking: ['Investment banking', '[COMPANY AND YEARS]. [ONE LINE ON THE DEALS OR COVERAGE]'],
-  writing: ['Watch journalism', 'My own blog and a Wrist Review byline, plus a lot of ghostwriting.', 'Read them on Wrist Review', 'https://wristreview.com/?s=NIKHIL+KURMALA']
+  consulting: ['Economic consulting', 'Antitrust, pricing and market strategy for Fortune 100 clients across AI, consumer tech, adtech and energy. I turn messy data into the evidence a case or a launch decision rests on.', 'My Analysis Group profile', 'https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/', 'Analysis Group, San Francisco'],
+  engineering: ['Software engineering', '[ONE LINE ON WHAT YOU BUILT]', '', '', '[EMPLOYER, CITY]'],
+  quant: ['Quant research', '[ONE LINE ON WHAT YOU MODELED]', '', '', '[EMPLOYER, CITY]'],
+  banking: ['Investment banking', '[ONE LINE ON THE DEALS OR COVERAGE]', '', '', '[EMPLOYER, CITY]'],
+  writing: ['Watch journalism', 'My own blog and a Wrist Review byline, plus a lot of ghostwriting.', 'Read them on Wrist Review', 'https://wristreview.com/?s=NIKHIL+KURMALA', 'Wrist Review']
 };
-if (CT.jobs) Object.keys(ROLES).forEach((k) => { const j = CT.jobs[k]; if (!j) return; ROLES[k] = [j.title || ROLES[k][0], j.text || ROLES[k][1], j.linkText || '', j.link || '']; const b = document.querySelector('[data-strap="' + k + '"]'); if (b && j.chip) b.textContent = j.chip; });
+if (CT.jobs) Object.keys(ROLES).forEach((k) => { const j = CT.jobs[k]; if (!j) return; ROLES[k] = [j.title || ROLES[k][0], j.text || ROLES[k][1], j.linkText || '', j.link || '', typeof j.place === 'string' ? j.place.trim() : ROLES[k][4]]; const b = document.querySelector('[data-strap="' + k + '"]'); if (b && j.chip) b.textContent = j.chip; });
+if (RAIL) railDom();
 const chips = [...document.querySelectorAll('[data-strap]')];
-function pickStrap(k) { const sk = k === 'consulting' && way === 'upcycle' ? 'upcycle' : k; setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k)); $('s-title').textContent = ROLES[k][0]; $('s-body').textContent = ROLES[k][1]; const sl = $('s-link'); sl.hidden = !ROLES[k][3]; if (ROLES[k][3]) { sl.textContent = ROLES[k][2]; sl.href = ROLES[k][3]; } $('s-name').textContent = 'On ' + STRAPS[sk].name.toLowerCase(); }
+function pickStrap(k) { const sk = k === 'consulting' && upGone ? 'upcycle' : k; setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k));
+  const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1];
+    sl.hidden = !R[3]; if (R[3]) { sl.textContent = R[2] || R[3]; sl.href = R[3]; } };
+  if (!rl.cardK || rl.cardK === k + sk) { rl.cardK = k + sk; fill(); return; } rl.cardK = k + sk; plateSwap(fill); }   // the plate changes on the click, not when the strap lands
+/* the plate's change: the old lines lift a hair and fade together, then the new ones rise into place one after another (title, material, place and years, paragraph, link).
+   A later click takes over from wherever the lines are. Reduced motion: a short crossfade and nothing moves. PL.hold (tests) freezes the new lines at that many ms in */
+const PL = { gen: 0, hold: null }, PLD = [0, 40, 80, 120, 160];
+const plateLines = () => ['s-title', 's-name', 's-meta', 's-body', 's-link'].map($);
+function plateSwap(fill) { const g = ++PL.gen, ls = plateLines(), rm = reduce; if (snap) { fill(); return; }
+  const out = ls.map((el) => { const cs = getComputedStyle(el), o = +cs.opacity, tf = cs.transform === 'none' ? 'none' : cs.transform; el.getAnimations().forEach((a) => a.cancel());
+    return el.animate([{ opacity: o, transform: tf }, { opacity: 0, transform: rm ? 'none' : 'translateY(-4px)' }], { duration: rm ? 60 : 140, easing: 'ease-in', fill: 'forwards' }); });
+  out[0].finished.then(() => { if (g !== PL.gen) return; fill();
+    ls.forEach((el, i) => { el.getAnimations().forEach((a) => a.cancel()); const a = el.animate([{ opacity: 0, transform: rm ? 'none' : 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: rm ? 60 : 320, delay: rm ? 0 : PLD[i], easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' }); if (PL.hold != null) { a.pause(); a.currentTime = PL.hold; } }); }).catch(() => {}); }
 chips.forEach((c) => c.addEventListener('click', () => pickStrap(c.dataset.strap))); pickStrap('consulting');
 /* the pen: a beat after the strap copy comes into view, "straps" gets struck out and "caps" written over it */
 const fixEl = $('fix'); let fixT = 0, fixDone = !fixEl; if (fixEl && reduce) { fixEl.classList.add('on'); fixDone = true; }
-function fixTick(dt) { if (fixDone) return; const p = panels.find((q) => q.dataset.ch === '1'); if (p && p.classList.contains('live')) { fixT += dt; if (fixT > (SNAP ? 0.6 : 1.4)) { fixDone = true; fixEl.classList.add('on'); snd.scribble(); } } else fixT = 0; }
+function fixTick(dt) { if (fixDone) return; const p = panels.find((q) => q.dataset.ch === '1'); if (p && p.classList.contains('live')) { fixT += dt; if (fixT > 1.4) { fixDone = true; fixEl.classList.add('on'); snd.scribble(); } } else fixT = 0; }
 const dots = [...document.querySelectorAll('[data-way]')]; let wayFlash = false;   /* on phones the dial's name is not in the top row: it shows for a moment under the swatches when a dial is picked */
-function pickWay(k) { setWay(k); if (k !== 'upcycle' && (strapNext || strapNow) === 'upcycle') pickStrap('consulting'); dots.forEach((c) => c.setAttribute('aria-pressed', c.dataset.way === k)); document.querySelectorAll('.wayname').forEach((e) => { e.textContent = WAYS[k].name; if (wayFlash) { e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); } }); }
+function pickWay(k) { setWay(k); dots.forEach((c) => c.setAttribute('aria-pressed', c.dataset.way === k)); document.querySelectorAll('.wayname').forEach((e) => { e.textContent = WAYS[k].name; if (wayFlash) { e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); } }); }
 dots.forEach((c) => { c.style.background = 'radial-gradient(circle at 35% 30%,' + WAYS[c.dataset.way].dot[0] + ',' + WAYS[c.dataset.way].dot[1] + ')'; c.addEventListener('click', () => { pickWay(c.dataset.way); const p = WAYS[c.dataset.way].pair; if (p) pickStrap(p); }); }); pickWay('silver'); wayFlash = true;
 
 /* under the hood: four parts of the movement are not quite standard. No labels on the watch: the parts give themselves away, and a tap tells the rest */
@@ -2128,8 +2638,8 @@ function fryLoop(on, level) { if (on && !fry && actx && actx.state === 'running'
   if (fry) { if (!on || muted) { try { fry.g.gain.setTargetAtTime(0.0001, actx.currentTime, 0.08); fry.s.stop(actx.currentTime + 0.4); } catch (e) {} fry = null; } else { fry.g.gain.setTargetAtTime(0.05 + 0.16 * level, actx.currentTime, 0.06); fry.bp.frequency.setTargetAtTime(4600 + 2600 * level, actx.currentTime, 0.08); } } }
 /* ---- penalty shootout. Zoom on the rotor and a small pitch rises out of the open half of its well, opposite the gold weight, and turns with it.
    The lane is a curve round the big ball, with a low gilt lip on each edge: pull back from the ball, let go, and bank the shot round to the goal at the other end */
-const PIT = { ri: 3.36, ro: 4.74, a0: rad(104), a1: rad(256), z: ZR + 0.42, rb: 0.17, a: 0, flip: false, p: new THREE.Vector2(), v: new THREE.Vector2(), bz: 0, vz: 0, mode: 'ready', t: 0, shots: 0, goals: 0, kr: 0, kt: 0, res: '', aim: null, hop: 0, nb: 0, nv: 0, nc: false, nt: -1, nA: 0, nh: [0, 0.2] };
-const gPit = new THREE.Group(); gRot.add(gPit); gPit.visible = false; const kickEl = $('kick');   // the ball's dot steps aside while the ball is in play, so the shot and the net can be seen
+const PIT = { ri: 3.36, ro: 4.74, a0: rad(104), a1: rad(256), z: ZR + 0.42, rb: 0.17, a: 0, flip: false, p: new THREE.Vector2(), v: new THREE.Vector2(), bz: 0, vz: 0, mode: 'ready', t: 0, shots: 0, goals: 0, kr: 0, kt: 0, res: '', aim: null, hop: 0, net: 0 };
+const gPit = new THREE.Group(); gRot.add(gPit); gPit.visible = false;
 const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THREE.MeshStandardMaterial({ roughness: 0.35 })), gGoal = new THREE.Group(), gKeep = new THREE.Group(), gShoot = new THREE.Group(), pitAim = new THREE.Mesh(new THREE.BoxGeometry(1, 0.07, 0.02), new THREE.MeshBasicMaterial({ color: 0xff9a1f }));
 { const { ri, ro, a0, a1, z } = PIT, rm = (ri + ro) / 2, S = 1024, cv = document.createElement('canvas'); cv.width = cv.height = S; const g = cv.getContext('2d'), px = (x) => (x / ro + 1) / 2 * S, py = (y) => (1 - (y / ro + 1) / 2) * S, k = S / 2 / ro;
   g.fillStyle = '#1f7a3f'; g.fillRect(0, 0, S, S); for (let i = 0; i < 16; i++) { const b0 = a0 + (a1 - a0) * i / 16, b1 = a0 + (a1 - a0) * (i + 1) / 16; g.fillStyle = i % 2 ? '#248a47' : '#1c7039'; g.beginPath(); g.moveTo(S / 2, S / 2); g.arc(S / 2, S / 2, S, -b1, -b0); g.closePath(); g.fill(); }
@@ -2149,19 +2659,10 @@ const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THR
   /* goal: white posts and bar, a net behind. Its own x runs across the lane, its y points back up the pitch toward the taker */
   const white = new THREE.MeshStandardMaterial({ color: 0xf4f4f0, roughness: 0.35, metalness: 0.1 }), GW = 0.96, GH = 0.74, GD = 0.36, post = (x) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, GH, 10).rotateX(Math.PI / 2), white); p.position.set(x, 0, GH / 2); gGoal.add(p); };
   post(-GW / 2); post(GW / 2); { const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, GW + 0.07, 10).rotateZ(Math.PI / 2), white); bar.position.set(0, 0, GH); gGoal.add(bar); }
-  /* the net is one cloth in four panels (back, roof and two sides), each pegged along its edges to the frame and the turf. It is drawn as dark grey cord over a smoky veil, so it shows against the turf,
-     and is fine enough to bulge where the ball goes in */
-  { const pos = [], idx = [], ln = [], pin = [], pid = [], o3 = new THREE.Object3D();
-    const pl = (w, hh, sx, sy, k, fn) => { const g = new THREE.PlaneGeometry(w, hh, sx, sy); o3.position.set(0, 0, 0); o3.rotation.set(0, 0, 0); fn(o3); o3.updateMatrix(); g.applyMatrix4(o3.matrix); const b = pos.length / 3, P3 = g.attributes.position, U = g.attributes.uv;
-      for (let i = 0; i < P3.count; i++) { pos.push(P3.getX(i), P3.getY(i), P3.getZ(i)); pin.push(Math.sin(Math.PI * U.getX(i)) * Math.sin(Math.PI * U.getY(i))); pid.push(k); } g.index.array.forEach((q) => idx.push(b + q));
-      for (let r = 0; r <= sy; r++) for (let c = 0; c <= sx; c++) { const q = b + r * (sx + 1) + c; if (c < sx) ln.push(q, q + 1); if (r < sy) ln.push(q, q + sx + 1); } g.dispose(); };
-    pl(GW, GH, 14, 11, 0, (n) => { n.rotation.x = Math.PI / 2; n.position.set(0, -GD, GH / 2); }); pl(GW, GD, 14, 5, 1, (n) => { n.position.set(0, -GD / 2, GH); });
-    pl(GD, GH, 5, 11, 2, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(-GW / 2, -GD / 2, GH / 2); }); pl(GD, GH, 5, 11, 2, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(GW / 2, -GD / 2, GH / 2); });
-    const pa = new THREE.Float32BufferAttribute(pos, 3); pa.setUsage(THREE.DynamicDrawUsage);
-    const vg = new THREE.BufferGeometry(); vg.setAttribute('position', pa); vg.setIndex(idx); const veil = new THREE.Mesh(vg, new THREE.MeshBasicMaterial({ color: 0x23262b, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false })); veil.frustumCulled = false; gGoal.add(veil);
-    const cg = new THREE.BufferGeometry(); cg.setAttribute('position', pa); cg.setIndex(ln); const cord = new THREE.LineSegments(cg, new THREE.LineBasicMaterial({ color: 0x3d4148, transparent: true, opacity: 0.9, depthWrite: false })); cord.frustumCulled = false; gGoal.add(cord);
-    PIT.netN = { cord, pa, base: new Float32Array(pos), pin: new Float32Array(pin), id: new Uint8Array(pid), dirty: false }; }
-  PIT.GW = GW; PIT.GH = GH; PIT.GD = GD; gPit.add(gGoal);
+  { const c3 = document.createElement('canvas'); c3.width = c3.height = 128; const q = c3.getContext('2d'); q.strokeStyle = 'rgba(255,255,255,.85)'; q.lineWidth = 2; for (let i = 0; i <= 128; i += 16) { q.beginPath(); q.moveTo(i, 0); q.lineTo(i, 128); q.moveTo(0, i); q.lineTo(128, i); q.stroke(); } const nt = new THREE.CanvasTexture(c3); nt.wrapS = nt.wrapT = THREE.RepeatWrapping; nt.repeat.set(2, 1.4);
+    const nm = new THREE.MeshBasicMaterial({ map: nt, transparent: true, side: THREE.DoubleSide, depthWrite: false }), pl = (w, hh, fn) => { const n = new THREE.Mesh(new THREE.PlaneGeometry(w, hh), nm); fn(n); gGoal.add(n); return n; };
+    PIT.netM = pl(GW, GH, (n) => { n.rotation.x = Math.PI / 2; n.position.set(0, -GD, GH / 2); }); pl(GW, GD, (n) => { n.position.set(0, -GD / 2, GH); }); pl(GD, GH, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(-GW / 2, -GD / 2, GH / 2); }); pl(GD, GH, (n) => { n.rotation.x = Math.PI / 2; n.rotation.y = Math.PI / 2; n.position.set(GW / 2, -GD / 2, GH / 2); }); }
+  PIT.GW = GW; gPit.add(gGoal);
   /* two figures: a keeper in yellow, a taker in red */
   const man = (grp, kit) => { const skin = new THREE.MeshStandardMaterial({ color: 0xe6bf98, roughness: 0.6 }), dark = new THREE.MeshStandardMaterial({ color: 0x16181d, roughness: 0.6 }), shirt = new THREE.MeshStandardMaterial({ color: kit, roughness: 0.55 }), cyl = (r, hh, mt, x, zz) => { const c = new THREE.Mesh(new THREE.CylinderGeometry(r, r, hh, 10).rotateX(Math.PI / 2), mt); c.position.set(x, 0, zz); c.castShadow = true; grp.add(c); };
     cyl(0.035, 0.26, dark, -0.05, 0.13); cyl(0.035, 0.26, dark, 0.05, 0.13); cyl(0.095, 0.26, shirt, 0, 0.39); cyl(0.028, 0.2, shirt, -0.125, 0.4); cyl(0.028, 0.2, shirt, 0.125, 0.4); const hd = new THREE.Mesh(new THREE.SphereGeometry(0.078, 12, 10), skin); hd.position.set(0, 0, 0.6); hd.castShadow = true; grp.add(hd); };
@@ -2169,31 +2670,14 @@ const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THR
   anchor('i-kick', gPit, 0, 0, z + PIT.rb); }
 function pitSet() { const P = PIT, rm = (P.ri + P.ro) / 2, s = P.flip ? -1 : 1, ag = P.flip ? P.a1 - 0.2 : P.a0 + 0.2, as = P.flip ? P.a0 + 0.3 : P.a1 - 0.3; P.ag = ag; P.as = as; P.s = s;
   gGoal.position.set(rm * Math.cos(ag), rm * Math.sin(ag), P.z); gGoal.rotation.z = ag; gGoal.scale.y = s; gShoot.position.set(rm * Math.cos(as + s * 0.085), rm * Math.sin(as + s * 0.085), P.z); pitReset(); }
-function pitReset() { const P = PIT, rm = (P.ri + P.ro) / 2; P.p.set(rm * Math.cos(P.as), rm * Math.sin(P.as)); P.v.set(0, 0); P.bz = 0; P.vz = 0; P.mode = 'ready'; P.res = ''; pitAim.visible = false; P.nb = P.nv = 0; P.nc = false; P.nt = -1; if (P.netN) P.netN.dirty = true; pitScore(); }
+function pitReset() { const P = PIT, rm = (P.ri + P.ro) / 2; P.p.set(rm * Math.cos(P.as), rm * Math.sin(P.as)); P.v.set(0, 0); P.bz = 0; P.vz = 0; P.mode = 'ready'; P.res = ''; pitAim.visible = false; pitScore(); }
 function pitScore(msg) { const el = $('int-score'); if (!el) return; const P = PIT; el.textContent = msg || (P.shots >= 5 ? P.goals + ' of 5. ' + (P.goals >= 4 ? 'Sign him up.' : P.goals >= 2 ? 'Not bad.' : 'Keep practising.') + ' Pull the ball back to go again.' : 'Penalties: pull back from the ball, aim, let go. Bank it round the big ball. ' + P.goals + ' scored, ' + (5 - P.shots) + ' to take.'); }
 function crowd(up) { if (!actx || muted || actx.state !== 'running') return; try { const sr = actx.sampleRate, dur = up ? 1.7 : 1.15, n = (sr * dur) | 0, b = actx.createBuffer(1, n, sr), d = b.getChannelData(0); let lp = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; lp += (w - lp) * 0.2; d[i] = lp * 2.4; }
     const s = actx.createBufferSource(), f1 = actx.createBiquadFilter(), f2 = actx.createBiquadFilter(), g = actx.createGain(), t = actx.currentTime + 0.02; s.buffer = b; f1.type = f2.type = 'bandpass'; f1.Q.value = 1.1; f2.Q.value = 2.2;
     if (up) { f1.frequency.setValueAtTime(650, t); f1.frequency.exponentialRampToValueAtTime(1500, t + 0.35); f2.frequency.setValueAtTime(1700, t); f2.frequency.exponentialRampToValueAtTime(3000, t + 0.4); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55, t + 0.16); g.gain.setValueAtTime(0.5, t + 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     else { f1.frequency.setValueAtTime(640, t); f1.frequency.exponentialRampToValueAtTime(250, t + 0.75); f2.frequency.setValueAtTime(1150, t); f2.frequency.exponentialRampToValueAtTime(480, t + 0.75); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.34, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     s.connect(f1).connect(g); s.connect(f2).connect(g); g.connect(master); s.start(t); s.stop(t + dur + 0.05); } catch (e) {} }
-function pitEnd(res) { const P = PIT; if (P.res) return; P.res = res; P.t = 0; P.shots++; if (res === 'goal') { P.goals++; P.hop = 1; ping({ f: 5200, q: 0.5, dur: 0.24, vol: 0.22, sharp: 2 }); crowd(true); buzz([18, 40, 30], true); pitScore('GOAL!'); } else { crowd(false); pitScore(res === 'save' ? 'Saved.' : res === 'out' ? 'Over the boards.' : res === 'post' ? 'Off the post.' : 'Not enough on it.'); } }
-/* the ball in the net. Past the line the net takes it like a soft spring: it gives, holds the ball, and lets it drop and roll back a touch. The side netting keeps it in,
-   and nothing lets it back out over the line. Where and how hard it went in is kept for the cloth */
-function pitNet(h) { const P = PIT, ca = Math.cos(P.ag), sa = Math.sin(P.ag), rm = (P.ri + P.ro) / 2, dx = P.p.x - rm * ca, dy = P.p.y - rm * sa, bx = sa * P.s, by = -ca * P.s, lx = dx * ca + dy * sa, dep = dx * bx + dy * by, vin = P.v.x * bx + P.v.y * by, pen = dep - (P.GD - P.rb);
-  P.v.multiplyScalar(Math.exp(-2.6 * h));
-  if (pen > 0) { const a = -150 * pen - 6 * vin; P.v.x += bx * a * h; P.v.y += by * a * h; if (P.nt < 0) { P.nt = 0; P.nA = 0.08 * clamp(vin / 3, 0.35, 1.2); } P.nb = pen; P.nv = vin; P.nh[0] = lx; P.nh[1] = P.rb + P.bz; }
-  P.nc = pen > 0;
-  const vl = P.v.x * ca + P.v.y * sa, side = P.GW / 2 - P.rb - 0.03; if (Math.abs(lx) > side && lx * vl > 0) { P.v.x -= ca * vl * 1.5; P.v.y -= sa * vl * 1.5; }
-  if (dep < P.rb + 0.05 && vin < 0) { P.v.x -= bx * vin; P.v.y -= by * vin; } }
-/* the cloth: a bulge round the spot the ball went in, deepest there and held at the posts, the bar and the pegs, and a ripple that runs out over all four panels and dies away.
-   Once the ball has come off the back, the netting springs back past its rest and settles */
-function netTick(dt) { const P = PIT, N = P.netN; if (!N) return;
-  if (P.nt < 0) { if (N.dirty) { N.pa.array.set(N.base); N.pa.needsUpdate = true; N.dirty = false; N.cord.material.opacity = 0.72; } return; }
-  P.nt += dt; if (!P.nc || P.mode !== 'fly') { const w = 24, z = 0.2, n = 4, h = dt / n; for (let i = 0; i < n; i++) { P.nv += (-w * w * P.nb - 2 * z * w * P.nv) * h; P.nb += P.nv * h; } }
-  const pos = N.pa.array, b0 = N.base, hx = P.nh[0], hz = P.nh[1], t = P.nt, ph = Math.sin(Math.PI * clamp(hx / P.GW + 0.5, 0, 1)) * Math.sin(Math.PI * clamp(hz / P.GH, 0, 1)), A = P.nb / Math.max(0.3, ph), rip = P.nA * Math.exp(-t / 0.42) * (1 - Math.exp(-t * 30)), k = TAU / 0.3, om = TAU * 3.2;
-  for (let i = 0, n = b0.length / 3; i < n; i++) { const x = b0[i * 3], y = b0[i * 3 + 1], z = b0[i * 3 + 2], f = N.pin[i], r = Math.hypot(x - hx, y + P.GD, z - hz), wv = f * rip * Math.sin(k * r - om * t) * Math.exp(-r * 1.6);
-    if (N.id[i] === 0) pos[i * 3 + 1] = y - f * A * Math.exp(-((x - hx) * (x - hx) + (z - hz) * (z - hz)) / 0.05) - wv; else if (N.id[i] === 1) pos[i * 3 + 2] = z + 0.7 * wv; else pos[i * 3] = x + Math.sign(x) * 0.7 * wv; }
-  N.pa.needsUpdate = true; N.dirty = true; N.cord.material.opacity = 0.9 + 0.1 * Math.min(1, Math.abs(P.nb) * 6 + rip * 8); }
+function pitEnd(res) { const P = PIT; if (P.res) return; P.res = res; P.t = 0; P.shots++; if (res === 'goal') { P.goals++; P.net = 1; P.hop = 1; ping({ f: 5200, q: 0.5, dur: 0.24, vol: 0.22, sharp: 2 }); crowd(true); buzz([18, 40, 30], true); pitScore('GOAL!'); } else { crowd(false); pitScore(res === 'save' ? 'Saved.' : res === 'out' ? 'Over the boards.' : res === 'post' ? 'Off the post.' : 'Not enough on it.'); } }
 function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P.a; P.a += (want - P.a) * Math.min(1, dt * 4); gPit.visible = P.a > 0.02; if (!gPit.visible) { if (was > 0.02) { P.shots = P.goals = 0; } return; }
   gPit.position.z = (sSmooth(P.a) - 1) * 0.95;
   if (was <= 0.02 || P.ag === undefined) { /* the taker stands on whichever end is to the right on screen */ gPit.updateWorldMatrix(true, false); const rm = (P.ri + P.ro) / 2, sx = (a) => new THREE.Vector3(rm * Math.cos(a), rm * Math.sin(a), P.z).applyMatrix4(gPit.matrixWorld).project(camera).x; P.flip = sx(P.a0) > sx(P.a1); P.shots = P.goals = 0; pitSet(); }
@@ -2206,41 +2690,24 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
       if (r < P.ri + P.rb && vr < 0) { P.v.x -= 1.85 * vr * ux; P.v.y -= 1.85 * vr * uy; P.p.setLength(P.ri + P.rb); ping({ f: 1100, q: 3, dur: 0.03, vol: 0.1, sharp: 5 }); }
       else if (r > P.ro - P.rb && vr > 0) { if (vr > 13) { P.out = true; P.vz = 5.5; P.bz = 0.02; ping({ f: 1500, q: 5, dur: 0.05, vol: 0.14, sharp: 4 }); pitEnd('out'); } else { P.v.x -= 1.85 * vr * ux; P.v.y -= 1.85 * vr * uy; P.p.setLength(P.ro - P.rb); ping({ f: 1300, q: 4, dur: 0.03, vol: 0.1, sharp: 5 }); } }
       /* the taker's end is boarded; the goal end is the goal line */
-      const back = P.s > 0 ? th > P.a1 - 0.05 : th < P.a0 + 0.05; if (back && vt * P.s > 0) { P.v.x += 1.4 * vt * uy; P.v.y -= 1.4 * vt * ux; }
+      const back = P.s > 0 ? th > P.a1 - 0.05 : th < P.a0 + 0.05; if (back && vt * P.s > 0) { P.v.x += 1.7 * vt * uy; P.v.y -= 1.7 * vt * ux; }
       const over = P.s > 0 ? th < P.ag : th > P.ag; if (over && !P.res) { const rr = r - rm; if (Math.abs(rr - P.kr) < 0.19) { P.v.multiplyScalar(-0.45); P.p.set(r * Math.cos(P.ag + P.s * 0.03), r * Math.sin(P.ag + P.s * 0.03)); ping({ f: 220, q: 1, dur: 0.07, vol: 0.25, sharp: 3, thump: 80 }); pitEnd('save'); }
-        else if (Math.abs(rr) < P.GW / 2 - P.rb * 0.6) { pitEnd('goal'); const sp = P.v.length() || 1, ns = Math.min(sp * 0.55, 4.5); P.v.multiplyScalar(ns / sp); if (P.bz <= 0) { P.vz = Math.min(3.2, ns * 0.8); P.bz = 0.001; } }
+        else if (Math.abs(rr) < P.GW / 2 - P.rb * 0.6) { pitEnd('goal'); P.v.multiplyScalar(0.25); }
         else if (Math.abs(rr) < P.GW / 2 + P.rb) { P.v.multiplyScalar(-0.6); P.p.set(r * Math.cos(P.ag + P.s * 0.03), r * Math.sin(P.ag + P.s * 0.03)); ping({ f: 1250, q: 16, dur: 0.5, vol: 0.3, sharp: 3 }); ping({ f: 2610, q: 14, dur: 0.35, vol: 0.14, sharp: 3 }); pitEnd('post'); }
-        else { P.v.x += 1.4 * vt * uy; P.v.y -= 1.4 * vt * ux; P.v.multiplyScalar(0.8); P.p.set(r * Math.cos(P.ag + P.s * 0.02), r * Math.sin(P.ag + P.s * 0.02)); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); } }
-      if (P.res === 'goal') pitNet(hh);
+        else { P.v.x += 1.7 * vt * uy; P.v.y -= 1.7 * vt * ux; P.p.set(r * Math.cos(P.ag + P.s * 0.02), r * Math.sin(P.ag + P.s * 0.02)); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); } }
+      if (P.res === 'goal') { const lim = P.ag - P.s * 0.07, deep = P.s > 0 ? th < lim : th > lim; if (deep) { P.v.set(0, 0); } }
       if (P.v.length() < 0.45 && P.bz <= 0) { if (!P.res) pitEnd('short'); P.mode = 'dead'; } } }
   if (P.res) { P.t += dt; if (P.t > (P.res === 'goal' ? 1.9 : 1.4) && P.mode !== 'ready') { P.out = false; if (P.shots >= 5) { pitReset(); pitScore(); P.over = true; } else pitReset(); } }
-  P.hop = Math.max(0, P.hop - dt * 1.1); netTick(dt); if (kickEl && kickEl.classList.contains('busy') !== (P.mode !== 'ready')) kickEl.classList.toggle('busy', P.mode !== 'ready'); gShoot.position.z = P.z + 0.22 * Math.abs(Math.sin(P.hop * 9.4)) * P.hop;
+  P.net = Math.max(0, P.net - dt * 1.6); P.hop = Math.max(0, P.hop - dt * 1.1); if (P.netM) P.netM.position.y = -0.36 - 0.12 * P.net * Math.abs(Math.sin(P.net * 9)); gShoot.position.z = P.z + 0.22 * Math.abs(Math.sin(P.hop * 9.4)) * P.hop;
   pitBall.position.set(P.p.x, P.p.y, P.z + P.rb + P.bz); if (P.mode === 'fly') { pitBall.rotation.x += P.v.y * dt / P.rb; pitBall.rotation.y -= P.v.x * dt / P.rb; } anchors['i-kick'].position.set(P.p.x, P.p.y, P.z + P.rb);
   if (P.aim) { const L = 0.5 + 1.9 * P.aim.pw; pitAim.visible = true; pitAim.scale.x = L; pitAim.position.set(P.p.x + P.aim.dx * (L / 2 + 0.2), P.p.y + P.aim.dy * (L / 2 + 0.2), P.z + 0.03); pitAim.rotation.z = Math.atan2(P.aim.dy, P.aim.dx); } else pitAim.visible = false; }
 { const hd = $('kick'); if (hd) { const P = PIT, sc = (x, y) => { const rc = canvas.getBoundingClientRect(), v = new THREE.Vector3(x, y, P.z + P.rb).applyMatrix4(gPit.matrixWorld).project(camera); return [rc.left + (v.x * 0.5 + 0.5) * rc.width, rc.top + (0.5 - v.y * 0.5) * rc.height]; }; let d0 = null;
     const aimAt = (e) => { gPit.updateWorldMatrix(true, false); const O = sc(P.p.x, P.p.y), X = sc(P.p.x + 1, P.p.y), Y = sc(P.p.x, P.p.y + 1), ax = X[0] - O[0], ay = X[1] - O[1], bx = Y[0] - O[0], by = Y[1] - O[1], det = ax * by - ay * bx || 1, dx = e.clientX - O[0], dy = e.clientY - O[1], lx = (dx * by - dy * bx) / det, ly = (ax * dy - ay * dx) / det, l = Math.hypot(lx, ly); return l < 0.12 ? null : { dx: -lx / l, dy: -ly / l, pw: clamp((l - 0.12) / 2.4, 0, 1) }; };
     hd.addEventListener('pointerdown', (e) => { e.preventDefault(); if (P.mode !== 'ready') return; if (P.shots >= 5) { P.shots = P.goals = 0; pitScore(); } hd.setPointerCapture(e.pointerId); audioOn(); d0 = true; P.aim = null; hd.classList.add('grab'); });
     hd.addEventListener('pointermove', (e) => { if (d0) P.aim = aimAt(e); });
-    const end = (e) => { if (!d0) return; d0 = null; hd.classList.remove('grab'); const A = P.aim; P.aim = null; if (!A || A.pw < 0.06 || e.type === 'pointercancel') return; const sp = 6 + 15 * A.pw; P.v.set(A.dx * sp, A.dy * sp); P.mode = 'fly'; P.out = false; P.res = ''; P.hop = 0.5; ping({ f: 170, q: 1, dur: 0.09, vol: 0.32, sharp: 3, thump: 90 }); buzz(10, true); pullSeen(); };
+    const end = (e) => { if (!d0) return; d0 = null; hd.classList.remove('grab'); const A = P.aim; P.aim = null; if (!A || A.pw < 0.06 || e.type === 'pointercancel') return; const sp = 6 + 15 * A.pw; P.v.set(A.dx * sp, A.dy * sp); P.mode = 'fly'; P.out = false; P.res = ''; P.hop = 0.5; ping({ f: 170, q: 1, dur: 0.09, vol: 0.32, sharp: 3, thump: 90 }); buzz(10, true); };
     hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end); } }
 window.__pit = PIT;
-/* one way back out of any close-up: from a piece of work to the dial, from a caseback part to the caseback */
-{ const zb = $('zback'); if (zb) zb.addEventListener('click', () => { audioOn(); if (zoomK) zoomOut(); else if (focus) jumpTo(CD); }); }
-/* a first time hint on the pitch: a ghost fingertip settles on the ball, draws back along a dotted line, and lets go, and a small chevron flicks off toward goal.
-   It plays only in the shootout, never while the ball is held or in flight, and once a shot has been taken it is gone for this visit and the next.
-   With reduced motion it is one still drawing: the fingertip drawn back, the line, and the chevron */
-const pull = { el: null, seen: false, lw: 0, lh: 0, v: new THREE.Vector3() };
-try { pull.seen = localStorage.getItem('nk-pull') === '1'; } catch (e) {}
-{ const el = document.createElement('div'); el.id = 'pull'; el.setAttribute('aria-hidden', 'true'); el.innerHTML = '<div class="pa"><i class="pb"></i><i class="pg"></i><i class="pt"></i></div><span class="pl">Pull back to shoot</span>'; if (reduce) el.classList.add('still'); const k = $('kick'); if (k && k.parentNode) k.parentNode.insertBefore(el, k); pull.el = el; }
-function pullSeen() { if (pull.seen) return; pull.seen = true; pull.el.classList.remove('on'); kickEl.classList.remove('hinting'); try { localStorage.setItem('nk-pull', '1'); } catch (e) {} }
-function pullTick(W, H) { const P = PIT, el = pull.el, k = $('kick'), show = !pull.seen && zoomK === 'soccer' && P.a > 0.97 && P.mode === 'ready' && !P.aim && !!k && k.classList.contains('on') && !k.classList.contains('grab');
-  if (el.classList.contains('on') !== show) { el.classList.toggle('on', show); if (k) k.classList.toggle('hinting', show); } if (!show) return;   /* while the hint plays, the ball's dot pulses small so the two do not compete */
-  const sc = (x, y) => { pull.v.set(x, y, P.z + P.rb).applyMatrix4(gPit.matrixWorld).project(camera); return [(pull.v.x * 0.5 + 0.5) * W, (0.5 - pull.v.y * 0.5) * H]; };
-  const th = Math.atan2(P.p.y, P.p.x), ux = -P.s * Math.sin(th), uy = P.s * Math.cos(th), O = sc(P.p.x, P.p.y), B = sc(P.p.x + ux, P.p.y + uy), R = sc(P.p.x + Math.cos(th), P.p.y + Math.sin(th));   // back along the lane, away from goal; and straight out from the big ball
-  const bx = B[0] - O[0], by = B[1] - O[1], bl = Math.hypot(bx, by) || 1, L = clamp(bl * 1.3, 46, 92), rx = R[0] - O[0], ry = R[1] - O[1], rl = Math.hypot(rx, ry) || 1, nx = rx / rl, ny = ry / rl;
-  el.firstChild.style.transform = 'translate(' + O[0].toFixed(1) + 'px,' + O[1].toFixed(1) + 'px) rotate(' + Math.atan2(by, bx).toFixed(4) + 'rad)'; el.style.setProperty('--L', L.toFixed(1) + 'px');
-  const lab = el.lastChild; if (!pull.lw) { pull.lw = lab.offsetWidth; pull.lh = lab.offsetHeight; }
-  const d = 16 + Math.abs(nx) * pull.lw / 2 + Math.abs(ny) * pull.lh / 2; lab.style.transform = 'translate(' + clamp(O[0] + nx * d - pull.lw / 2, 8, W - pull.lw - 8).toFixed(1) + 'px,' + clamp(O[1] + ny * d - pull.lh / 2, 8, H - pull.lh - 8).toFixed(1) + 'px)'; }
 /* the sound of a board going downhill: a low cold wind that wanders, and the hiss of an edge biting and letting go, turn after turn */
 let slope = null;
 function snowLoop(on) { if (on && !slope && actx && actx.state === 'running' && !muted) try { const sr = actx.sampleRate, n = sr * 4, b = actx.createBuffer(1, n, sr), d = b.getChannelData(0); let lp = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; lp += (w - lp) * 0.12; d[i] = 0.55 * w + 1.6 * lp; }
@@ -2324,9 +2791,7 @@ const BW = 104, BH = 56, BL = 18, BWT = 4;   // footprint, base height, lid heig
 const boxGrain = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 14000; i++) { g.fillStyle = 'rgba(' + (Math.random() > 0.5 ? '255,255,255' : '0,0,0') + ',' + Math.random() * 0.22 + ')'; g.fillRect(Math.random() * 256, Math.random() * 256, 1.6, 1.6); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 6); return t; })();
-/* plain grained leatherette in a midnight blue, a shade lighter than the page so the box still reads at the back of the room. A soft sheen on the grain
-   lifts the faces turned away from the light, and a thin satin lacquer gives the edges a highlight */
-const BOXC = 0x26304a, mBoxOut = new THREE.MeshPhysicalMaterial({ color: BOXC, roughness: 0.5, metalness: 0, bumpMap: boxGrain, bumpScale: 0.6, clearcoat: 0.45, clearcoatRoughness: 0.35, sheen: 0.35, sheenColor: new THREE.Color(0x7d8fb8), sheenRoughness: 0.55, envMapIntensity: 1.4 });
+const mBoxOut = new THREE.MeshPhysicalMaterial({ color: 0x1d2333, roughness: 0.55, metalness: 0, bumpMap: boxGrain, bumpScale: 0.6, clearcoat: 0.35, clearcoatRoughness: 0.45 });   // plain grained leatherette
 const mBoxIn = new THREE.MeshStandardMaterial({ color: 0x12151b, roughness: 1, metalness: 0, bumpMap: boxGrain, bumpScale: 0.3 });
 /* the pillow's cloth is a short napped microfibre. One tile of it, 20 mm square: every fibre is laid as a little ramp that rises from root to tip along the local nap,
    and the nap swirls slowly, so patches of it are brushed different ways. The relief becomes a normal map; the colour is lighter on the fibre tips and darker between them */
@@ -2495,10 +2960,6 @@ const doors = [-1, 1].map((sd) => { const piv = new THREE.Group(); piv.position.
   const sat = new THREE.Mesh(new THREE.PlaneGeometry(BW / 2 - BWT - 0.2, BW - 2 * BWT), mSatin); sat.rotation.x = Math.PI / 2; sat.position.set(-sd * (BW / 4 + BWT / 2 - 0.1), -0.06, 0); piv.add(sat);
   [-0.3, 0, 0.3].forEach((f, j) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, j === 1 ? 20 : 12, 16).rotateX(Math.PI / 2), mHinge); b.position.set(sd * (BW / 2 + 0.55), 0.2, f * BW); gBox.add(b); });
   return { piv, sd }; });
-/* a fine gilt piping round the top of the base, just under the lid's edge: it outlines the box when it is small at the back of the room */
-{ const h = BW / 2 + 0.35, rc = 1.9, pts = [], C = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
-  C.forEach((c, i) => { for (let k = 0; k <= 5; k++) { const a = (i + k / 5) * Math.PI / 2; pts.push(new THREE.Vector3(c[0] * (h - rc) + rc * Math.cos(a), 0, c[1] * (h - rc) + rc * Math.sin(a))); } const n = C[(i + 1) % 4], a1 = (i + 1) * Math.PI / 2, p0 = [c[0] * (h - rc) + rc * Math.cos(a1), c[1] * (h - rc) + rc * Math.sin(a1)], p1 = [n[0] * (h - rc) + rc * Math.cos(a1), n[1] * (h - rc) + rc * Math.sin(a1)]; for (let k = 1; k < 12; k++) pts.push(new THREE.Vector3(lerp(p0[0], p1[0], k / 12), 0, lerp(p0[1], p1[1], k / 12))); });
-  const pipe = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true, 'centripetal'), 240, 0.65, 8, true), mHinge); pipe.position.y = -1.05; gBox.add(pipe); }
 const soft = (t, k = 4.6) => t <= 0 ? 0 : 1 - Math.exp(-k * t) * (1 + k * t);
 const qTw = new THREE.Quaternion(), vTw = new THREE.Vector3(1, 0, 0);
 const setDoors = (dl, dr, tw = 0) => { doors[0].piv.quaternion.setFromAxisAngle(doorAxis, DOOR * dl).multiply(qTw.setFromAxisAngle(vTw, tw)); doors[1].piv.quaternion.setFromAxisAngle(doorAxis, -DOOR * dr).multiply(qTw.setFromAxisAngle(vTw, -tw * 0.7)); };
@@ -2538,7 +2999,7 @@ const RP = { home: new THREE.Vector2(), bin: new THREE.Vector3(), mouth: new THR
 function restPoses(visW, visH, mob) { const z = RP.z, f = (camera.position.z - z) / camera.position.z, hw = visW / 2 * f, hh = visH / 2 * f; RP.hw = hw; RP.hh = hh;
   const bw = mob ? 0.115 * 2 * hw : 0.05 * 2 * hh, bs = bw / BW, yF = mob ? 0.07 * hh : -0.94 * hh; RP.bs = bs; RP.yF = yF;
   RP.a = 0.5 * BW * (Math.cos(rad(32)) + Math.sin(rad(32))) * bs; RP.b = 0.5 * (BH + BL) * bs; RP.R = BINR * bs;
-  RP.home.set(mob ? 0.66 * hw : -0.14 * hw, yF + RP.b); RP.bin.set((mob ? -0.66 : -0.6) * hw, yF, z - 4); RP.mouth.copy(RP.bin).y += BINH * bs; }
+  RP.home.set(mob ? 0.66 * hw : -0.14 * hw, yF + RP.b); RP.bin.set((mob ? -0.66 : -0.74) * hw, yF, z - 4); RP.mouth.copy(RP.bin).y += BINH * bs; }
 /* the box is a 2D rigid body in that back plane: a centre, a velocity, a spin about the line of sight. Its corners decide where it touches */
 const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rad(-32)), qZr = new THREE.Quaternion(), vZ = new THREE.Vector3(0, 0, 1), cOff = new THREE.Vector3();
 function boxPose(cx, cy, th, s, z, outP, outQ) { qZr.setFromAxisAngle(vZ, th); outQ.copy(qZr).multiply(qYaw); cOff.set(0, -19 * s, 0).applyQuaternion(outQ); outP.set(cx - cOff.x, cy - cOff.y, z - cOff.z); }
@@ -2644,13 +3105,13 @@ canvas.addEventListener('touchstart', (e) => { if (grab) e.preventDefault(); }, 
 canvas.addEventListener('touchmove', (e) => { if (grab) e.preventDefault(); }, { passive: false });
 /* it sounds like what it hits: a padded box on the floor, a lighter tap at the edges, steel when it meets the bin */
 /* every hard knock leaves its mark: creases pressed into the leatherette, lids that no longer sit flush. Past a point, a nudge toward the bin */
-let boxDmg = 0, dmgAsked = false, dentTex = null; const dv = new THREE.Color();   // a colour, not a vector: a Color lerped toward a Vector3 turns to NaN and the box renders black
+let boxDmg = 0, dmgAsked = false, dentTex = null; const dv = new THREE.Vector3();
 function dentBox(n) { const d = Math.min(boxS.bud || 0, Math.max(0.05, (boxS.bud0 || 0) * 0.6)); if (d < 0.01) return; boxS.bud -= d; boxDmg = Math.min(1, boxDmg + d);
   if (!dentTex) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; cv.getContext('2d').drawImage(boxGrain.image, 0, 0); dentTex = new THREE.CanvasTexture(cv); dentTex.wrapS = dentTex.wrapT = THREE.RepeatWrapping; dentTex.repeat.copy(boxGrain.repeat); mBoxOut.bumpMap = dentTex; }
   const g = dentTex.image.getContext('2d'), k = 2 + Math.round(d * 30);
   for (let i = 0; i < k; i++) { const x = Math.random() * 256, y = Math.random() * 256, r = 18 + Math.random() * 34; [[0, 0], [-256, 0], [256, 0], [0, -256], [0, 256]].forEach(([ox, oy]) => { const gr = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r); gr.addColorStop(0, 'rgba(0,0,0,0.75)'); gr.addColorStop(0.7, 'rgba(70,70,70,0.3)'); gr.addColorStop(0.88, 'rgba(235,235,235,0.3)'); gr.addColorStop(1, 'rgba(128,128,128,0)'); g.fillStyle = gr; g.fillRect(x + ox - r, y + oy - r, 2 * r, 2 * r); });
     g.strokeStyle = 'rgba(0,0,0,0.7)'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (Math.random() - 0.5) * 120, y + (Math.random() - 0.5) * 120); g.stroke(); }
-  dentTex.needsUpdate = true; mBoxOut.bumpScale = 0.6 + 7 * boxDmg; mBoxOut.roughness = 0.5 + 0.25 * boxDmg; mBoxOut.color.setHex(BOXC).lerp(dv.setRGB(0.2, 0.21, 0.25), 0.5 * boxDmg);
+  dentTex.needsUpdate = true; mBoxOut.bumpScale = 0.6 + 7 * boxDmg; mBoxOut.roughness = 0.55 + 0.25 * boxDmg; mBoxOut.color.setHex(0x1d2333).lerp(dv.set(0.2, 0.21, 0.25), 0.5 * boxDmg);
   /* and a corner of a lid crumples in */
   { const me = lidHalves[(Math.random() * 2) | 0], P = me.geometry.attributes.position, i0 = (Math.random() * P.count) | 0, cx = P.getX(i0), cy = P.getY(i0), cz = P.getZ(i0), R = 16 + 60 * d, dep = 2.5 + 22 * d;
     for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), q = Math.hypot(x - cx, y - cy, z - cz); if (q < R) { const f = (1 - q / R) ** 2 * dep, l = Math.hypot(x, z) || 1; P.setXYZ(i, x - x / l * f * 0.8, y - Math.sign(y) * f * 0.35, z - z / l * f * 0.8); } } P.needsUpdate = true; me.geometry.computeVertexNormals(); }
@@ -2724,7 +3185,7 @@ function burstUpdate(dt) { if (!burst.on) return; if (burst.hold === null) burst
       if (tt > tk) { pB0.copy(pB); const u = smo((tt - tk) / 0.62); pB.lerpVectors(pB0, tB, u); pB.y += Math.sin(Math.PI * u) * hh * 0.12 * (v[2] + 0.3); s = sz * (1 - smo((tt - tk - 0.48) / 0.16)); } }
     eB.set(w[0] * tt, w[1] * tt, w[2]); qB.setFromEuler(eB); mB.compose(pB, qB, sB.set(s, s, s)); burst.mesh.setMatrixAt(i, mB); }
   burst.mesh.instanceMatrix.needsUpdate = true;
-  if (T > 1.0 && !burst.done) { burst.done = true; const bt = burst.bt; WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(true); tintHold = true; pickWay('upcycle'); tintHold = false; setTimeout(() => { if (WAYS.upcycle.pair && way === 'upcycle') pickStrap(WAYS.upcycle.pair); }, 1700);   // the new dial first, a beat to take it in, then the strap
+  if (T > 1.0 && !burst.done) { burst.done = true; const bt = burst.bt; upUnlocked(bt, true);   // the new dial first, a beat to take it in, then the strap
     toast(TIER[bt.tier] + ' batch: ' + bt.name + (bt.tier === 2 ? '. Only ' + bt.odds + ' in 100 boxes.' : '. New dial unlocked.'), bt.tier); if (bt.tier === 2) sndUltra(); countBox(); }
   if (T > 1.75 && burst.hold === null) { burst.on = false; burst.mesh.visible = false; } }
 function toast(msg, tier) { const el = $('toast'); el.textContent = msg; el.dataset.tier = tier ?? ''; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); }
@@ -2825,10 +3286,10 @@ let dialOff = false, first = true; const spot = $('spot');
    begins is read from the page (it changes with the screen, the fonts and what is open), and the watch eases between them as the chapters turn */
 const mobL = { t: new Array(N).fill(-1), top: 48, pt: -1, n: 0, more: false }, moreEl = $('more'), topEl = $('top');
 const sheetOf = (k) => k >= S0 && k < S0 + 3 ? fEl : panels.find((q) => +q.dataset.ch === k);
-function mobMeasure() { mobL.top = topEl.offsetHeight; for (let k = 0; k < N; k++) { const p = sheetOf(k); mobL.t[k] = p ? p.offsetTop : H * 0.62; } }
+function mobMeasure() { mobL.top = topEl.offsetHeight; for (let k = 0; k < N; k++) { const p = sheetOf(k); mobL.t[k] = p ? p.offsetTop + (p.classList.contains('railed') ? 34 : 0) : H * 0.62; } }   // the strap chapter's sheet starts with a 34px fade the watch may reach into
 function mobLayout(P, je) { if (mobL.n-- <= 0) { mobL.n = 3; mobMeasure();
     const lp = focus ? fEl : panels.find((q) => q.classList.contains('live')); let more = false;   /* a sheet with more than fits scrolls inside itself, and says so */
-    [fEl, ...panels].forEach((p) => { if (p === lp) { const ovf = p.scrollHeight > p.clientHeight + 2, m = ovf && p.scrollHeight - p.scrollTop - p.clientHeight > 8; p.classList.toggle('ovf', ovf); p.classList.toggle('more', m); p.classList.toggle('scr', p.scrollTop > 4); more = m; } else { if (p.scrollTop && !(parseFloat(p.style.opacity) > 0.01)) p.scrollTop = 0; p.classList.remove('more', 'scr'); } });
+    [fEl, ...panels].forEach((p) => { if (p === lp) { const ovf = p.scrollHeight > p.clientHeight + 2, m = ovf && p.scrollHeight - p.scrollTop - p.clientHeight > 8; p.classList.toggle('ovf', ovf); p.classList.toggle('more', m); p.classList.toggle('scr', p.scrollTop > 4); more = m && p.dataset.ch !== '1'; } else { if (p.scrollTop && !(parseFloat(p.style.opacity) > 0.01)) p.scrollTop = 0; p.classList.remove('more', 'scr'); } });
     if (more !== mobL.more) { mobL.more = more; moreEl.classList.toggle('on', more); } }
   const T = mobL.t, a = jump ? clamp(Math.round(jump.c0), 0, N - 1) : Math.min(N - 2, Math.floor(P.pe)), b = jump ? jump.i : a + 1, u = jump ? je : clamp(P.pe - a, 0, 1), to = lerp(T[a], T[b], u);
   mobL.pt = mobL.pt < 0 || snap ? to : mobL.pt + (to - mobL.pt) * 0.2; }
@@ -2837,9 +3298,7 @@ function frame(now) {
   pace((now - last) / 1000); const dt = clamp((now - last) / 1000, 0, 0.05); last = now; size();   // clamped: the first frame's timestamp can be earlier than the moment the script finished
   if (intro.on) { if (scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' }); cur = 0; sPrev = 0; }
   brakeCheck(); const target = settle(clamp(scrollY / total(), 0, 1) * (N - 1));
-  if (!jump) { if (intro.on) cur = 0; else if (reduce) cur = target; else if (!SNAP) cur += (target - cur) * 0.12;
-    else { const d = target - cur, cap = dt * Math.max(1 / 0.6, Math.abs(d) / 0.9); cur += clamp(d * (1 - Math.exp(-dt * 6)), -cap, cap); if (Math.abs(target - cur) < 0.0005) cur = target; } }   /* the camera follows the scroll at its own pace: never faster than a chapter in about 0.6 s, so a quick snap still reads as a flight */
-  if (!jump && !intro.on && cur <= S0 - 0.9 && STOP.join() !== WORK0.join()) workOrder(WORK0);   // back at the dial or before it: the three works return to their usual order
+  if (!jump) cur = intro.on ? 0 : reduce ? target : cur + (target - cur) * 0.12;
   let P = poseAt(cur), cv = cur, je = 1;
   if (jump) { if (jump.hold != null) jump.t = jump.hold; else jump.t += dt / lerp(0.9, 1.5, clamp(jump.far / 5, 0, 1)); const x = clamp(jump.t, 0, 1); je = x * x * x * (x * (x * 6 - 15) + 10); const A = jump.from, B = jump.to;
     P = { rx: lerp(A.rx, B.rx, je), ry: lerp(A.ry, B.ry, je), rz: lerp(A.rz, B.rz, je), sc: lerp(A.sc, B.sc, je) * (1 - 0.1 * Math.sin(Math.PI * je) * clamp(jump.far / 3, 0, 1)), sy: lerp(A.sy, B.sy, je), f: mix(A.f, B.f, je), z: mix(A.z, B.z, je), o: mix(A.o, B.o, je), bg: mix(A.bg, B.bg, je), pe: jump.i };
@@ -2883,13 +3342,15 @@ function frame(now) {
   ORDER.forEach((n, k) => setOpacity(n, k ? P.o[k] : Math.pow(P.o[0], 4)));
   rotorPhysics(dt);
   let so = 0; natoP = 1;
-  if (swapT >= 0) { const was = swapT; if (!swapHold) swapT += dt; const T = swapT, sm = (x) => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
+  if (swapT >= 0 && RAIL) { const was = swapT; if (!swapHold) swapT += dt; so = railStep(was, swapT, P.sy); }
+  else if (swapT >= 0) { const was = swapT; if (!swapHold) swapT += dt; const T = swapT, sm = (x) => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
     if (was < 0.34 && T >= 0.34) snd.strap(0);
     if (was < 0.7 && T >= 0.7 && strapNext) { showStrap(strapNext); strapNext = null; }
     if (was < 0.98 && T >= 0.98) snd.strap(1);
     so = T < 0.38 ? 0 : T < 0.7 ? sm((T - 0.38) / 0.32) : sm(1 - (T - 0.7) / 0.34); toolPose(T);
     if (STRAPS[strapNow].under) { so = 0; if (T < 0.7) { natoP = 1 - sm((T - 0.04) / 0.64); gTool.visible = false; } else natoP = sm((T - 0.72) / 1.4); }   // webbing is not unpinned, it is pulled through
     if (T >= (STRAPS[strapNow].under ? 2.2 : 1.2)) { swapT = strapNext ? 0 : -1; gTool.visible = false; } }
+  if (RAIL) railTick(dt, pe, je, P.sy, mob, visW, visH);
   strapPhysics(snap ? 0.05 : dt, P.sy + so * 12, -so * 0.9);
   wDate += ((focus === 'date' ? 1 : 0) - wDate) * (snap ? 1 : 0.14); wMoon += ((focus === 'moon' ? 1 : 0) - wMoon) * (snap ? 1 : 0.14);
   mCover.opacity = 1 - wMoon; moonCover.visible = wMoon < 0.99; photoA.material.opacity = photoB.material.opacity = wDate; photoA.visible = wDate > 0.01;
@@ -2901,7 +3362,7 @@ function frame(now) {
   if (first) { const hid = []; [gBin, gBox, boxShadow, snow, gBuckle].forEach((o) => { if (o && !o.visible) { o.visible = true; hid.push(o); } });   // warm up: build every shader and send every texture to the card now, so nothing stalls when the bin and the box's landing first appear
     try { renderer.compile(scene, camera); scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; ms.forEach((mt) => ['map', 'normalMap', 'roughnessMap', 'bumpMap', 'alphaMap', 'emissiveMap'].forEach((k) => { if (mt[k] && mt[k].image) renderer.initTexture(mt[k]); })); }); } catch (e) {}
     hid.forEach((o) => { o.visible = false; }); }
-  renderer.render(scene, camera);
+  renderer.render(scene, camera); if (RAIL) railOverlay(mob);
   panels.forEach((p) => { const k = +p.dataset.ch; let o, ty2 = 0; if (jump) o = k === jump.i ? clamp(je * 3 - 2, 0, 1) : clamp(1 - je * 3, 0, 1) * (parseFloat(p.style.opacity) > 0.01 ? 1 : 0); else { o = clamp(1 - Math.abs(pe - k) * 2.4, 0, 1); ty2 = (k - pe) * 40; }
     o *= (k === CD ? 1 - fe : 1); p.style.opacity = o; p.style.transform = 'translateY(' + ty2 + 'px)'; p.classList.toggle('live', k === act && !jump && !(k === CD && focus)); p.style.visibility = o < 0.01 ? 'hidden' : 'visible'; });
   fixTick(dt);
@@ -2909,12 +3370,12 @@ function frame(now) {
   [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === act); bt.classList.toggle('past', k < act); }); rail.style.setProperty('--p', clamp(pe / (N - 1), 0, 1).toFixed(4));
   const near = !jump && Math.abs(pe - act) < 0.15 && !focus && fe < 0.2;
   hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
-  pullTick(W, H);
   $('hint').style.opacity = cv < 0.3 && !intro.on ? 1 : 0;
   scrim.style.opacity = fe; renderer.toneMappingExposure = 1 - 0.36 * fe;
   if (fe > 0.01) { const px = H / visH, rr = FZ.r * sc * px; spot.style.setProperty('--sx', ((cx / visW + 0.5) * W) + 'px'); spot.style.setProperty('--sy', ((0.5 - cy / visH) * H) + 'px'); spot.style.setProperty('--sr', rr + 'px'); } spot.style.opacity = fe;
   if (first) { first = false; if (window.__flapGo) window.__flapGo(); const go = () => { const e2 = typeof window.__flapEnd === 'number' ? window.__flapEnd : 1100, t2 = e2 - performance.now(); if (t2 > 0) setTimeout(go, Math.min(t2, 250)); else document.body.classList.add('ready'); }; go(); { const lp = () => { if (intro.on) setTimeout(lp, 400); else setTimeout(loadPhotos, 1500); }; setTimeout(lp, 2500); } }   // the loader stays until its sentence has had its say
   requestAnimationFrame(frame);
 }
+if (SKIP) { boxS.mode = 'gone'; burst.done = true; binIn = 0; }   // and no box to throw or bin to throw it in
 requestAnimationFrame(frame);
-window.__watch = { work: () => ({ order: STOP.slice(), focus, seen: [...seenW], ch: +(scrollY / PITCH).toFixed(2), cur: +cur.toFixed(2) }), boxScr: () => toScreen(gBox.position), qr: (i) => { const q = QR.filter((x) => x.k === strapNow)[i]; q.t = 0; q.p.set(0, 0, 0); q.v.set((q.i ? -1 : 1) * 5, q.o.sy * HEAD[0] * 22, HEAD[1] * 22); }, qrAt: () => QR.filter((x) => x.k === strapNow).map((q) => { const v = new THREE.Vector3(); q.hit.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }), gem: (rx, ry, rz, s) => { const o = anchors['z-music']; gCase.add(o); o.position.set(0, -19.3, ZB + 3.5); ZTILT.music = [rx, ry, rz]; ZOOMS.music = s; pickInt('music'); }, throwBox, setHold: (x) => { if (jump) jump.hold = x; }, pose: () => [root.quaternion.x, root.quaternion.y, root.quaternion.z, root.quaternion.w, root.scale.x, root.position.x, root.position.y, SIDES[0].turn, SIDES[1].turn], zoomTune: (k, rx, ry, rz, s) => { ZTILT[k] = [rx, ry, rz]; ZOOMS[k] = s; pickInt(k); }, cur: () => ({ cur, sy: scrollY, total: total() }), upRoll: (i) => { const bt = DIALS.upcycle.roll(i); WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(false); pickWay('upcycle'); return bt.name; }, talk: (n) => talkNudge(n), introState: () => ({ on: intro.on, open: intro.open, tries: intro.tries, need: intro.need, shaking: !!intro.shake, hint: $('i-open').textContent, sy: scrollY }), dbg: () => ({ cw: canvas.width, ch: canvas.height, ccw: canvas.clientWidth, cch: canvas.clientHeight, sw: stage.clientWidth, sh: stage.clientHeight, W, H, asp: camera.aspect, pr: renderer.getPixelRatio(), cur, sy: scrollY, bin: gBin.visible, binPos: gBin.position.toArray().map((x) => +x.toFixed(1)), binS: gBin.scale.x, box: gBox.visible, boxPos: gBox.position.toArray().map((x) => +x.toFixed(1)), mode: boxS.mode, binIn, up: upDone, C: [+boxS.C.x.toFixed(2), +boxS.C.y.toFixed(2)], v: [+boxS.v.x.toFixed(2), +boxS.v.y.toFixed(2)], th: +boxS.th.toFixed(3), hw: +RP.hw.toFixed(1), hh: +RP.hh.toFixed(1), yF: +RP.yF.toFixed(1), mouth: RP.mouth.toArray().map((q) => +q.toFixed(1)) }), jumpHold: (i, x) => { jumpTo(i); if (jump) jump.hold = x; }, introAt, recycleAt, nudge: (x, y) => { tx = x; ty = y || 0; down = { x: 0, y: 0, yaw: heroYaw, pitch: heroPitch, tx: x, ty: y || 0, hero: false, mouse: true }; }, swapAt: (T) => { swapT = T; swapHold = T >= 0; }, pickStrap, pickWay, jumpTo, openFocus, stepFocus, closeFocus, spin: (y, p) => { heroYaw = y; heroPitch = p || 0; hy = y; hp = p || 0; } };
+window.__watch = { railTest: (k) => { rl.force = true; pickStrap(k); }, brace: () => ({ k: +BRSH.k.toFixed(4), res: +BRSH.res.toFixed(4), a: +BRSH.a.toFixed(2), b: +BRSH.b.toFixed(2), zc: +BRSH.zc.toFixed(2), sag: +BRSH.sag.toFixed(2), L: BRSH.L.map((x) => +x.toFixed(2)), ph: [BRWP.ph[BRC.m - 1], BRWP.ph[BRC.m], BRWP.ph[BRC.m + 1], BRWP.ph[BRC.m + 2]].map((x) => +(x * 180 / Math.PI).toFixed(1)), gh: +GHU.uGhP.value.x.toFixed(3), ghost: STRAPS.engineering.objs[0].parts.filter((P) => P.g).length, nan: STRAPS.engineering.objs[0].parts.some((P) => !isFinite(P.m.position.y)) }), calf: () => ({ L: CALF.L, n: CALF.n, hole: CALF.hole, keeps: cKeep.map((K) => [+K.s.toFixed(2), +K.b0.toFixed(2)]) }), nato: () => ({ q: +NT.q.toFixed(4), st: RS.writing && RS.writing.state, bars: NT.bars, par: STRAPS.writing.natoG && STRAPS.writing.natoG.parent && STRAPS.writing.natoG.parent.type }), natoGap: () => NT.gap, slotAt: (k) => { const S = rl.slots[RJ.order.indexOf(k)], v = new THREE.Vector3(); S.piv.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }, railState: () => ({ now: strapNow, next: strapNext, swapT, rs: Object.assign({}, rs), st: Object.fromEntries(Object.entries(RS).map(([k, R]) => [k, R.state])), ppm: rl.ppm, s: rl.s, vis: rl.vis, ms: [rl.bakeMs, rl.furnMs], sw: rl.slots.map((S) => [+S.piv.rotation.z.toFixed(4), +S.ph.toFixed(4)]) }), railBtn: () => rl.btns.map((b) => { const r = b.getBoundingClientRect(); return [b.dataset.rail, r.left + r.width / 2, r.top + r.height * 0.4, r.width, r.height]; }), qr: (i) => { const q = QR.filter((x) => x.k === strapNow)[i]; q.t = 0; q.p.set(0, 0, 0); q.v.set((q.i ? -1 : 1) * 5, q.o.sy * HEAD[0] * 22, HEAD[1] * 22); }, qrAt: () => QR.filter((x) => x.k === strapNow).map((q) => { const v = new THREE.Vector3(); q.hit.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }), gem: (rx, ry, rz, s) => { const o = anchors['z-music']; gCase.add(o); o.position.set(0, -19.3, ZB + 3.5); ZTILT.music = [rx, ry, rz]; ZOOMS.music = s; pickInt('music'); }, throwBox, setHold: (x) => { if (jump) jump.hold = x; }, pose: () => [root.quaternion.x, root.quaternion.y, root.quaternion.z, root.quaternion.w, root.scale.x, root.position.x, root.position.y, SIDES[0].turn, SIDES[1].turn], zoomTune: (k, rx, ry, rz, s) => { ZTILT[k] = [rx, ry, rz]; ZOOMS[k] = s; pickInt(k); }, cur: () => ({ cur, sy: scrollY, total: total() }), plateHold: (ms) => { PL.hold = ms; }, upNow: (i) => { const bt = DIALS.upcycle.roll(i); upUnlocked(bt, false); return bt.name; }, fallAt: (t) => { fallHold = t >= 0; FALL.forEach((F) => { F.t = Math.max(0, t); }); return FALL.length; }, natoTw: () => +(NT.tw * 180 / Math.PI).toFixed(1), sway: () => rl.slots.map((S) => [+(S.amp * 180 / Math.PI).toFixed(2), +(S.piv.rotation.z * 180 / Math.PI).toFixed(3)]), upRoll: (i) => { const bt = DIALS.upcycle.roll(i); WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(false); pickWay('upcycle'); return bt.name; }, talk: (n) => talkNudge(n), introState: () => ({ on: intro.on, open: intro.open, tries: intro.tries, need: intro.need, shaking: !!intro.shake, hint: $('i-open').textContent, sy: scrollY }), dbg: () => ({ cw: canvas.width, ch: canvas.height, ccw: canvas.clientWidth, cch: canvas.clientHeight, sw: stage.clientWidth, sh: stage.clientHeight, W, H, asp: camera.aspect, pr: renderer.getPixelRatio(), cur, sy: scrollY, bin: gBin.visible, binPos: gBin.position.toArray().map((x) => +x.toFixed(1)), binS: gBin.scale.x, box: gBox.visible, boxPos: gBox.position.toArray().map((x) => +x.toFixed(1)), mode: boxS.mode, binIn, up: upDone, C: [+boxS.C.x.toFixed(2), +boxS.C.y.toFixed(2)], v: [+boxS.v.x.toFixed(2), +boxS.v.y.toFixed(2)], th: +boxS.th.toFixed(3), hw: +RP.hw.toFixed(1), hh: +RP.hh.toFixed(1), yF: +RP.yF.toFixed(1), mouth: RP.mouth.toArray().map((q) => +q.toFixed(1)) }), jumpHold: (i, x) => { jumpTo(i); if (jump) jump.hold = x; }, introAt, recycleAt, nudge: (x, y) => { tx = x; ty = y || 0; down = { x: 0, y: 0, yaw: heroYaw, pitch: heroPitch, tx: x, ty: y || 0, hero: false, mouse: true }; }, swapAt: (T) => { swapT = T; swapHold = T >= 0; }, pickStrap, pickWay, jumpTo, openFocus, stepFocus, closeFocus, spin: (y, p) => { heroYaw = y; heroPitch = p || 0; hy = y; hp = p || 0; } };

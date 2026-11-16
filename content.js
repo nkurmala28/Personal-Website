@@ -9,20 +9,6 @@
      3. Leave the names on the left of each colon (title:, text: ...) alone.
    If the file ever has a mistake in it, the site falls back to its built-in
    text and still loads, so a typo here cannot take the site down.
-
-   WHERE THINGS ARE, in the order the site shows them
-     contact          email, LinkedIn and resume (Start screen and Full set)
-     jobs             Strap chapter, one block per job
-     jobOrder         the order the straps sit on the display, left to right
-     projects         Projects, on the moonphase
-     articles         Articles, on the small seconds
-     film             Film, in the date window (photos go in the photos folder)
-     interests        Caseback, the four parts you can play with
-     signedOnTheBack  Caseback, the three engraved lines
-     fullSet          Full set, the spec sheet at the end
-
-   Anything still in [SQUARE BRACKETS] is a placeholder. Search the file for
-   "[" to find what is left to fill in.
    ============================================================================ */
 window.CONTENT = {
 
@@ -38,43 +24,53 @@ window.CONTENT = {
 
   /* ---- Strap chapter: one card per job. chip is the short label under its strap
           on the rail (or its button). years shows under it in small type (write "[years]" until
-          you know them). link and linkText are optional; leave both empty for no button. */
+          you know them), and again on the right of the card. place is where you did the job,
+          employer and city (for example "Analysis Group, San Francisco"), shown on the left of
+          the card above the paragraph; leave it empty and the years sit there alone. title is
+          the card's heading, text its paragraph (start with the work itself: the place and the
+          years are already shown above it). link and linkText are optional; leave both empty
+          for no link. */
   jobs: {
     consulting: {
       years: "2023 to now",
       chip: "Consulting",
+      place: "Analysis Group, San Francisco",
       title: "Economic consulting",
-      text: "Analysis Group, 2023 to now. Antitrust, pricing and market strategy for Fortune 100 clients across AI, consumer tech, adtech and energy.",
+      text: "Antitrust, pricing and market strategy for Fortune 100 clients across AI, consumer tech, adtech and energy. I turn messy data into the evidence a case or a launch decision rests on.",
       linkText: "My Analysis Group profile",
       link: "https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/",
     },
     engineering: {
       years: "[years]",
       chip: "Engineering",
+      place: "[EMPLOYER, CITY]",
       title: "Software engineering",
-      text: "[COMPANY AND YEARS]. [ONE LINE ON WHAT YOU BUILT]",
+      text: "[ONE LINE ON WHAT YOU BUILT]",
       linkText: "",
       link: "",
     },
     quant: {
       years: "[years]",
       chip: "Quant",
+      place: "[EMPLOYER, CITY]",
       title: "Quant research",
-      text: "[COMPANY AND YEARS]. [ONE LINE ON WHAT YOU MODELED]",
+      text: "[ONE LINE ON WHAT YOU MODELED]",
       linkText: "",
       link: "",
     },
     banking: {
       years: "[years]",
       chip: "Banking",
+      place: "[EMPLOYER, CITY]",
       title: "Investment banking",
-      text: "[COMPANY AND YEARS]. [ONE LINE ON THE DEALS OR COVERAGE]",
+      text: "[ONE LINE ON THE DEALS OR COVERAGE]",
       linkText: "",
       link: "",
     },
     writing: {
       years: "2019",
       chip: "Journalism",
+      place: "Wrist Review",
       title: "Watch journalism",
       text: "My own blog and a Wrist Review byline, plus a lot of ghostwriting.",
       linkText: "Read them on Wrist Review",

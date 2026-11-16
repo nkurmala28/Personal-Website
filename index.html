@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nikhil Kurmala</title>
+<script>/* the strap display test page: which display to show, and open straight on the Strap chapter with no unboxing */ window.STRAPVIEW = 'hanger'; window.STRAPSKIP = true;</script>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@600&display=swap">
 <style>
@@ -16,10 +17,6 @@ a{color:var(--ink)}a:hover{color:var(--brass)}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--brass);outline-offset:3px}
 #track{height:800vh;position:relative}
-/* SNAP in main.js: the browser settles on each chapter in turn, one per gesture */
-html.snap{scroll-snap-type:y mandatory}
-.snapm{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;scroll-snap-stop:always;pointer-events:none}
-body.intro .snapm{scroll-snap-align:none}
 #stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
 #gl:active{cursor:grabbing}
@@ -68,21 +65,6 @@ body.nogl #load .msg::after{content:" This needs WebGL, which this browser has t
 #top .tr{display:flex;align-items:center;gap:14px}
 #spot{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--sx,30%) var(--sy,50%),rgba(11,13,18,0) var(--sr,120px),rgba(11,13,18,.6) calc(var(--sr,120px)*1.3),rgba(11,13,18,.94) calc(var(--sr,120px)*2))}
 #vol{pointer-events:auto;width:84px;accent-color:var(--brass);margin:0}
-/* sound: a small speaker whose waves show the level. The slider slides out only when the speaker is pointed at, focused or tapped */
-.sndw{display:inline-flex;align-items:center;pointer-events:auto}
-.sndw #vol{width:0;opacity:0;margin-left:0;transition:width .25s ease,opacity .2s ease,margin .25s ease}
-.sndw:hover #vol,.sndw:focus-within #vol{width:84px;opacity:1;margin-left:8px}
-#snd svg{display:block;width:22px;height:22px}
-#snd .wx{display:none}
-#snd[data-lv="1"] .w2{opacity:.25}
-#snd[data-lv="0"] .w1,#snd[data-lv="0"] .w2{display:none}
-#snd[data-lv="0"] .wx{display:block}
-/* the way back out of a close-up */
-#zback{position:fixed;z-index:30;left:50%;bottom:26px;transform:translate(-50%,10px);display:inline-flex;align-items:center;gap:8px;padding:9px 14px 9px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(13,16,22,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--ink);font:500 12px 'JetBrains Mono',monospace;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease,border-color .2s}
-#zback svg{width:16px;height:16px}
-#zback:hover,#zback:focus-visible{border-color:var(--brass);color:var(--brass)}
-body.focused #zback,body.zoomed #zback{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
-@media (max-width:800px){#zback{left:12px;bottom:auto;top:58px;transform:none;padding:8px 12px 8px 9px}body.focused #zback,body.zoomed #zback{transform:none}}
 #top .ways{pointer-events:auto}
 #top .wayname{min-width:9em}
 #snd{pointer-events:auto;background:none;border:0;padding:10px 0;cursor:pointer;color:var(--mut);font:500 12px 'JetBrains Mono',monospace}
@@ -112,25 +94,6 @@ body.zoomed .hot[data-int].sel,body.zoomed #rail,body.zoomed #top .ways{opacity:
 #int-back{align-self:flex-start;margin-top:4px}
 #arm,#pan,#kick{touch-action:none;cursor:grab}#arm.grab,#pan.grab,#kick.grab{cursor:grabbing}
 body:not(.pitch) #kick{display:none}
-#kick.busy{opacity:0;pointer-events:none}
-#kick.hinting:not(.done)::before{animation-name:pulsepks}
-/* the first time hint on the pitch: a ghost fingertip pulls back from the ball on a dotted line and lets go, and a chevron flicks off toward goal. It never takes a touch */
-#pull{position:absolute;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .4s}
-#pull.on{opacity:1;transition:opacity .8s .6s}
-body:not(.pitch) #pull{display:none}
-#pull .pa{position:absolute;left:0;top:0;transform-origin:0 0}
-#pull i{position:absolute;left:0;top:0;display:block}
-#pull .pb{top:-1.5px;width:var(--L,60px);height:3px;background:radial-gradient(circle,rgba(236,204,140,1) 0 1.3px,transparent 1.7px) 0 50%/7px 3px repeat-x;filter:drop-shadow(0 0 1px rgba(0,0,0,.7));clip-path:inset(0 100% 0 0);animation:pullb 3.2s ease-in-out infinite}
-#pull .pt{width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:rgba(236,204,140,.24);border:2px solid rgba(240,214,156,.95);box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 12px rgba(220,184,114,.5);opacity:0;animation:pullt 3.2s ease-in-out infinite}
-#pull .pg{width:9px;height:9px;margin:-6px 0 0 -3px;border-left:2.5px solid #ecc88c;border-bottom:2.5px solid #ecc88c;filter:drop-shadow(0 0 1px rgba(0,0,0,.7));opacity:0;transform:translateX(-12px) rotate(45deg);animation:pullg 3.2s ease-out infinite}
-#pull .pl{position:absolute;left:0;top:0;white-space:nowrap;font:500 11px 'JetBrains Mono',monospace;color:var(--brass);background:rgba(10,14,18,.86);padding:3px 9px;border-radius:99px;border:1px solid rgba(220,184,114,.3)}
-@keyframes pullt{0%{opacity:0;transform:translateX(0) scale(1.35)}10%{opacity:1;transform:translateX(0) scale(1)}17%{transform:translateX(0)}47%{transform:translateX(var(--L,60px))}57%{opacity:1;transform:translateX(var(--L,60px))}60%{opacity:0;transform:translateX(var(--L,60px)) scale(.75)}100%{opacity:0;transform:translateX(var(--L,60px)) scale(.75)}}
-@keyframes pullb{0%,17%{clip-path:inset(0 100% 0 0)}47%,57%{clip-path:inset(0 0 0 0)}59.5%,100%{clip-path:inset(0 100% 0 0)}}
-@keyframes pullg{0%,58%{opacity:0;transform:translateX(-12px) rotate(45deg)}61%{opacity:1}78%,100%{opacity:0;transform:translateX(-44px) rotate(45deg)}}
-#pull.still .pt,#pull.still .pb,#pull.still .pg{animation:none}
-#pull.still .pt{opacity:.9;transform:translateX(var(--L,60px))}
-#pull.still .pb{clip-path:none}
-#pull.still .pg{opacity:.9;transform:translateX(-30px) rotate(45deg)}
 body:not(.deck) #arm{display:none}
 body:not(.cook) #pan{display:none}
 #arm::before,#pan::before,#kick::before{inset:13px;background:rgba(255,61,154,.3);border:2px solid #ff3d9a;box-shadow:0 0 0 0 rgba(255,61,154,.75);animation:pulsepk 1.5s ease-out infinite;transition:transform .2s,background .35s,border-color .35s,inset .35s}
@@ -138,9 +101,6 @@ body:not(.cook) #pan{display:none}
 #arm:hover::before,#pan:hover::before,#kick:hover::before,#arm.grab::before,#pan.grab::before,#kick.grab::before{transform:scale(1.18)}
 .hot:hover::before{transform:scale(1.12)}
 @keyframes pulsepk{0%{box-shadow:0 0 0 0 rgba(255,61,154,.85),0 0 0 0 rgba(255,61,154,.5),0 0 12px 1px rgba(255,61,154,.6)}70%{box-shadow:0 0 0 24px rgba(255,61,154,0),0 0 0 42px rgba(255,61,154,0),0 0 12px 1px rgba(255,61,154,.6)}100%{box-shadow:0 0 0 0 rgba(255,61,154,0),0 0 0 0 rgba(255,61,154,0),0 0 12px 1px rgba(255,61,154,.6)}}
-@keyframes pulsepks{0%{box-shadow:0 0 0 0 rgba(255,61,154,.8),0 0 0 0 rgba(255,61,154,.4),0 0 8px 1px rgba(255,61,154,.5)}70%{box-shadow:0 0 0 9px rgba(255,61,154,0),0 0 0 16px rgba(255,61,154,0),0 0 8px 1px rgba(255,61,154,.5)}100%{box-shadow:0 0 0 0 rgba(255,61,154,0),0 0 0 0 rgba(255,61,154,0),0 0 8px 1px rgba(255,61,154,.5)}}
-/* on the dial the dots sit on small complications, so their pulse stays close */
-.hot[data-ch="2"]:not(.done)::before{animation-name:pulsepks}
 @keyframes pulsebr{0%{box-shadow:0 0 0 0 rgba(232,189,92,.75)}70%{box-shadow:0 0 0 11px rgba(232,189,92,0)}100%{box-shadow:0 0 0 0 rgba(232,189,92,0)}}
 #int-deck{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 #int-now{color:var(--brass)}
@@ -252,13 +212,58 @@ body.focused #focus>*{pointer-events:auto}
 .stops{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .stops button{background:none;border:1px solid var(--line);border-radius:99px;padding:5px 12px;cursor:pointer;color:var(--mut);font:500 12px 'JetBrains Mono',monospace}
 .stops button.cur{color:var(--brass);border-color:var(--brass)}
-/* the three works: how many in each, and a small brass mark on the ones already seen this visit */
-.stops button i,.rows b i.wn{font:500 11px 'JetBrains Mono',monospace;font-style:normal;color:var(--mut);margin-left:6px}
-.stops button.cur i{color:inherit;opacity:.75}
-.stops button.seen{color:var(--ink)}
-.stops button.seen::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--brass);margin-left:7px;vertical-align:2px}
 #hint{position:absolute;left:30%;transform:translateX(-50%);bottom:26px;font:500 12px 'JetBrains Mono',monospace;color:var(--mut);transition:opacity .4s;pointer-events:none}
 #more{display:none}
+/* the strap display (RAIL in main.js): an empty block the 3D display is drawn into, one button per strap over it, each strap's job and years set small at its foot.
+   The strap on the watch is marked by a short brass rule over its name. Without RAIL none of this applies */
+.panel.railed{gap:12px}
+.panel.railed>.chips{display:none}
+.rail3d{position:relative;flex:none;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);height:clamp(190px,calc(100vh - 480px),400px);max-width:32em;margin:4px 0 0}
+.rail3d button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;padding:0 2px 2px;text-align:center;min-height:44px;-webkit-tap-highlight-color:transparent}
+.rail3d button::before{content:"";flex:none;width:0;height:1px;margin:0 0 8px;background:var(--brass);transition:width .45s ease}
+.rail3d button:focus-visible{outline:1.5px solid var(--brass);outline-offset:0;border-radius:0}   /* the whole column, strap and name, is the button */
+.rail3d .rj{font:400 19px/1.05 'Instrument Serif',Georgia,serif;color:var(--mut);letter-spacing:.005em;white-space:nowrap;transition:color .3s}
+.rail3d .ry{font:400 10px/1.4 'JetBrains Mono',monospace;color:var(--mut);opacity:.6;letter-spacing:.03em;white-space:nowrap;transition:color .3s,opacity .3s}
+.rail3d button:hover .rj{color:var(--ink)}
+.rail3d button:not([aria-pressed=true]):hover::before{width:10px;background:rgba(238,241,244,.45)}
+.rail3d button[aria-pressed=true]::before{width:20px}
+.rail3d button[aria-pressed=true] .rj{color:var(--ink)}
+.rail3d button[aria-pressed=true] .ry{color:var(--brass);opacity:1}
+.partrow{display:flex;align-items:baseline;justify-content:space-between;gap:16px;max-width:32em}
+.sview{display:flex;gap:6px;align-items:baseline;font:400 11px 'JetBrains Mono',monospace;color:var(--mut);letter-spacing:.02em}
+.sview span{opacity:.35}
+.sview a{color:var(--mut);text-decoration:underline;text-decoration-color:rgba(163,174,185,.32);text-underline-offset:3px;padding:8px 0}
+.sview a:hover{color:var(--brass);text-decoration-color:currentColor}
+.sview a[aria-current]{color:var(--ink);text-decoration:none;cursor:default}
+.panel.railed .detail{min-height:0}
+/* the job, set like a catalogue plate: the title, the material in italic under it, the place and the years over a hairline, a paragraph, and a plain link */
+.plate{border:0;padding:0;gap:0;min-height:0;max-width:none}
+.plate .pl1{display:flex;flex-direction:column}
+#s-title{font:400 54px/1 'Instrument Serif',serif;letter-spacing:-.005em;color:var(--ink)}
+#s-name{font:italic 400 24px/1.15 'Instrument Serif',serif;color:var(--mut);margin-top:4px}
+#s-meta{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:20px;padding-bottom:11px;border-bottom:1px solid rgba(238,241,244,.14)}
+#s-place{font:400 15px/1.2 'Inter Tight',sans-serif;color:rgba(238,241,244,.78)}
+#s-years{margin-left:auto;font:400 12px/1 'JetBrains Mono',monospace;color:var(--brass);white-space:nowrap}
+#s-body{font:400 17px/1.58 'Inter Tight',sans-serif;color:rgba(238,241,244,.9);margin-top:15px;max-width:none}
+.plate #s-link{margin-top:16px;border:0;border-radius:0;padding:0;background:none;font:400 15px/1.3 'Inter Tight',sans-serif;color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-decoration-color:rgba(220,184,114,.55);text-underline-offset:5px}
+.plate #s-link:hover{color:var(--brass);text-decoration-color:var(--brass)}
+.plate #s-link:focus-visible{outline:1.5px solid var(--brass);outline-offset:4px;border-radius:0}
+/* desktop: the column runs from 60vw to 95vw. The heading and its line sit small at the top, the plate below them at a fixed place and height (so a longer or shorter job never
+   moves anything), and the display stands at the foot, its names ending 30px above the bottom */
+@media (min-width:801px){
+  .panel.railed{justify-content:flex-start;gap:0;padding:54px 5vw 30px 0}
+  .panel.railed .partrow{height:22px;align-items:center;max-width:none}
+  .panel.railed>h2{font-size:38px;line-height:1;letter-spacing:-.005em;color:rgba(238,241,244,.84);margin-top:max(2px,calc(10vh - 76px))}
+  .panel.railed>p{font:400 15px/1.4 'Inter Tight',sans-serif;color:var(--mut);margin-top:5px}
+  .panel.railed .plate{position:absolute;left:0;right:5vw;top:21.5vh;height:37.5vh}
+  .panel.railed .rail3d{margin:auto 0 0;padding:0 5%;height:clamp(220px,34.5vh,300px);max-width:none;grid-auto-columns:minmax(85px,1fr)}   /* the names inset a little, so the end straps hang clear of the stand's posts */
+  .panel.railed .rail3d .rj{font-size:17px}
+}
+/* shorter screens: the line under the heading goes first and the plate moves up; then the type steps down; below about 660 the column scrolls */
+@media (min-width:801px) and (max-height:780px){.panel.railed>p{display:none}.panel.railed .plate{top:130px}}
+@media (min-width:801px) and (max-height:740px){.panel.railed>h2{font-size:30px}#s-title{font-size:44px}#s-body{font-size:16px}}
+@media (min-width:801px) and (max-height:659px){.panel.railed{overflow-y:auto;scrollbar-width:none}.panel.railed .plate{position:static;height:auto;margin-top:18px}.panel.railed .rail3d{margin-top:18px}}
+@media (prefers-reduced-motion:reduce){.rail3d button::before,.rail3d .rj,.rail3d .ry{transition:none}}
 /* ---------- phones ----------
    One compact row on top, the watch in whatever the text leaves, the text as a sheet standing on a slim chapter bar.
    --tb is the top row, --rail the chapter bar; both include the safe areas, so nothing hides behind a notch or a home bar */
@@ -316,6 +321,23 @@ body.focused #focus>*{pointer-events:auto}
   .chips button::after{content:"";position:absolute;inset:-3px 0}
   .panel[data-ch="1"] .chips{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;margin:0 calc(-1*var(--gx));padding:2px var(--gx);-webkit-mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 34px),transparent)}
   .detail{min-height:0;gap:6px;padding:2px 0 2px 14px}
+  /* strap rail: the sheet keeps a clear window where the rail hangs (main.js sets --rh0 and --rh1, its top and bottom in the sheet) */
+  .panel.railed{top:calc(30vh - 34px);max-height:none;padding-top:46px;gap:0;background:linear-gradient(180deg,rgba(12,16,22,0),rgba(12,16,22,.92) 34px,rgba(12,16,22,.96) calc(var(--rh0,100%) - 22px),rgba(12,16,22,0) var(--rh0,100%),rgba(12,16,22,0) var(--rh1,100%),rgba(12,16,22,.96) calc(var(--rh1,100%) + 16px))}
+  .panel.railed .partrow{height:14px;align-items:center}
+  .panel.railed>h2{font-size:30px;line-height:1.05;margin-top:6px}
+  .panel.railed>p{font-size:14.5px;line-height:1.4;color:var(--mut);margin-top:6px}
+  .rail3d{flex:0 1 196px;height:196px;min-height:150px;max-width:none;margin:10px 0 0}   /* drawn 156 high with 40 for the names; on a short phone it gives way down to 150 before the sheet scrolls */
+  .plate{margin-top:14px}
+  .plate .pl1{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:8px}
+  #s-title{font-size:27px}
+  #s-name{font-size:17px;line-height:1;margin-top:0}
+  #s-meta{margin-top:11px;padding-bottom:8px}
+  #s-place{font-size:14px}#s-years{font-size:11px}
+  #s-body{font-size:15px;line-height:1.5;margin-top:10px}
+  .plate #s-link{margin-top:0;padding:12px 0 13px;font-size:15px;align-self:flex-start}
+  .rail3d .rj{font-size:14.5px}.rail3d .ry{font-size:9px;letter-spacing:0}.rail3d button::before{margin-bottom:6px}.rail3d button[aria-pressed=true]::before{width:16px}
+  .partrow{max-width:none}.sview{font-size:10.5px}
+  .panel.railed .detail{min-height:0}
   .btn.sm{padding:11px 16px;font-size:14px}
   .rows div{padding:7px 0}
   .rows button{padding:9px 0;min-height:44px}
@@ -363,13 +385,14 @@ body.focused #focus>*{pointer-events:auto}
   #toast{top:calc(var(--tb) + 10px);white-space:normal;width:max-content;max-width:86%;text-align:center}
   #nudge{padding:22px 20px}#nudge p{font-size:23px}#nudge .btn.sm{min-height:44px}
 }
+/* a short phone: the line under the heading goes first (then the display gives way to its minimum, then the sheet scrolls) */
+@media (max-width:800px) and (max-height:780px){.panel.railed>p{display:none}}
 @media (max-width:374px){
   :root{--gx:16px}
   #top{gap:7px}#top .ways{gap:7px}#top .ways button{width:21px;height:21px}
   h1.name{font-size:54px}h2{font-size:28px}
 }
 @media (prefers-reduced-motion:reduce){.hot::before{animation:none}}
-@media (max-width:800px){#snd::before{display:none}#snd{font-size:12px;display:grid;place-items:center}}
 </style>
 </head>
 <body>
@@ -378,22 +401,24 @@ body.focused #focus>*{pointer-events:auto}
 try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0); addEventListener('pageshow', function () { if (document.body.classList.contains('intro')) scrollTo(0, 0); }); } catch (e) {}   // a reload starts at the top, where the box is: never back on the section you left
 (function () { var b = document.body, h = location.hash;
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (h.indexOf('nointro') < 0 && (h.indexOf('intro') > -1 || (!reduce && h.indexOf('#snap') !== 0))) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
+  if (!window.STRAPSKIP && h.indexOf('nointro') < 0 && (h.indexOf('intro') > -1 || (!reduce && h.indexOf('#snap') !== 0))) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
 </script>
 <div id="track">
 <div id="stage">
   <canvas id="gl" aria-label="A 3D mechanical watch that comes apart as you scroll" role="img"></canvas>
   <div id="spot"></div>
   <div id="scrim"></div>
-  <button id="zback" aria-label="Zoom back out"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14M5 7h4"/></svg><span>Zoom out</span></button>
-  <div id="load" role="status"><svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="52" fill="none" stroke="rgba(255,255,255,.14)"/><g id="ld-ticks"></g><circle class="arc" cx="66" cy="66" r="56" fill="none" stroke="#dcb872" stroke-width="1.5" transform="rotate(-90 66 66)"/><line id="ld-h" x1="66" y1="66" x2="66" y2="40" stroke="#eef1f4" stroke-width="2.4" stroke-linecap="round"/><line id="ld-m" x1="66" y1="66" x2="66" y2="24" stroke="#eef1f4" stroke-width="1.6" stroke-linecap="round"/><line class="sec" x1="66" y1="74" x2="66" y2="20" stroke="#dcb872" stroke-width="1"/><circle cx="66" cy="66" r="2.4" fill="#dcb872"/></svg><p class="flapline" hidden style="display:none" aria-label="Would you still love me if I was a watch?"><span aria-hidden="true">Would you still</span><span class="flap" id="flap" aria-hidden="true"></span><span aria-hidden="true">me if I was a watch?</span></p><div class="msg"></div></div>
+  <div id="load" role="status"><svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="52" fill="none" stroke="rgba(255,255,255,.14)"/><g id="ld-ticks"></g><circle class="arc" cx="66" cy="66" r="56" fill="none" stroke="#dcb872" stroke-width="1.5" transform="rotate(-90 66 66)"/><line id="ld-h" x1="66" y1="66" x2="66" y2="40" stroke="#eef1f4" stroke-width="2.4" stroke-linecap="round"/><line id="ld-m" x1="66" y1="66" x2="66" y2="24" stroke="#eef1f4" stroke-width="1.6" stroke-linecap="round"/><line class="sec" x1="66" y1="74" x2="66" y2="20" stroke="#dcb872" stroke-width="1"/><circle cx="66" cy="66" r="2.4" fill="#dcb872"/></svg><p class="flapline" aria-label="Would you still love me if I was a watch?"><span aria-hidden="true">Would you still</span><span class="flap" id="flap" aria-hidden="true"></span><span aria-hidden="true">me if I was a watch?</span></p><div class="msg"></div></div>
   <div id="intro"><button id="i-open" aria-label="Open the box"></button></div>
   <div id="wash" aria-hidden="true"></div>
   <div id="toast" role="status"></div>
   <div id="nudge" role="dialog" aria-label="A question" hidden><p id="nudge-t"></p><div class="links" id="nudge-btns"><button class="btn sm" id="nudge-talk">Talk to Nikhil already</button><button class="btn sm" id="nudge-shy">I’m shy</button></div></div>
-  <div id="top"><button id="home" aria-label="Home" title="Home"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 10 6.4 7.6M10 10l4.3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.1" fill="currentColor"/></svg></button><div class="ways" role="group" aria-label="Dial"><span class="small">Dial</span><button data-way="silver" aria-label="Opaline silver dial"></button><button data-way="orge" aria-label="Grain d'orge guilloché dial"></button><button data-way="sky" aria-label="Day and night dial"></button><button data-way="ecru" aria-label="Écru sector dial"></button><button data-way="snow" aria-label="Snowdrift dial"></button><span class="small wayname"></span></div><span class="tr"><span class="sndw"><button id="snd" aria-pressed="true" aria-label="Sound on" data-lv="2"><svg viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h3l4-3.5v12l-4-3.5h-3z"/><path class="w1" d="M14 8.6a3.4 3.4 0 0 1 0 4.8"/><path class="w2" d="M16.4 6.2a6.8 6.8 0 0 1 0 9.6"/><path class="wx" d="M14.5 8.5l5 5M19.5 8.5l-5 5"/></svg></button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"></span><a href="#">Resume</a></span></div>
+  <div id="top"><button id="home" aria-label="Home" title="Home"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 10 6.4 7.6M10 10l4.3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.1" fill="currentColor"/></svg></button><div class="ways" role="group" aria-label="Dial"><span class="small">Dial</span><button data-way="silver" aria-label="Opaline silver dial"></button><button data-way="orge" aria-label="Grain d'orge guilloché dial"></button><button data-way="sky" aria-label="Day and night dial"></button><button data-way="ecru" aria-label="Écru sector dial"></button><button data-way="snow" aria-label="Snowdrift dial"></button><span class="small wayname"></span></div><span class="tr"><button id="snd" aria-pressed="true">Sound</button><input id="vol" type="range" min="0" max="100" value="60" aria-label="Volume"><a href="#">Resume</a></span></div>
 
   <div id="hots">
+    <button class="hot" data-ch="2" data-k="sec" data-open="sec"><span>Small seconds</span></button>
+    <button class="hot" data-ch="2" data-k="moon" data-open="moon"><span>Moonphase</span></button>
+    <button class="hot" data-ch="2" data-k="date" data-open="date"><span>Date</span></button>
     <button class="hot" data-ch="6" data-k="i-soccer" data-int="soccer" aria-label="Football"></button>
     <button class="hot" data-ch="6" data-k="i-cooking" data-int="cooking" aria-label="Cooking and baking"></button>
     <button class="hot" data-ch="6" data-k="i-snow" data-int="snow" aria-label="Snowboarding"></button>
@@ -406,28 +431,29 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   <div id="copy">
     <section class="panel" data-ch="0">
       <h1 class="name" aria-label="Nikhil Kurmala"><span class="first" aria-hidden="true">Nikhil</span><span class="last" aria-hidden="true"><i>K</i><i>U</i><i>R</i><i>M</i><i>A</i><i>L</i><i>A</i></span></h1>
+      <div class="chips"><a href="#" data-jump="career">Career</a><a href="#" data-jump="projects">Projects</a><a href="#" data-jump="writing">Articles</a><a href="#" data-jump="film">Film</a><a href="#" data-jump="resume">Resume</a><a href="#" data-jump="contact">Contact</a></div>
     </section>
     <section class="panel" data-ch="1">
-      <div class="part">Experience</div>
+      <div class="part">Strap, experience</div>
       <h2>High velocity generalist</h2>
       <p><span class="sr">I’ve worn many caps over the years.</span><span aria-hidden="true">I’ve worn many <span class="fix" id="fix"><span class="was">straps</span><svg class="strike" viewBox="0 0 100 20" preserveAspectRatio="none"><path pathLength="1" vector-effect="non-scaling-stroke" d="M1 13.5C16 12 34 14.5 52 11.5S84 8.5 99 9"/></svg><span class="now">caps</span></span> over the years.</span></p>
       <div class="chips">
         <button data-strap="consulting">Consulting</button><button data-strap="engineering">Engineering</button><button data-strap="quant">Quant</button><button data-strap="banking">Banking</button><button data-strap="writing">Journalism</button>
       </div>
-      <div class="detail" style="min-height:0"><div class="part" id="s-name"></div><h3 id="s-title"></h3><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
+      <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3><div id="s-name"></div></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
     </section>
     <section class="panel" data-ch="2">
-      <div class="part">Side projects</div>
-      <h2>Selected work</h2>
-      <p>Three complications, three kinds of work. Scroll and the camera takes you through each in turn.</p>
-      <div class="rows work">
-        <button data-open="moon"><b>Projects <i class="wn" data-n="moon"></i></b><span id="w-moon">Things I have built.</span></button>
-        <button data-open="sec"><b>Articles <i class="wn" data-n="sec"></i></b><span>Bylined watch writing for Wrist Review.</span></button>
-        <button data-open="date"><b>Film <i class="wn" data-n="date"></i></b><span>Frames shot on 35 mm film.</span></button>
+      <div class="part">Dial, three complications</div>
+      <h2>Three complications</h2>
+      <p>Each one holds part of my work. Keep scrolling and the camera visits them in turn: projects, then articles, then film.</p>
+      <div class="rows">
+        <button data-open="moon"><b>Moonphase</b><span>Projects. Each turn of the disc brings up the next one.</span></button>
+        <button data-open="sec"><b>Small seconds</b><span>Articles. Each step of the hand brings up the next one.</span></button>
+        <button data-open="date"><b>Date window</b><span>Film photographs, framed in the window itself.</span></button>
       </div>
     </section>
     <section class="panel" data-ch="6">
-      <div class="part">Background and interests</div>
+      <div class="part">Caseback, under the hood</div>
       <h2>What makes me tick</h2>
       <p id="int-hint">A few parts of this movement are not quite standard. Tap a dot to go in close.</p>
       <div class="detail" id="int-d" style="min-height:0" hidden><div class="part" id="int-k"></div><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><p id="int-score" hidden></p><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><button class="btn sm" id="int-needle">Drop the needle</button></div><button class="btn sm" id="int-back">Back to the movement</button></div>
@@ -439,7 +465,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       </div>
     </section>
     <section class="panel" data-ch="7">
-      <div class="part">Contact</div>
+      <div class="part">Reassembled</div>
       <h2>The full set</h2>
       <dl class="spec">
         <div><dt>Name</dt><dd>Nikhil Kurmala<span class="opt">. Senior Analyst, <a href="https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/" target="_blank" rel="noopener">Analysis Group</a>, San Francisco.</span></dd></div>
@@ -477,7 +503,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   document.querySelector('#load .sec').style.setProperty('--sd', -s + 's'); })();
 /* underneath, a departures board asks the question. Each letter flips through a few others before it lands, like the real thing */
 (function () { var W = ['LOVE', 'HIRE', 'FRIEND', 'INVITE'], HOLD = [1500, 1400, 700], BLANK = 2000, N = 6, AB = 'ABCDEFGHIJKLMNOPRSTUWY', board = document.getElementById('flap'), cells = [], reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (location.hash.indexOf('#snap') === 0 || location.hash.indexOf('nointro') > -1) { window.__flapEnd = 0; }
+  if (location.hash.indexOf('#snap') === 0 || location.hash.indexOf('nointro') > -1 || window.STRAPSKIP) { window.__flapEnd = 0; }
   function half(cls, ch) { var h = document.createElement('div'); h.className = 'h ' + cls; var sp = document.createElement('span'); sp.textContent = ch; h.appendChild(sp); return h; }
   for (var i = 0; i < N; i++) { var c = document.createElement('div'); c.className = 'fc'; c.ch = ' '; c.appendChild(half('t', ' ')); c.appendChild(half('b', ' ')); board.appendChild(c); cells.push(c); }
   function show(c, ch) { c.ch = ch; c.children[0].firstChild.textContent = ch; c.children[1].firstChild.textContent = ch; }
@@ -493,20 +519,20 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   if (typeof window.__flapEnd !== 'number') window.__flapEnd = Infinity;
   /* pacing: the question stays up long enough to read, counted from when it is really on screen (a cached page can be busy building the watch before
      it paints anything), each answer gets a beat, and the last one lands before the page opens. About five seconds in all */
-  var w = -1, shown = null, begun = false, QUIET = true;   /* QUIET: the board and its question are put away for now; the ring alone runs for about two seconds. Set it to false to bring them back */
-  requestAnimationFrame(function () { shown = performance.now(); if ((reduce || QUIET) && window.__flapEnd !== 0) window.__flapEnd = shown + (QUIET ? 1900 : 2500); });
-  if (reduce && !QUIET) return;
+  var w = -1, shown = null, begun = false;
+  requestAnimationFrame(function () { shown = performance.now(); if (reduce && window.__flapEnd !== 0) window.__flapEnd = shown + 2500; });
+  if (reduce) return;
   function next() { w++; if (w >= W.length) return; var last = w === W.length - 1; if (last && window.__flapEnd !== 0) window.__flapEnd = performance.now() + 250;   // the page comes in while the last word is still flipping: INVITE ME, as the box arrives
     to(W[w], function () { if (!last) setTimeout(next, HOLD[w]); }); }
-  function begin() { if (begun || QUIET || reduce) return; begun = true; var now = performance.now(); setTimeout(next, Math.max(300, (shown === null ? now : shown) + BLANK - now)); }
+  function begin() { if (begun) return; begun = true; var now = performance.now(); setTimeout(next, Math.max(300, (shown === null ? now : shown) + BLANK - now)); }
   /* the brass ring is the wait itself: it fills in step with the board, and closes as the page opens. Its estimate firms up when the last word starts */
-  (function () { var arc = document.querySelector('#load .arc'), p = 0, t0 = null, EST = QUIET ? 1900 : 7000; function f(now) { if (t0 === null) t0 = shown === null ? now : shown; var end = isFinite(window.__flapEnd) && window.__flapEnd > 0 ? window.__flapEnd : t0 + EST, rdy = document.body.classList.contains('ready'), tgt = rdy ? 1 : Math.max(0, Math.min(0.97, (now - t0) / Math.max(400, end - t0)));
+  (function () { var arc = document.querySelector('#load .arc'), p = 0, t0 = null, EST = 7000; function f(now) { if (t0 === null) t0 = shown === null ? now : shown; var end = isFinite(window.__flapEnd) && window.__flapEnd > 0 ? window.__flapEnd : t0 + EST, rdy = document.body.classList.contains('ready'), tgt = rdy ? 1 : Math.max(0, Math.min(0.97, (now - t0) / Math.max(400, end - t0)));
       p += (tgt - p) * (rdy ? 0.18 : 0.08); arc.style.strokeDashoffset = (352 * (1 - p)).toFixed(1); if (!(rdy && p > 0.998)) requestAnimationFrame(f); } requestAnimationFrame(f); })();
   window.__flapGo = begin;   // the page calls this after its first frame, so the board never stalls mid flip while the watch is being built
   setTimeout(begin, 3500);   // or it starts anyway, if that frame is slow or never comes
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.b4d58406.js"></script>
+<script src="./bundle.ec866fd9.js"></script>
 </body>
 </html>

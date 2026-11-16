@@ -1,0 +1,6 @@
+{
+  "name": "watch-site",
+  "private": true,
+  "scripts": { "build": "esbuild main.js --bundle --minify --format=iife --outfile=../bundle.js" },
+  "dependencies": { "esbuild": "^0.28.2", "three": "^0.187.0" }
+}

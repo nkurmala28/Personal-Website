@@ -224,14 +224,11 @@ window.CONTENT = {
 
   /* ---- Full set: the spec sheet on the last screen. */
   fullSet: {
-    role: "Senior Analyst",
-    employer: "Analysis Group",
-    employerLink: "https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/",
     city: "San Francisco",
-    includedInBox: "Python, PySpark, SQL, Databricks, Azure OpenAI",
+    includedInBox: "Python, SQL, Databricks, AI, Strategy, etc.",
     origin: "Singapore",
     importDuties: "H-1B transfer",
-    /* The Full Specifications rows shown are Name, Tools Included (includedInBox), Origin,
+    /* The Full Specifications rows shown are Name, Location (city), Origin, Tools Included (includedInBox),
        Price, Import Duties (importDuties) and Contact (from contact above). papers is not
        shown at the moment (the Box and papers row is hidden), kept here in case it comes back. */
   },

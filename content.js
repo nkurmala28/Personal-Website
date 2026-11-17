@@ -19,7 +19,7 @@
      film             Film, in the date window (photos go in the photos folder)
      interests        Caseback, the four parts you can play with
      signedOnTheBack  Caseback, the three engraved lines
-     fullSet          Full set, the spec sheet at the end
+     fullSet          Full Specifications, the spec sheet at the end
 
    Anything still in [SQUARE BRACKETS] is a placeholder. Search the file for
    "[" to find what is left to fill in.
@@ -27,6 +27,11 @@
 window.CONTENT = {
 
   name: "Nikhil Kurmala",
+
+  /* ---- the two quiet lines under the name on the first screen. tagline is set in the
+          body type, education in the small mono labels. Leave either empty to hide it. */
+  tagline: "Strategy and Consulting",
+  education: "UCLA · Applied Math + Computing",
 
   /* ---- contact. resume: put the file in this folder (for example resume.pdf)
           and write its name here. Left empty, the site says "Resume on request". */
@@ -170,7 +175,7 @@ window.CONTENT = {
           example ["whistler.jpg", "tahoe.jpg"]. */
   interests: {
     soccer: {
-      title: "Football",
+      title: "Soccer",
       text: "Pickup football on Fridays, pickup volleyball on Thursdays. A Liverpool fan since I was eight, with the old Warrior kit to prove it.",
       listTitle: "On the pitch",
       list: ["[Your league or team]", "[A favorite Liverpool memory]"],
@@ -216,6 +221,9 @@ window.CONTENT = {
     origin: "Singapore. B.S. Applied Mathematics, UCLA, 2023.",
     importDuties: "A standard H-1B transfer. No lottery, any time of year, and no $100,000 fee for a transfer within the US.",
     papers: "Current H-1B, in its first year, so plenty of time on the clock. I can start as soon as the transfer is filed.",
+    /* The Full Specifications rows shown are Name, Tools Included (includedInBox), Origin,
+       Price, Import Duties (importDuties) and Contact (from contact above). papers is not
+       shown at the moment (the Box and papers row is hidden), kept here in case it comes back. */
   },
 
 };

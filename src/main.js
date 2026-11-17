@@ -113,7 +113,7 @@ const DATA = {
 };
 /* content.js, loaded before this script, holds everything the owner edits. Whatever it sets replaces the built-in text above; whatever it leaves out, or a file that fails to load, falls back to it */
 const CT = (typeof window !== 'undefined' && window.CONTENT) || {};
-if (Array.isArray(CT.projects) && CT.projects.length) DATA.moon.items = CT.projects.map((p) => ({ t: p.title || '', d: p.text || '', link: p.linkText || 'See it', url: p.link || '' }));
+if (Array.isArray(CT.projects) && CT.projects.length) DATA.moon.items = CT.projects.map((p) => ({ t: p.title || '', d: p.text || '', link: p.linkText || 'See it', url: p.link || '', video: typeof p.video === 'string' && p.video.trim() ? p.video.trim() : '', image: typeof p.image === 'string' && p.image.trim() ? p.image.trim() : '' }));
 if (Array.isArray(CT.articles) && CT.articles.length) DATA.sec.items = CT.articles.map((p) => ({ t: p.title || '', d: p.text || '', link: p.linkText || 'Read it', url: p.link || '' }));
 if (typeof CT.articlesNote === 'string') DATA.sec.note = CT.articlesNote;
 if (Array.isArray(CT.film) && CT.film.length) DATA.date.items = CT.film.map((p) => ({ t: p.title || '', d: p.caption || '', r: p.landscape ? 1.418 : 0.705, file: p.file || '' }));
@@ -169,8 +169,19 @@ const TILE = [['#243b6b', '#0e1830'], ['#5b3a1d', '#20140a'], ['#1f4a3d', '#0b1d
 const moonTex = tex(1024, (g, S) => { const k = S / 2 / MDR; sky(g, S);
   DATA.moon.items.forEach((it, i) => { const a = Math.PI / 2 + i * TAU / NPROJ, r = 2.2 * k; g.save(); g.translate(S / 2 + DM * k * Math.cos(a), S / 2 - DM * k * Math.sin(a)); g.rotate(-(a - Math.PI / 2)); g.beginPath(); g.arc(0, 0, r, 0, TAU); g.clip();
     const c = TILE[i % TILE.length], gr = g.createLinearGradient(-r, -r, r, r); gr.addColorStop(0, c[0]); gr.addColorStop(1, c[1]); g.fillStyle = gr; g.fillRect(-r, -r, 2 * r, 2 * r);
-    g.fillStyle = 'rgba(255,255,255,.92)'; g.beginPath(); g.moveTo(-r * 0.16, -r * 0.3); g.lineTo(r * 0.3, -r * 0.02); g.lineTo(-r * 0.16, r * 0.26); g.closePath(); g.fill();
-    g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '600 ' + Math.round(r * 0.19) + 'px Helvetica, Arial, sans-serif'; g.fillText(it.t, 0, r * 0.52); g.font = '500 ' + Math.round(r * 0.1) + 'px Helvetica, Arial, sans-serif'; g.fillStyle = 'rgba(255,255,255,.7)'; g.fillText('[PROJECT VIDEO]', 0, -r * 0.55); g.restore(); }); });
+    projTile(g, it, r); g.restore(); }); });
+/* one project's round screen: its image or its film's first frame once loaded, and until then a small work in progress mark (a crane over a half built block) with its name */
+function projTile(g, it, r, media) {
+  if (media) { const w = media.videoWidth || media.naturalWidth || 1, h = media.videoHeight || media.naturalHeight || 1, s = 2 * r / Math.min(w, h); g.drawImage(media, -w * s / 2, -h * s / 2, w * s, h * s); if (it.video) { g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(0, 0, r * 0.22, 0, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.92)'; g.beginPath(); g.moveTo(-r * 0.07, -r * 0.11); g.lineTo(r * 0.12, 0); g.lineTo(-r * 0.07, r * 0.11); g.closePath(); g.fill(); } return; }
+  const u = r / 10; g.strokeStyle = '#dcb872'; g.fillStyle = '#dcb872'; g.lineWidth = u * 0.35; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(-u * 2.2, u * 1.2); g.lineTo(-u * 2.2, -u * 5); g.lineTo(u * 3.2, -u * 5); g.moveTo(-u * 3.2, -u * 5); g.lineTo(-u * 2.2, -u * 5); g.moveTo(-u * 2.2, -u * 3.9); g.lineTo(-u * 1.1, -u * 5); g.moveTo(u * 2.2, -u * 5); g.lineTo(u * 2.2, -u * 3.2); g.stroke();
+  g.fillRect(u * 1.85, -u * 3.3, u * 0.7, u * 0.6); g.fillStyle = 'rgba(220,184,114,.35)'; g.fillRect(-u * 0.6, -u * 1.1, u * 3.4, u * 2.3); g.strokeRect(-u * 0.6, -u * 1.1, u * 3.4, u * 2.3);
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#dcb872'; g.font = '500 ' + Math.round(r * 0.1) + 'px Menlo, monospace'; g.fillText('WORK IN PROGRESS', 0, r * 0.33);
+  g.fillStyle = 'rgba(255,255,255,.92)'; g.font = '600 ' + Math.round(r * 0.17) + 'px Helvetica, Arial, sans-serif'; g.fillText(it.t, 0, r * 0.56); }
+/* a project given a video or an image in content.js shows it on its screen as soon as the file has loaded (a video shows its first frame there and plays in the notes) */
+DATA.moon.items.forEach((it, i) => { const src = it.video || it.image; if (!src) return; const done = (m) => { const S = moonTex.image.width, k = S / 2 / MDR, a = Math.PI / 2 + i * TAU / NPROJ, r = 2.2 * k, g = moonTex.image.getContext('2d');
+    g.save(); g.translate(S / 2 + DM * k * Math.cos(a), S / 2 - DM * k * Math.sin(a)); g.rotate(-(a - Math.PI / 2)); g.beginPath(); g.arc(0, 0, r, 0, TAU); g.clip(); projTile(g, it, r, m); g.restore(); moonTex.needsUpdate = true; };
+  if (it.video) { const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = it.video; v.addEventListener('loadeddata', () => done(v), { once: true }); } else { const im = new Image(); im.onload = () => done(im); im.src = it.image; } });
 const moonAge = (((Date.now() / 86400000 - 10962.76) % 29.530588) + 29.530588) % 29.530588 / 29.530588;
 /* at rest a moon covers the screens: a hand engraved gold crescent with a calm face in profile, on aventurine glass (deep blue, shot through with copper flecks) */
 const moonCoverDraw = (bump, trick) => (g, S) => { seed = 606; const r = S * 0.34, cx = S * (trick ? 0.455 : 0.47), cy = S / 2, qx = cx + r * (trick ? 0.6 : 0.46), qy = cy - r * (trick ? 0.1 : 0.04), Rc = r * (trick ? 0.84 : 0.9); aventurine(g, S, bump, 2600);
@@ -1697,14 +1708,18 @@ function makeStrap(st, sy) {
     [-1, 1].forEach((sx) => { put(brPlate(sh, CL, 1.0, sg, 0.18), [mLinkB, mLinkP], cover).position.set(sx * (mid / 2 - 0.3 + sh / 2), 0, 0.96);   /* tucked a hair under the polished centre, its top a hair lower */ put(brPlate(sk, CL - 0.6, 2.9, sg, 0.2), [mLinkP, mLinkP], cover).position.set(sx * (cw / 2 - sk / 2), 0, -0.35); });   /* the skirts are polished all over: a brushed grain has nothing to run along on a face this narrow */
     put(brPlate(9, L[m], 0.55, 0, 0.2), [mLinkB, mLinkP], b1); put(brPlate(9, L[m - 1], 0.55, 0, 0.2), [mLinkB, mLinkP], b2);
     [[0.5, 9.4, b1, L[m]], [0.55, 14.6, cover, CL], [0.5, 9.4, b2, L[m - 1]]].forEach(([r, w, par, l]) => { put(new THREE.CylinderGeometry(r, r, w, 14).rotateZ(Math.PI / 2), mLinkP, par).position.y = -l / 2; });   // the hinge pins
-    flap.position.set(0, -CL / 2 - 0.3, 1.2); cover.add(flap); put(brPlate(mid + 0.5, 4.8, 0.75, 0, 0.3), [mLinkP, mLinkP], flap).position.set(0, 2.4, 0.72); put(new THREE.CylinderGeometry(0.55, 0.55, mid + 0.5, 12).rotateZ(Math.PI / 2), mLinkP, flap);
+    /* the flip lock: hinged on top of the cover at the six side end, its long side running back toward the clasp's middle. Shut, it lies along the line that touches the cover's bowed top
+       halfway along it (a tangent clears a curve that bows up), a hair above; open, it swings up and over its hinge, so no part of it ever goes below that line or into the links */
+    const FL = 4.2, ft = 0.7, cTop = 1.5, bowAt = (u) => sg * (4 * u / CL - 4 * u * u / (CL * CL)), slope = sg * (4 / CL - 4 * FL / (CL * CL)), z0 = cTop + bowAt(FL / 2) - slope * FL / 2 + 0.07;
+    flap.userData.th0 = Math.atan(slope); flap.position.set(0, CL / 2 - 0.25, z0 + ft / 2 / Math.cos(flap.userData.th0)); cover.add(flap);
+    put(brPlate(mid + 0.5, FL, ft, 0, 0.25), [mLinkP, mLinkP], flap).position.set(0, -FL / 2, 0); put(new THREE.CylinderGeometry(0.4, 0.4, mid + 0.5, 12).rotateZ(Math.PI / 2), mLinkP, flap);
     const ang = (c, j) => Math.atan2(c[j + 1][1] - c[j][1], c[j + 1][0] - c[j][0]), seg = (o, c, j) => { o.position.set(0, (c[j][0] + c[j + 1][0]) / 2, (c[j][1] + c[j + 1][1]) / 2); o.rotation.x = ang(c, j); };
     const P0 = BRSH.pts[0], PS = BRSH.pts[S];
     return { sy, obj: g, parts, ends, fl: 1, onW: false, update(c, lift) {
       [[0, 0, TH0, c[0], P0], [1, S - 1, -TH0, c[S], PS]].forEach(([k, j, a0, P, Q]) => { const E = ends[k].e, d = ang(c, j) - a0, cs = Math.cos(d), sn = Math.sin(d); E.rotation.x = d; E.position.set(0, P[0] - (Q[0] * cs - Q[1] * sn), P[1] - (Q[0] * sn + Q[1] * cs)); ends[k].t.visible = this.onW && lift < 0.05; });
       rows.forEach((R) => { const j = R.j, y = (c[j][0] + c[j + 1][0]) / 2, z = (c[j][1] + c[j + 1][1]) / 2, a = ang(c, j); R.o.forEach((o) => { o.x.position.set(o.sx * 7.35 * R.k, y, z); o.x.rotation.x = a; }); });
       cens.forEach((C) => { const a1 = ang(c, C.p - 1), a = a1 + brWrap(ang(c, C.p) - a1) / 2; C.o.position.set(0, c[C.p][0], c[C.p][1]); C.o.rotation.x = a; });
-      seg(b2, c, m - 1); seg(b1, c, m); seg(cover, c, m + 1); flap.rotation.x = -2.5 * (1 - this.fl); } }; }   /* open, the flip lock stands back off the cover */
+      seg(b2, c, m - 1); seg(b1, c, m); seg(cover, c, m + 1); flap.rotation.x = -(flap.userData.th0 + 1.55 * (1 - this.fl)); } }; }   /* open, the flip lock stands up off the cover */
   if (!st.mat) { const cloth = st.sheen ? { sheen: st.sheen, sheenRoughness: st.sheenR || 0.5, sheenColor: new THREE.Color(st.sheenC ?? 0xffffff) } : {}, lp = { color: st.back, map: null, normalMap: null, metalness: 0, roughness: 0.9, side: THREE.DoubleSide, envMapIntensity: 0.4 };
     st.mat = M('strap', Object.assign({ map: null, normalMap: null, roughnessMap: null, metalness: 0, roughness: 1, side: THREE.DoubleSide, envMapIntensity: 0.6 }, cloth), !!st.sheen);
     st.matEnd = M('strap', Object.assign({ color: st.base, metalness: 0, roughness: st.under ? 0.9 : st.edgeRo || 0.5, side: THREE.DoubleSide, envMapIntensity: 0.5 }, st.under ? {} : { map: edgeTint }));
@@ -2284,7 +2299,7 @@ function railArrive(k) { const R = RS[k], st = R.st; if (st.links) { BCL.cl = 0;
 function railDom() { const p = panels.find((q) => q.dataset.ch === '1'); if (!p) return; p.classList.add('railed');
   const box = document.createElement('div'); box.className = 'rail3d'; box.id = 's-rail'; box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Straps on their board, newest first. Choose one to wear it');
   RJ.order.forEach((k) => { const b = document.createElement('button'), j = CT.jobs && CT.jobs[k], chip = (j && j.chip) || { consulting: 'Consulting', engineering: 'Engineering', quant: 'Quant', banking: 'Banking', writing: 'Journalism' }[k];
-    b.dataset.strap = k; b.dataset.rail = k; b.innerHTML = '<span class="rj"></span><span class="ry"></span>'; b.children[0].textContent = chip; b.children[1].textContent = RJ.years[k]; b.setAttribute('aria-label', chip + ', ' + RJ.years[k] + ', ' + STRAPS[k].name.toLowerCase());
+    b.dataset.strap = k; b.dataset.rail = k; b.innerHTML = '<span class="wl" aria-hidden="true">On the watch</span><span class="rj"></span><span class="ry"></span>'; b.children[1].textContent = chip; b.children[2].textContent = RJ.years[k]; b.setAttribute('aria-label', chip + ', ' + RJ.years[k] + ', ' + STRAPS[k].name.toLowerCase());
     b.addEventListener('pointerenter', (e) => railNudge(k, e.movementX || 1, 1)); b.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') railNudge(k, e.movementX, 0.25); }); b.addEventListener('pointerdown', () => railNudge(k, 1, 1.4)); box.appendChild(b); rl.btns.push(b); });
   box.addEventListener('keydown', (e) => { const i = rl.btns.indexOf(document.activeElement); if (i < 0) return; let n = -1; if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = Math.min(rl.btns.length - 1, i + 1); if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = Math.max(0, i - 1); if (e.key === 'Home') n = 0; if (e.key === 'End') n = rl.btns.length - 1; if (n >= 0) { e.preventDefault(); e.stopPropagation(); rl.btns[n].focus(); } });
   const ch = p.querySelector('.chips'); ch.parentNode.insertBefore(box, ch.nextSibling); rl.el = box;
@@ -2292,7 +2307,7 @@ function railDom() { const p = panels.find((q) => q.dataset.ch === '1'); if (!p)
 function railNudge(k, dx, g) { if (reduce || !rl.vis) return; const S = rl.slots[RJ.order.indexOf(k)]; if (!S) return; S.phV += clamp(dx * 0.02, -0.09, 0.09) * g * (S.drape ? 0.4 : 1); }
 /* where the display is on the page and how big, in the scene: from the block's box, at the plane of the watch. Its size only changes when the block does */
 function railLayout(visW, visH, slide) { const el = rl.el, r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect(), w = r.width, h = r.height;
-  if (Math.abs(w - rl.cw) > 0.5 || Math.abs(h - rl.ch) > 0.5) { rl.cw = w; rl.ch = h; const n = rl.btns.length, pitch = w / n, b0 = rl.btns[0], lab = b0 ? b0.children[0].offsetHeight + b0.children[1].offsetHeight + 18 : 46;
+  if (Math.abs(w - rl.cw) > 0.5 || Math.abs(h - rl.ch) > 0.5) { rl.cw = w; rl.ch = h; const n = rl.btns.length, pitch = w / n, b0 = rl.btns[0], lab = b0 ? b0.children[0].offsetHeight + b0.children[1].offsetHeight + b0.children[2].offsetHeight + 18 : 60;
     { rl.ppm = Math.max(0.3, Math.min((h - lab - 6) / (RB.top + RB.drop + 2), pitch * 0.62 / 19.7)); rl.top = (RB.top + 1) * rl.ppm + 2; rl.rodL = W > 800 ? 0.93 * w / rl.ppm : w / rl.ppm + 10; rFurn(rl.rodL, rl.btns.map((b) => (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm)); }   /* on a desktop the board is drawn at about 93% of the column; on a phone it runs edge to edge */
     rl.slots.forEach((S, i) => { const b = rl.btns[i]; S.h.position.x = (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm; }); }
   const wpp = visH / H, px = r.left - sr.left + w / 2, py = r.top - sr.top + rl.top + slide; rl.s = rl.ppm * wpp;
@@ -2525,9 +2540,12 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 /* the strap display's test pages (window.STRAPSKIP): no unboxing, and the page opens on the Strap chapter. Without the flag nothing here changes */
 const SKIP = !!window.STRAPSKIP;
 if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (N - 1)); }
-NAMES.forEach((n, i) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); if (i >= S0 && i < S0 + 3) b.className = 'sub'; b.onclick = () => (i >= S0 && i < S0 + 3 ? goWork(STOP[i - S0]) : jumpTo(i)); rail.appendChild(b); });
+const NAV = [['Home', 0], ['Experience', 1], ['Side Projects', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
+NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
+/* the arrow at the foot: on to the next chapter, as a key press would be (into the three works through goWork, so their order holds) */
+const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
 const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
-function workOrder(list) { STOP.splice(0, 3, ...list); [...rail.children].slice(S0, S0 + 3).forEach((b, j) => { b.textContent = RNAME[STOP[j]]; b.setAttribute('aria-label', 'Go to ' + RNAME[STOP[j]]); }); stopsPaint(); }
+function workOrder(list) { STOP.splice(0, 3, ...list); stopsPaint(); }
 /* every way into the three works (the chips, the journey bar, the dial dots and rows, the links on the spec sheet) comes through here */
 function goWork(k) { audioOn(); if (!inWork() && STOP[0] !== k) workOrder([k, ...WORK0.filter((x) => x !== k)]); jumpTo(stopCh(k)); }
 const JUMPS = { career: [1], resume: [N - 1], contact: [N - 1], top: [0] };
@@ -2541,11 +2559,12 @@ const fEl = $('focus'), nextOf = (k) => { const j = STOP.indexOf(k); return j < 
 const wCount = (k) => DATA[k].items.length;   // the same number the Back and Next counter shows
 /* the switch between the three works, under each one: in this visit's order, with how many are in each and a mark on the ones already seen */
 function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); }); }
-document.querySelectorAll('.rows.work .wn').forEach((e) => { e.textContent = wCount(e.dataset.n); }); { const wm = $('w-moon'); if (wm && DATA.moon.items.length) wm.textContent = DATA.moon.items.map((x) => x.t).filter(Boolean).join(', ') + '.'; }
+{ const wd = $('w-date'), n = DATA.date.items.length, W = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve']; if (wd && n) wd.textContent = (W[n] || n) + (n === 1 ? ' frame' : ' frames') + '. Shot on 35 mm.'; }
 document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.innerHTML = WNAME[k] + ' <i>' + wCount(k) + '</i>'; b.setAttribute('aria-label', WNAME[k] + ', ' + wCount(k)); });
 function paint() {
   const D = DATA[focus], n = D.items.length, it = D.items[idx[focus]];
-  $('f-kicker').textContent = D.kicker; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
+  $('f-kicker').textContent = '02 / Selected work / ' + WNAME[focus]; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
+  { const fm = $('f-media'), src = focus === 'moon' && (it.video || it.image); fm.hidden = !src; if (src && fm.dataset.src !== src) { fm.dataset.src = src; fm.replaceChildren(); const m = document.createElement(it.video ? 'video' : 'img'); m.src = src; if (it.video) { m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = true; m.controls = true; } else m.alt = it.t; fm.appendChild(m); } }
   const l = $('f-link'); l.style.display = it.link && it.url ? 'inline-block' : 'none'; if (it.url) { l.textContent = it.link; l.href = it.url; l.target = '_blank'; l.rel = 'noopener'; }   // no button until there is somewhere to go
   $('f-note').textContent = D.note || ''; $('f-count').textContent = (idx[focus] + 1) + ' of ' + n; $('f-hint').textContent = D.hint + ' Keep scrolling for ' + nextOf(focus) + '.';
   stopsPaint();
@@ -2856,7 +2875,7 @@ function setNeedle(on) { needle = on && selInt === 'music'; $('int-needle').text
       const s = actx.createBufferSource(), g = actx.createGain(), lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200; s.buffer = b; s.loop = true; g.gain.value = 0.0001; g.gain.exponentialRampToValueAtTime(0.5, actx.currentTime + 0.4); s.connect(lp).connect(g).connect(master); s.start(); crackle = { s, g }; } catch (e) {} }
   else if (crackle) { try { crackle.g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 0.25); crackle.s.stop(actx.currentTime + 0.3); } catch (e) {} crackle = null; } }
 function zoomOut() { if (!selInt) return; setNeedle(false); document.body.classList.remove('deck', 'cook', 'pitch'); selInt = zoomK = null; cbPanel.classList.remove('zoomed'); document.body.classList.remove('zoomed'); $('int-d').hidden = true; intPins.forEach((p) => p.classList.remove('sel')); }
-intPins.forEach((p) => p.addEventListener('click', () => pickInt(p.dataset.int))); $('int-back').addEventListener('click', zoomOut); $('int-needle').addEventListener('click', () => setNeedle(!needle)); addEventListener('keydown', (e) => { if (e.key === 'Escape') zoomOut(); });
+intPins.forEach((p) => p.addEventListener('click', () => pickInt(p.dataset.int))); document.querySelectorAll('[data-interest]').forEach((b) => b.addEventListener('click', () => { audioOn(); pickInt(b.dataset.interest); })); $('int-back').addEventListener('click', zoomOut); $('int-needle').addEventListener('click', () => setNeedle(!needle)); addEventListener('keydown', (e) => { if (e.key === 'Escape') zoomOut(); });
 const ZOOMS = { soccer: 2.8, cooking: 2.7, snow: 4.2, music: 3.8 }, ZTILT = { soccer: [50, -20, -12], cooking: [48, 14, 160], snow: [50, 24, 15], music: [32, -10, 0] }, zTilt = [0, 0, 0], zoomP = new THREE.Vector3(), zw = new THREE.Vector3(), zl = new THREE.Vector3(); let cz = 0, zsNow = 1, zoomInit = false;
 function zoomApply(dt, sc, cx, cy, act) {
   if (zoomK && act !== CB) zoomOut();
@@ -3460,7 +3479,8 @@ function frame(now) {
     o *= (k === CD ? 1 - fe : 1); p.style.opacity = o; p.style.transform = 'translateY(' + ty2 + 'px)'; p.classList.toggle('live', k === act && !jump && !(k === CD && focus)); p.style.visibility = o < 0.01 ? 'hidden' : 'visible'; });
   fixTick(dt);
   fEl.style.opacity = fe * tf; fEl.style.visibility = fe * tf < 0.01 ? 'hidden' : 'visible';
-  [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === act); bt.classList.toggle('past', k < act); }); rail.style.setProperty('--p', clamp(pe / (N - 1), 0, 1).toFixed(4));
+  { const na = navOf(act); [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === na); bt.classList.toggle('past', k < na); }); }
+  cueEl.classList.toggle('off', act >= N - 1 || !!jump); rail.style.setProperty('--p', clamp(pe / (N - 1), 0, 1).toFixed(4));
   const near = !jump && Math.abs(pe - act) < 0.15 && !focus && fe < 0.2;
   hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
   pullTick(W, H);

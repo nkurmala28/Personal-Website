@@ -97,7 +97,12 @@ window.CONTENT = {
   jobOrder: ["consulting", "engineering", "quant", "banking", "writing"],
 
   /* ---- Projects (moonphase). Add, remove or reorder the blocks freely.
-          The button only shows when link has an address in it. */
+          The button only shows when link has an address in it.
+          To show a film of a project: put the file in the photos folder (an .mp4,
+          ideally under about 3 MB) and add a line to that project's block, for example
+            video: "photos/notch.mp4",
+          or, for a still picture instead, image: "photos/notch.jpg",
+          Until a project has one, its screen on the dial says "Work in progress". */
   projects: [
     {
       title: "Notch",

@@ -255,7 +255,7 @@ body.focused #focus>*{pointer-events:auto}
 .stops button i,.rows b i.wn{font:500 11px 'JetBrains Mono',monospace;font-style:normal;color:var(--mut);margin-left:6px}
 .stops button.cur i{color:inherit;opacity:.75}
 .stops button.seen{color:var(--ink)}
-.stops button.seen::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--brass);margin-left:7px;vertical-align:2px}
+.stops button.seen::after{display:none}
 #hint{position:absolute;left:30%;transform:translateX(-50%);bottom:26px;font:500 12px 'JetBrains Mono',monospace;color:var(--mut);transition:opacity .4s;pointer-events:none}
 #more{display:none}
 
@@ -600,11 +600,7 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
 
 .soccer-leaderboard{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}.soccer-leaderboard form{display:flex;gap:8px;flex-wrap:wrap}.soccer-leaderboard input{max-width:180px;background:#151b22;color:var(--ink);border:1px solid var(--line);padding:8px}.soccer-leaderboard button{background:#151b22;border:1px solid var(--brass);padding:8px;cursor:pointer}.soccer-leaderboard li{margin:5px 0}
 #f-body,#s-body,#int-b{white-space:pre-line}
-#rail button.work-invitation{color:var(--brass);animation:workglow 2s ease-in-out infinite}
-#rail button[aria-label="Go to Selected work"]::after{display:none!important}
-@keyframes workglow{50%{text-shadow:0 0 12px #dcb872,0 0 24px #dcb87280}}
 @media(max-width:800px){.load-second{display:none}body.intro #i-open{pointer-events:auto!important}html{overflow-x:clip}body.strap-drawer-open #more{visibility:hidden}}
-@media(prefers-reduced-motion:reduce){#rail button.work-invitation{animation:none;text-decoration:underline}}
 </style>
 </head>
 <body>
@@ -742,7 +738,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261117-mobile-simplified.js"></script>
+<script defer src="./bundle.20261117-work-pills.js"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

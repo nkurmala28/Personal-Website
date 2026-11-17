@@ -2636,8 +2636,7 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 const SKIP = !!window.STRAPSKIP;
 if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (N - 1)); }
 const NAV = [['Home', 0], ['Experience', 1], ['Selected work', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
-NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); if (i === 2) b.classList.add('work-invitation'); b.onclick = () => { if (i === 2) dismissWorkCue(); jumpTo(i); }; rail.appendChild(b); });
-function dismissWorkCue() { document.querySelectorAll('.work-invitation').forEach(el => el.classList.remove('work-invitation')); }
+NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
 /* the arrow at the foot: on to the next chapter, as a key press would be (into the three works through goWork, so their order holds) */
 let cueY0 = null, cueGone = false; const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
 const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
@@ -2673,7 +2672,7 @@ function stepFocus(dir) {
   paint();
 }
 function enterStop(k) {
-  dismissWorkCue(); focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
+  focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
   if (k === 'date') { loadPhotos(); photoA.material.map = photos[idx.date]; }
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();

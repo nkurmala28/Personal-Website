@@ -201,6 +201,10 @@ window.CONTENT = {
       listTitle: "Top five artists this year",
       list: ["[Artist 1]", "[Artist 2]", "[Artist 3]", "[Artist 4]", "[Artist 5]"],
       photos: [],
+      /* a Spotify playlist shown as a small player under the record. Paste the
+         playlist's share link (Share, then Copy link to playlist). The playlist
+         must be public. Leave it empty "" to hide the player. */
+      spotify: "https://open.spotify.com/playlist/5Ke943duOiS4zGLe7CLwE1",
     },
   },
 

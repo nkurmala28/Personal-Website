@@ -2867,7 +2867,12 @@ function footFix(on) { const t = $('int-t'); t.style.paddingTop = on ? '1.45em' 
 function pickInt(k) { zbLabel('Zoom out'); document.body.classList.add('dotted'); selInt = zoomK = k; const r = INTS[k]; cbPanel.classList.add('zoomed'); document.body.classList.add('zoomed'); $('int-d').hidden = false; $('int-k').textContent = r[0]; $('int-t').textContent = r[1]; footFix(k === 'soccer'); $('int-b').textContent = r[2]; $('int-l').textContent = r[3];
   const ol = $('int-list'); ol.className = r[6] ? 'num' : ''; ol.replaceChildren(...r[4].map((t) => { const li = document.createElement('li'); li.textContent = t; return li; }));
   $('int-ph').replaceChildren(...r[5].map((p) => { const im = document.createElement('img'); im.src = p.src; im.alt = p.alt || ''; im.loading = 'lazy'; return im; }));
-  intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; setNeedle(false); }
+  intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; setNeedle(false); spotShow(k === 'music'); }
+/* the music part also carries a Spotify player for a playlist, when content.js gives one. It is only made when the part is opened, so the page never loads Spotify unasked */
+function spotShow(on) { let f = $('int-spot'); const m = ((CT.interests || {}).music || {}).spotify || '', id = (m.match(/playlist\/([A-Za-z0-9]+)/) || [])[1];
+  if (!on || !id) { if (f) f.hidden = true; return; }
+  if (!f) { f = document.createElement('iframe'); f.id = 'int-spot'; f.title = 'Spotify playlist'; f.loading = 'lazy'; f.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture'; f.src = 'https://open.spotify.com/embed/playlist/' + id + '?utm_source=generator&theme=0'; $('int-deck').after(f); }
+  f.hidden = false; }
 /* the deck: the arm waits off the record. Drop the needle and it plays; lift it, or leave, and it stops */
 let needle = false, armOff = 0, crackle = null, armDrag = null;
 /* the tonearm is yours to move: take the headshell, swing it over the record and let go, and the needle drops. Lift it away and the music stops */

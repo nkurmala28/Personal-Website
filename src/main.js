@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createSoccerBoard } from './soccer-leaderboard.mjs';
 import { mobilePixelRatio, movementIsCovered, ribbonNeedsUpdate, shadowUpdateDue } from './mobile-render-policy.mjs';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
@@ -25,7 +26,9 @@ try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 catch (e) { document.body.classList.add('nogl'); throw e; }
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.0;
-renderer.shadowMap.enabled = true;
+// Environment lighting keeps the metal detailed; phones skip the extra shadow render.
+renderer.shadowMap.enabled = !mobileViewport.matches;
+mobileViewport.addEventListener('change', () => { renderer.shadowMap.enabled = !mobileViewport.matches; });
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0f141a);
@@ -704,7 +707,8 @@ const HSET = {
 };
 Object.values(HSET).forEach((p) => { hHour.add(p[0]); hMin.add(p[1]); });
 { const cap = add(gHands, new THREE.SphereGeometry(0.5, 24, 12, 0, TAU, 0, Math.PI / 2), mHandA, 0, 0, ZD + 1.18); cap.rotation.x = Math.PI / 2; cap.scale.z = 0.6; add(gHands, cyl(0.48, 0.7, 24), mHandA, 0, 0, ZD + 0.84); }
-const hSec = new THREE.Group(); add(hSec, ext(poly([[-0.11, -0.7], [0.11, -0.7], [0.04, 2.9], [-0.04, 2.9]]), 0.08), mBlue); add(hSec, cyl(0.28, 0.08, 20), mBlue, 0, -0.9, 0.04); add(hSec, cyl(0.35, 0.14, 20), mBlue, 0, 0, 0.05); hSec.position.set(SX, 0, ZD - 0.24); gHands.add(hSec);
+const hSec = new THREE.Group(); add(hSec, ext(poly([[-0.11, -0.7], [0.11, -0.7], [0.04, 2.9], [-0.04, 2.9]]), 0.08), mBlue); add(hSec, cyl(0.28, 0.08, 20), mBlue, 0, -0.9, 0.04); add(hSec, cyl(0.35, 0.14, 20), mBlue, 0, 0, 0.05); hSec.position.set(SX, 0, ZD - 0.24); if (!mobileViewport.matches) gHands.add(hSec);
+mobileViewport.addEventListener("change", () => { if (mobileViewport.matches) hSec.removeFromParent(); else gHands.add(hSec); });
 
 /* per frame hook for dial parts that move: t is local time in seconds, hr the hour hand angle.
    The sky ring turns once in twenty four hours, clockwise: the sun stands at twelve at noon, sets at three, and the moon is up at midnight. */
@@ -2340,8 +2344,8 @@ function strapDrawerInit(panel, board) {
   trigger.setAttribute('aria-haspopup', 'dialog'); trigger.setAttribute('aria-controls', 'strap-drawer'); trigger.setAttribute('aria-expanded', 'false');
   panel.appendChild(trigger); D.trigger = trigger;
   const dialog = document.createElement('dialog'); dialog.id = 'strap-drawer'; dialog.setAttribute('aria-labelledby', 'strap-drawer-title');
-  dialog.innerHTML = '<div class="strap-drawer-shade" aria-hidden="true"></div><div class="strap-drawer-surface"><header><div><h2 id="strap-drawer-title">Straps</h2><p>Choose an experience</p></div><button type="button" id="strap-drawer-close" aria-label="Close straps">×</button></header><div id="strap-drawer-board"></div><footer><span aria-hidden="true">↖</span> Pick a strap to wear it.</footer></div>';
-  stage.appendChild(dialog); D.dialog = dialog; D.surface = dialog.querySelector('.strap-drawer-surface');
+  dialog.innerHTML = '<div class="strap-drawer-shade" aria-hidden="true"></div><div class="strap-drawer-surface"><header><div><h2 id="strap-drawer-title">Straps</h2><p>Choose an experience</p></div><button type="button" id="strap-drawer-close" autofocus aria-label="Close straps">×</button></header><div id="strap-drawer-board"></div><footer><span aria-hidden="true">↖</span> Pick a strap to wear it.</footer></div>';
+  document.body.appendChild(dialog); D.dialog = dialog; D.surface = dialog.querySelector('.strap-drawer-surface');
   const marker = document.createComment('strap board desktop position'); board.before(marker);
   const media = matchMedia('(max-width:800px)');
   const sync = () => { strapDrawerClose(null, true); D.mobile = media.matches; if (D.mobile) dialog.querySelector('#strap-drawer-board').appendChild(board); else marker.after(board); rl.cw = -1; };
@@ -2351,9 +2355,9 @@ function strapDrawerInit(panel, board) {
     D.closing = false; D.pending = null; D.surface.inert = false; dialog.showModal();
     D.overflow = document.documentElement.style.overflow; document.documentElement.style.overflow = 'hidden';
     document.body.classList.add('strap-drawer-open'); trigger.setAttribute('aria-expanded', 'true');
-    // Flush the initial offscreen pose once, then let CSS move both rail and tap targets.
+    // Measure the stable board layout before fading the sheet in.
     void D.surface.offsetWidth; dialog.classList.add('open');
-    (board.querySelector('[aria-pressed="true"]') || $('strap-drawer-close')).focus({ preventScroll: true });
+    $('strap-drawer-close').focus({ preventScroll: true });
   });
   $('strap-drawer-close').addEventListener('click', () => strapDrawerClose());
   dialog.querySelector('.strap-drawer-shade').addEventListener('click', () => strapDrawerClose());
@@ -2632,7 +2636,8 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 const SKIP = !!window.STRAPSKIP;
 if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (N - 1)); }
 const NAV = [['Home', 0], ['Experience', 1], ['Selected work', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
-NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
+NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); if (i === 2) b.classList.add('work-invitation'); b.onclick = () => { if (i === 2) dismissWorkCue(); jumpTo(i); }; rail.appendChild(b); });
+function dismissWorkCue() { document.querySelectorAll('.work-invitation').forEach(el => el.classList.remove('work-invitation')); }
 /* the arrow at the foot: on to the next chapter, as a key press would be (into the three works through goWork, so their order holds) */
 let cueY0 = null, cueGone = false; const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
 const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
@@ -2668,7 +2673,7 @@ function stepFocus(dir) {
   paint();
 }
 function enterStop(k) {
-  focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
+  dismissWorkCue(); focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
   if (k === 'date') { loadPhotos(); photoA.material.map = photos[idx.date]; }
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();
@@ -2846,7 +2851,8 @@ function crowd(up) { if (!actx || muted || actx.state !== 'running') return; try
     if (up) { f1.frequency.setValueAtTime(650, t); f1.frequency.exponentialRampToValueAtTime(1500, t + 0.35); f2.frequency.setValueAtTime(1700, t); f2.frequency.exponentialRampToValueAtTime(3000, t + 0.4); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55, t + 0.16); g.gain.setValueAtTime(0.5, t + 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     else { f1.frequency.setValueAtTime(640, t); f1.frequency.exponentialRampToValueAtTime(250, t + 0.75); f2.frequency.setValueAtTime(1150, t); f2.frequency.exponentialRampToValueAtTime(480, t + 0.75); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.34, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     s.connect(f1).connect(g); s.connect(f2).connect(g); g.connect(master); s.start(t); s.stop(t + dur + 0.05); } catch (e) {} }
-function pitEnd(res) { const P = PIT; if (P.res) return; P.res = res; P.results.push(res); P.t = 0; P.shots++; if (res === 'goal') { P.goals++; P.hop = 1; ping({ f: 5200, q: 0.5, dur: 0.24, vol: 0.22, sharp: 2 }); crowd(true); buzz([18, 40, 30], true); } else crowd(false); pitScore(); }
+const soccerBoard = createSoccerBoard(CT.soccerLeaderboardUrl, $('int-score'));
+function pitEnd(res) { const P = PIT; if (P.res) return; P.res = res; P.results.push(res); P.t = 0; P.shots++; if (res === 'goal') { P.goals++; P.hop = 1; ping({ f: 5200, q: 0.5, dur: 0.24, vol: 0.22, sharp: 2 }); crowd(true); buzz([18, 40, 30], true); } else crowd(false); pitScore(); if (P.shots === 5) soccerBoard.finish(P.goals); }
 /* the ball in the net. Past the line the net takes it like a soft spring: it gives, holds the ball, and lets it drop and roll back a touch. The side netting keeps it in,
    and nothing lets it back out over the line. Where and how hard it went in is kept for the cloth */
 function pitNet(h) { const P = PIT, ca = Math.cos(P.ag), sa = Math.sin(P.ag), rm = (P.ri + P.ro) / 2, dx = P.p.x - rm * ca, dy = P.p.y - rm * sa, bx = sa * P.s, by = -ca * P.s, lx = dx * ca + dy * sa, dep = dx * bx + dy * by, vin = P.v.x * bx + P.v.y * by, pen = dep - (P.GD - P.rb);
@@ -2889,7 +2895,7 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
   if (P.aim) { const L = 0.5 + 1.9 * P.aim.pw; pitAim.visible = true; pitAim.scale.x = L; pitAim.position.set(P.p.x + P.aim.dx * (L / 2 + 0.2), P.p.y + P.aim.dy * (L / 2 + 0.2), P.z + 0.03); pitAim.rotation.z = Math.atan2(P.aim.dy, P.aim.dx); } else pitAim.visible = false; }
 { const hd = $('kick'); if (hd) { const P = PIT, sc = (x, y) => { const rc = canvas.getBoundingClientRect(), v = new THREE.Vector3(x, y, P.z + P.rb).applyMatrix4(gPit.matrixWorld).project(camera); return [rc.left + (v.x * 0.5 + 0.5) * rc.width, rc.top + (0.5 - v.y * 0.5) * rc.height]; }; let d0 = null;
     const aimAt = (e) => { gPit.updateWorldMatrix(true, false); const O = sc(P.p.x, P.p.y), X = sc(P.p.x + 1, P.p.y), Y = sc(P.p.x, P.p.y + 1), ax = X[0] - O[0], ay = X[1] - O[1], bx = Y[0] - O[0], by = Y[1] - O[1], det = ax * by - ay * bx || 1, dx = e.clientX - O[0], dy = e.clientY - O[1], lx = (dx * by - dy * bx) / det, ly = (ax * dy - ay * dx) / det, l = Math.hypot(lx, ly); return l < 0.12 ? null : { dx: -lx / l, dy: -ly / l, pw: clamp((l - 0.12) / 2.4, 0, 1) }; };
-    hd.addEventListener('pointerdown', (e) => { e.preventDefault(); if (P.mode !== 'ready') return; if (P.shots >= 5) { P.shots = P.goals = 0; P.results = []; pitScore(); } hd.setPointerCapture(e.pointerId); audioOn(); d0 = true; P.aim = null; hd.classList.add('grab'); });
+    hd.addEventListener('pointerdown', (e) => { e.preventDefault(); if (P.mode !== 'ready') return; if (P.shots >= 5) { soccerBoard.newRound(); P.shots = P.goals = 0; P.results = []; pitScore(); } hd.setPointerCapture(e.pointerId); audioOn(); d0 = true; P.aim = null; hd.classList.add('grab'); });
     hd.addEventListener('pointermove', (e) => { if (d0) P.aim = aimAt(e); });
     const end = (e) => { if (!d0) return; d0 = null; hd.classList.remove('grab'); const A = P.aim; P.aim = null; if (!A || A.pw < 0.06 || e.type === 'pointercancel') return; const sp = 6 + 15 * A.pw; P.v.set(A.dx * sp, A.dy * sp); P.mode = 'fly'; P.out = false; P.res = ''; P.hop = 0.5; ping({ f: 170, q: 1, dur: 0.09, vol: 0.32, sharp: 3, thump: 90 }); buzz(10, true); pullSeen(); };
     hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end); } }
@@ -2958,9 +2964,9 @@ const intPins = [...document.querySelectorAll('.hot[data-int]')], cbPanel = docu
 /* tapping a dot goes in close on that part and opens its notes */
 function footFix(on) { const t = $('int-t'); t.style.paddingTop = on ? '1.45em' : ''; if (!on) return; t.innerHTML = '<span class="sr">Football</span><span aria-hidden="true" class="fix" id="fixf"><span class="was">Soccer</span><svg class="strike" viewBox="0 0 100 20" preserveAspectRatio="none"><path pathLength="1" vector-effect="non-scaling-stroke" d="M1 12.5C18 11 36 14 54 11S84 8.5 99 9.5"/></svg><span class="now">Football</span></span>'; const f = $('fixf'); if (reduce || footFix.done) { f.classList.add('on'); return; } setTimeout(() => { f.classList.add('on'); if (!footFix.done) { footFix.done = true; snd.scribble(); } }, 900); }
 function pickInt(k) { zbLabel('Zoom out'); document.body.classList.add('dotted'); selInt = zoomK = k; const r = INTS[k]; cbPanel.classList.add('zoomed'); document.body.classList.add('zoomed'); $('int-d').hidden = false; $('int-k').textContent = r[0]; $('int-t').textContent = r[1]; footFix(k === 'soccer'); $('int-b').textContent = r[2]; $('int-l').textContent = r[3];
-  const ol = $('int-list'); ol.className = r[6] ? 'num' : ''; ol.hidden = !r[4].length; $('int-l').hidden = !r[4].length || !r[3]; ol.replaceChildren(...r[4].map((t) => { const li = document.createElement('li'); li.textContent = t; return li; }));
+  const ol = $('int-list'); ol.className = r[6] ? 'num' : ''; ol.hidden = !r[4].length; $('int-l').hidden = !r[4].length || !r[3]; ol.replaceChildren(...r[4].map((t) => { const li = document.createElement('li'); const item = typeof t === 'string' ? { name: t } : t; const url = item.url || ''; if (/^https:\/\//i.test(url)) { const a = document.createElement('a'); a.textContent = item.name; a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; li.appendChild(a); } else li.textContent = item.name; return li; }));
   $('int-ph').replaceChildren(...r[5].map((p) => { const im = document.createElement('img'); im.src = p.src; im.alt = p.alt || ''; im.loading = 'lazy'; return im; }));
-  intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; if (!musicAcrossSite && k !== 'music') setNeedle(false); spotShow(k === 'music'); }
+  intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; soccerBoard.show(k === 'soccer'); if (!musicAcrossSite && k !== 'music') setNeedle(false); spotShow(k === 'music'); }
 /* the music part links to a Spotify playlist when content.js gives one. The page host blocks players embedded from other sites, so it is a link that opens Spotify in a new tab */
 function spotShow(on) { let f = $('int-spot'); const m = ((CT.interests || {}).music || {}).spotify || '', id = (m.match(/playlist\/([A-Za-z0-9]+)/) || [])[1];
   if (!on || !id) { if (f) f.hidden = true; return; }
@@ -3292,7 +3298,7 @@ function openBox() { if (!intro.on || intro.open) return; intro.open = true; int
 /* a buzz in the hand: phones that support vibration get a pattern; iPhones get the one tick Safari allows, from a hidden switch, and only inside a tap */
 const hapt = (() => { try { const l = document.createElement('label'), i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', ''); l.appendChild(i); l.style.cssText = 'position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none'; l.setAttribute('aria-hidden', 'true'); document.body.appendChild(l); return l; } catch (e) { return null; } })();
 function buzz(p, tap) { try { if (navigator.vibrate) navigator.vibrate(p); else if (tap && hapt) hapt.click(); } catch (e) {} }
-function tryOpen() { if (!intro.on || intro.open) return; const now = performance.now(); if (now - intro.lastTry < 380) return; intro.lastTry = now; audioOn(); intro.tries++;
+function tryOpen() { if (!intro.on || intro.open) return; if (mobileViewport.matches) { intro.shake = null; buzz(18, true); openBox(); return; } const now = performance.now(); if (now - intro.lastTry < 380) return; intro.lastTry = now; audioOn(); intro.tries++;
   if (intro.tries >= intro.need) { buzz([18, 50, 70], true); openBox(); return; }
   const n = intro.tries; buzz(n === 1 ? [22, 40, 22, 40, 30] : [28, 35, 28, 35, 28, 35, 45], true); intro.shake = { t: 0, d: n === 1 ? 0.7 : 0.85, a: n === 1 ? 0.1 : 0.15, lid: n === 1 ? 0.05 : 0.1 }; snd.rattle(n);
  }
@@ -3316,7 +3322,7 @@ if (intro.on) { document.documentElement.style.overflow = 'hidden'; scrollTo(0, 
 /* ---------- the Easter egg: find the box, throw it about, get it in the bin. It unlocks a dial made of recycled plastic ---------- */
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), hitP = new THREE.Vector3(), vS = new THREE.Vector3(), pBx = new THREE.Vector3(), qBx = new THREE.Quaternion();
 let grab = null, hoverAt = 0;
-const propsLive = () => !intro.on && gBox.visible && (boxS.mode === 'rest' || boxS.mode === 'phys') && !jump;
+const propsLive = () => !mobileViewport.matches && !intro.on && gBox.visible && (boxS.mode === 'rest' || boxS.mode === 'phys') && !jump;
 function rayAt(e) { const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); }
 function shown(o) { for (let p = o; p; p = p.parent) if (!p.visible) return false; const m = o.material; if (!m || Array.isArray(m)) return true; return m.visible !== false && (!m.transparent || m.opacity > 0.05); }
 /* only when nothing of the watch is in front of it: the box hides behind the strap, and grabbing the strap should still turn the watch */
@@ -3455,6 +3461,7 @@ function roomPoses(visW, visH, mob) { restPoses(visW, visH, mob); RP.kb = 1; if 
   RP.bs = bs; RP.yF = yF; RP.kb = kb; RP.a = 0.5 * BW * (Math.cos(rad(32)) + Math.sin(rad(32))) * bs; RP.b = 0.5 * (BH + BL) * bs; RP.R = BINR * bs * kb;
   RP.home.set(0.74 * hw, yF + RP.b); RP.bin.set(-0.76 * hw, yF, RP.z - 4); RP.mouth.copy(RP.bin).y += BINH * bs * kb; }
 function propsUpdate(dt, visW, visH, mob, cv) {
+  if (mob && !intro.on) { [gBox, gBin, boxShadow, binShadow, boxHaze, binHaze].forEach(o => o.visible = false); return; }
   roomPoses(visW, visH, mob); const slide = 0, B = boxS;   // fixed in the room, whatever the chapter
   const binOut = B.mode === 'gone' && burst.done && !burst.on;   // once the flakes have flown, the bin has done its job: it swells a touch and shrinks away
   if (binOut) binIn = Math.max(0, binIn - dt / 0.5); else if (B.mode !== 'intro') binIn = Math.min(1, binIn + dt / 0.55);

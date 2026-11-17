@@ -26,6 +26,9 @@
    "[" to find what is left to fill in.
    ============================================================================ */
 window.CONTENT = {
+  // Set to the deployed shared leaderboard API URL (see leaderboard/README.md).
+  soccerLeaderboardUrl: "",
+
 
   name: "Nikhil Kurmala",
 
@@ -203,7 +206,14 @@ window.CONTENT = {
       title: "Music",
       text: "I like most beeps and boops.",
       listTitle: "Top five artists this year",
-      list: ["Oasis", "Empire Of The Sun", "Loyle Carner", "Noah Kahan", "Baby Keem"],
+      // Replace each URL with your favorite song. Blank URLs display plain text.
+      list: [
+        { name: "Oasis", url: "https://open.spotify.com/search/Oasis" },
+        { name: "Empire Of The Sun", url: "https://open.spotify.com/search/Empire%20Of%20The%20Sun" },
+        { name: "Loyle Carner", url: "https://open.spotify.com/search/Loyle%20Carner" },
+        { name: "Noah Kahan", url: "https://open.spotify.com/search/Noah%20Kahan" },
+        { name: "Baby Keem", url: "https://open.spotify.com/search/Baby%20Keem" },
+      ],
       photos: [],
       /* the songs the record player plays when the needle drops, in order.
          Put the MP3 files and their cover images in the music folder, then add

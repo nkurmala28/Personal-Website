@@ -566,11 +566,11 @@ body.zoomed #dial-picker *{pointer-events:none!important}
 
 /* Mobile: the original 3D strap board slides in with its own touch targets. */
 #strap-drawer-tab{display:none}
-#strap-drawer{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;color:var(--ink);background:transparent;overflow:hidden}
+#strap-drawer{position:fixed;inset:0;width:100%;height:100dvh;max-width:100vw;max-height:none;margin:0;padding:0;border:0;color:var(--ink);background:transparent;overflow:hidden}
 #strap-drawer::backdrop{background:transparent}
 .strap-drawer-shade{position:absolute;inset:0 min(92vw,560px) 0 0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .28s}
-.strap-drawer-surface{position:absolute;right:0;top:0;bottom:0;width:min(92%,560px);display:flex;flex-direction:column;border-left:1px solid var(--line);transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.7,.3,1)}
-#strap-drawer.open .strap-drawer-surface{transform:translateX(0)}
+.strap-drawer-surface{position:absolute;right:0;top:0;bottom:0;width:min(92%,560px);display:flex;flex-direction:column;border-left:1px solid var(--line);transform:none;opacity:0;transition:opacity .18s ease}
+#strap-drawer.open .strap-drawer-surface{transform:none;opacity:1}
 #strap-drawer.open .strap-drawer-shade{opacity:1}
 /* The board is drawn by the existing WebGL canvas through this clear window. */
 
@@ -597,6 +597,14 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
 }
 @media(prefers-reduced-motion:reduce){.strap-drawer-surface,.strap-drawer-shade{transition:none}}
 
+
+.soccer-leaderboard{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}.soccer-leaderboard form{display:flex;gap:8px;flex-wrap:wrap}.soccer-leaderboard input{max-width:180px;background:#151b22;color:var(--ink);border:1px solid var(--line);padding:8px}.soccer-leaderboard button{background:#151b22;border:1px solid var(--brass);padding:8px;cursor:pointer}.soccer-leaderboard li{margin:5px 0}
+#f-body,#s-body,#int-b{white-space:pre-line}
+#rail button.work-invitation{color:var(--brass);animation:workglow 2s ease-in-out infinite}
+#rail button[aria-label="Go to Selected work"]::after{display:none!important}
+@keyframes workglow{50%{text-shadow:0 0 12px #dcb872,0 0 24px #dcb87280}}
+@media(max-width:800px){.load-second{display:none}body.intro #i-open{pointer-events:auto!important}html{overflow-x:clip}body.strap-drawer-open #more{visibility:hidden}}
+@media(prefers-reduced-motion:reduce){#rail button.work-invitation{animation:none;text-decoration:underline}}
 </style>
 </head>
 <body>
@@ -734,7 +742,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261117-mobile-no-seconds.js"></script>
+<script defer src="./bundle.20261117-mobile-simplified.js"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

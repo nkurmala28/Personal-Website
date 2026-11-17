@@ -161,13 +161,18 @@ window.CONTENT = {
   /* ---- Film (date window). Put each photo in the photos folder and list it
           here. landscape: true for a wide photo, false for a tall one. */
   film: [
-    { file: "01.jpg", title: "Husky crossing", caption: "[WHERE AND WHEN]. 35mm film.", landscape: false },
-    { file: "02.jpg", title: "Counter seat",   caption: "[WHERE AND WHEN]. 35mm film.", landscape: false },
-    { file: "03.jpg", title: "Snow platform",  caption: "[WHERE AND WHEN]. 35mm film.", landscape: false },
-    { file: "04.jpg", title: "No parking",     caption: "[WHERE AND WHEN]. 35mm film.", landscape: false },
-    { file: "05.jpg", title: "Limit 40",       caption: "[WHERE AND WHEN]. 35mm film.", landscape: true  },
-    { file: "06.jpg", title: "Carrera",        caption: "[WHERE AND WHEN]. 35mm film.", landscape: false },
-    { file: "07.jpg", title: "Departures",     caption: "[WHERE AND WHEN]. 35mm film.", landscape: false },
+    { file: "film-ice-cream-truck.jpg", title: "Ice cream truck", caption: "35mm film.", landscape: false },
+    { file: "film-christmas.jpg", title: "Christmas evening", caption: "35mm film.", landscape: false },
+    { file: "film-forest-light.jpg", title: "Forest light", caption: "35mm film.", landscape: false },
+    { file: "film-husky.jpg", title: "A hello on the sidewalk", caption: "35mm film.", landscape: false },
+    { file: "film-winter-train.jpg", title: "Winter train", caption: "35mm film.", landscape: false },
+    { file: "film-snow-bicycle.jpg", title: "Snowbound bicycle", caption: "35mm film.", landscape: false },
+    { file: "film-carrera.jpg", title: "Carrera", caption: "35mm film.", landscape: false },
+    { file: "film-sunset.jpg", title: "Sunset silhouettes", caption: "35mm film.", landscape: true },
+    { file: "film-departures.jpg", title: "Departures", caption: "35mm film.", landscape: false },
+    { file: "film-river-light.jpg", title: "River light", caption: "35mm film.", landscape: false },
+    { file: "film-park-dog.jpg", title: "Afternoon in the park", caption: "35mm film.", landscape: false },
+    { file: "film-mountain-valley.jpg", title: "Mountain valley", caption: "35mm film.", landscape: false },
   ],
 
   /* ---- Caseback: the four parts you can zoom into. list is the short list

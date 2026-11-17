@@ -511,10 +511,12 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 }
 
 /* The closed selector stays quiet; the full dial catalogue opens on demand. */
-#top #dial-picker{position:absolute;left:28px;top:74px;width:182px;pointer-events:auto;color:var(--ink)}
-#dial-picker summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:42px;padding:0 12px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:rgba(15,20,26,.9);cursor:pointer}
+#top #dial-picker{position:absolute;left:28px;top:74px;width:182px;pointer-events:auto;color:var(--ink);opacity:.55;transition:opacity .25s ease}
+#top #dial-picker:hover,#top #dial-picker:focus-within,#top #dial-picker[open]{opacity:1}
+#dial-picker summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:42px;padding:0 12px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:rgba(15,20,26,.45);cursor:pointer;transition:background .25s ease,border-color .2s}
 #dial-picker summary::-webkit-details-marker{display:none}
 #dial-picker summary:hover{border-color:rgba(220,184,114,.6)}
+#dial-picker:hover summary,#dial-picker:focus-within summary,#dial-picker[open] summary{background:rgba(15,20,26,.9)}
 #dial-picker .dial-label{font:500 10px/1.4 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 #dial-picker .dial-current{min-width:0;flex:1;font:400 13px/1.3 'Inter Tight',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #dial-picker summary svg{width:12px;height:12px;flex:none;fill:none;stroke:var(--mut);stroke-width:1.4;transition:transform .2s}
@@ -533,7 +535,7 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 body.zoomed #dial-picker{opacity:0!important;pointer-events:none}
 body.zoomed #dial-picker *{pointer-events:none!important}
 @media (max-width:800px){#top #dial-picker{position:relative;left:auto;top:auto;width:182px;flex:0 1 182px;min-width:0}#dial-picker summary{min-height:36px;padding:0 10px;gap:8px}#top #dial-picker .ways{max-height:calc(100svh - 100px)}}
-@media (prefers-reduced-motion:reduce){#dial-picker summary svg{transition:none}}
+@media (prefers-reduced-motion:reduce){#top #dial-picker,#dial-picker summary,#dial-picker summary svg{transition:none}}
 </style>
 </head>
 <body>
@@ -587,7 +589,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <h2>A few things<br>outside the day job.</h2>
       <p class="sub2">Built, written, or caught on film.<br>Each lives in a different part of the dial.</p>
       <div class="wlist">
-        <button data-open="moon"><span class="wno">01</span><span class="wcopy"><b>Projects</b><span>Notch, local agents and experiments.</span></span><span class="wth" aria-hidden="true"><svg viewBox="0 0 64 64"><g transform="rotate(42 32 46)"><rect x="30" y="34" width="4" height="22" rx="1.5" fill="#c8ccd1"/><circle cx="32" cy="34" r="5.2" fill="none" stroke="#c8ccd1" stroke-width="3"/><rect x="29.5" y="27" width="5" height="5" fill="#141a22"/></g><g transform="rotate(-42 32 46)"><rect x="30.6" y="37" width="2.8" height="18" fill="#c8ccd1"/><rect x="29" y="51" width="6" height="9" rx="2" fill="#a3aeb9"/><path d="M30.6 37l1.4-3 1.4 3z" fill="#c8ccd1"/></g><path d="M16 27c0-9 7-15 16-15s16 6 16 15z" fill="#e8b93a"/><rect x="12" y="26" width="40" height="5" rx="2" fill="#d6a52c"/><rect x="29" y="11" width="6" height="10" rx="2" fill="#f2cc5a"/></svg></span><span class="warr" aria-hidden="true">↗</span></button>
+        <button data-open="moon"><span class="wno">01</span><span class="wcopy"><b>Projects</b><span>If Bob the Builder had AI...</span></span><span class="wth" aria-hidden="true"><svg viewBox="0 0 64 64"><g transform="rotate(42 32 46)"><rect x="30" y="34" width="4" height="22" rx="1.5" fill="#c8ccd1"/><circle cx="32" cy="34" r="5.2" fill="none" stroke="#c8ccd1" stroke-width="3"/><rect x="29.5" y="27" width="5" height="5" fill="#141a22"/></g><g transform="rotate(-42 32 46)"><rect x="30.6" y="37" width="2.8" height="18" fill="#c8ccd1"/><rect x="29" y="51" width="6" height="9" rx="2" fill="#a3aeb9"/><path d="M30.6 37l1.4-3 1.4 3z" fill="#c8ccd1"/></g><path d="M16 27c0-9 7-15 16-15s16 6 16 15z" fill="#e8b93a"/><rect x="12" y="26" width="40" height="5" rx="2" fill="#d6a52c"/><rect x="29" y="11" width="6" height="10" rx="2" fill="#f2cc5a"/></svg></span><span class="warr" aria-hidden="true">↗</span></button>
         <button data-open="sec"><span class="wno">02</span><span class="wcopy"><b>Writing</b><span>Watch stories for Wrist Review.</span></span><span class="wth" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M10 20l22-6 22 6v30l-22 6-22-6z" fill="#e9e4d8"/><path d="M32 14v42" stroke="#b9b2a2" stroke-width="1"/><g stroke="#8f8878" stroke-width="1.3"><path d="M15 25l12-3M15 30l12-3M15 35l12-3M15 40l9-2.3"/><path d="M37 22l12 3M37 27l12 3M37 32l12 3"/></g><g transform="rotate(35 46 44)"><path d="M43 30h6v14l-3 7-3-7z" fill="#dcb872"/><path d="M46 44v6" stroke="#141a22" stroke-width=".9"/><rect x="42.5" y="22" width="7" height="9" rx="1.5" fill="#1d2c52"/></g></svg></span><span class="warr" aria-hidden="true">↗</span></button>
         <button data-open="date"><span class="wno">03</span><span class="wcopy"><b>Film</b><span id="w-date">Seven frames. Shot on 35 mm.</span></span><span class="wth wfilm" aria-hidden="true"><img alt="" src="./photos/03.jpg"><img alt="" src="./photos/02.jpg"><img alt="" src="./photos/01.jpg"></span><span class="warr" aria-hidden="true">↗</span></button>
       </div>
@@ -596,7 +598,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <div class="part eyebrow">03 / About</div>
       <h2>What makes me tick</h2>
       <p class="prov">Singapore <span>→</span> UCLA <span>→</span> San Francisco</p>
-      <div class="igrid"><button data-interest="soccer" aria-label="Soccer"><span>01</span>Soccer<i aria-hidden="true">↗</i></button><button data-interest="cooking"><span>02</span>Cooking<i aria-hidden="true">↗</i></button><button data-interest="snow"><span>03</span>Snowboarding<i aria-hidden="true">↗</i></button><button data-interest="music"><span>04</span>Music<i aria-hidden="true">↗</i></button></div>
+      <div class="igrid"><button data-interest="music"><span>01</span>Music<i aria-hidden="true">↗</i></button><button data-interest="soccer" aria-label="Soccer"><span>02</span>Soccer<i aria-hidden="true">↗</i></button><button data-interest="cooking"><span>03</span>Cooking<i aria-hidden="true">↗</i></button><button data-interest="snow"><span>04</span>Snowboarding<i aria-hidden="true">↗</i></button></div>
       <p id="int-hint">Pick a part of the movement to get to know me.</p>
       <div class="detail" id="int-d" style="min-height:0" hidden><div class="part" id="int-k"></div><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><p id="int-score" hidden></p><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><button class="btn sm" id="int-needle">Drop the needle</button></div></div><button class="btn sm" id="int-back">Back to the movement</button>
     </section>

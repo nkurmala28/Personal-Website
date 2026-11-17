@@ -3,5 +3,5 @@
   "main": "worker.mjs",
   "compatibility_date": "2026-11-17",
   "vars": {"SITE_ORIGIN": "https://nikhilkurmala.com"},
-  "d1_databases": [{"binding": "DB", "database_name": "nikhil-soccer", "database_id": "REPLACE_WITH_DATABASE_ID"}]
+  "d1_databases": [{"binding": "DB", "database_name": "nikhil-soccer", "database_id": "df251af2-318c-4c06-a73c-9c45ec36fade"}]
 }

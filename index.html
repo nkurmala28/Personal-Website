@@ -601,6 +601,26 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
 .soccer-leaderboard{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}.soccer-leaderboard form{display:flex;gap:8px;flex-wrap:wrap}.soccer-leaderboard input{max-width:180px;background:#151b22;color:var(--ink);border:1px solid var(--line);padding:8px}.soccer-leaderboard button{background:#151b22;border:1px solid var(--brass);padding:8px;cursor:pointer}.soccer-leaderboard li{margin:5px 0}
 #f-body,#s-body,#int-b{white-space:pre-line}
 @media(max-width:800px){.load-second{display:none}body.intro #i-open{pointer-events:auto!important}html{overflow-x:clip}body.strap-drawer-open #more{visibility:hidden}}
+
+/* Phones use a native scrolling selector, with no second 3D scene or modal. */
+@media(max-width:800px){
+ body.mobile-selector .panel[data-ch="1"]{top:50%;max-height:calc(50% - var(--rail) - 8px);padding-top:10px;background:#0c1016;overflow-x:hidden}
+ body.mobile-selector .panel[data-ch="1"] .worn{display:none}
+ body.mobile-selector .panel[data-ch="1"] .chips{display:flex;gap:12px;margin:0 calc(-1 * var(--gx));padding:8px var(--gx) 12px;scroll-snap-type:x proximity;touch-action:pan-x pan-y;mask-image:none;-webkit-mask-image:none}
+ body.mobile-selector .panel[data-ch="1"] .chips button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;flex:0 0 104px;border:1px solid transparent;border-radius:8px;padding:8px 5px;min-height:132px;background:none;white-space:normal;line-height:1.2;font-size:13px;scroll-snap-align:start}
+ body.mobile-selector .panel[data-ch="1"] .chips button[aria-pressed="true"]{border-color:var(--brass);background:#dcb87212;color:var(--brass)}
+ body.mobile-selector .panel[data-ch="1"] .chips button::after{display:none}
+ .strap-thumbnail{display:block;position:relative;width:24px;height:76px;border-radius:5px 5px 9px 9px;flex:none;box-shadow:inset 2px 0 3px #ffffff38,inset -2px 0 3px #0009}
+ .strap-thumbnail::before{content:"";position:absolute;inset:5px 4px;border:1px dashed #ffffff60;border-radius:2px}
+ .strap-thumbnail::after{content:"";position:absolute;bottom:9px;left:11px;width:2px;height:2px;border-radius:50%;background:#111;box-shadow:0 -7px #111,0 -14px #111,0 -21px #111}
+ .strap-consulting{background:linear-gradient(90deg,#182647,#334c78,#182647)}
+ .strap-engineering{background:repeating-linear-gradient(0deg,#b7bdc5 0 5px,#5f6772 5px 6px,#e7ebed 6px 7px)}
+ .strap-engineering::before,.strap-engineering::after{display:none}
+ .strap-quant{background:linear-gradient(90deg,#8b6643,#b28d63,#78573a)}
+ .strap-banking{background:linear-gradient(90deg,#ddd9cd,#fffaf0,#b3b0a6)}
+ .strap-writing{background:linear-gradient(90deg,#1d2e4b 37%,#ddd 37% 44%,#a32d39 44% 56%,#ddd 56% 63%,#1d2e4b 63%)}
+ .strap-writing::before{border:0}
+}
 </style>
 </head>
 <body>
@@ -738,7 +758,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261117-work-pills.js"></script>
+<script defer src="./bundle.20261117-mobile-selector.js"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

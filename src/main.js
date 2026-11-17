@@ -1340,7 +1340,8 @@ add(gBack, new THREE.CircleGeometry(13.05, 96), M('back', Object.assign({}, glas
 
 await bootYield('Fitting the straps…');
 /* ---------- straps: one watch, many jobs ---------- */
-const RAIL = true;   // the straps wait on a pegboard beside the watch. false brings back the row of chips
+const RAIL = !mobileViewport.matches;   // the straps wait on a pegboard beside the watch. false brings back the row of chips
+if (!RAIL) document.body.classList.add('mobile-selector');
 let natoP = 1;
 const gStrap = LAY.strap.g;
 /* strap surfaces are baked per pixel, in mm: a height field (it becomes the normal map), a colour and a roughness, then the seam and the scratches are drawn on top.
@@ -1840,7 +1841,7 @@ function upReplace() { if (upGone) return; upGone = true; const sw = STRAPS.upcy
 /* everything that happens once the recycled dial is won: its swatch, the webbing in for the suede, the dial; a beat later the webbing goes on the watch (whatever the dial by then, if the suede was on it) */
 function upUnlocked(bt, animate) { WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(animate); upReplace(); tintHold = true; pickWay('upcycle'); tintHold = false;
   setTimeout(() => { if (strapNow === 'consulting' || way === 'upcycle') pickStrap('consulting'); }, 1700); }
-function setStrap(k) { if (RAIL && railSet(k)) return; if (k === strapNow && pendTint == null) { strapNext = null; return; } if (snap) { showStrap(k); return; } strapNext = k; if (swapT < 0) swapT = 0; }
+function setStrap(k) { if (!RAIL && mobileViewport.matches) { swapT = -1; strapNext = null; showStrap(k); return; } if (RAIL && railSet(k)) return; if (k === strapNow && pendTint == null) { strapNext = null; return; } if (snap) { showStrap(k); return; } strapNext = k; if (swapT < 0) swapT = 0; }
 const SIDES = [1, -1].map((sy) => ({ sy, turn: STRAPS.consulting.rests[sy > 0 ? 0 : 1], v: 0, wob: 0, wv: 0, c: null }));
 /* quick release: every leather and sailcloth half hangs on a spring bar with a little lever that shows through a slot in the lining by the lug. Flick it and that half drops off the watch; a moment later it is clicked back on.
    Built the way the real ones are: a narrow window, 1.1 by 4.5 mm with round ends (the size a 1 x 4.5 mm strap notching punch cuts), is let through the lining over the bar's tunnel. Its cut edge is painted and burnished, standing a hair proud,
@@ -1913,7 +1914,14 @@ function qrTick(dt) { for (const q of QR) { if (q.t < 0) continue; q.t += dt; co
     else if (q.t >= 3.1 && q.t < 3.6) { if (on) g.visible = true; const e = 1 - sSmooth((q.t - 3.1) / 0.5); q.p.set(0, q.o.sy * HEAD[0] * 18 * e, HEAD[1] * 18 * e); s = 1 - sSmooth((q.t - 3.53) / 0.07); }   /* the pin springs home as the bar snaps into the lug */
     else if (q.t >= 3.6) { q.t = -1; q.p.set(0, 0, 0); s = 0; if (on) { g.visible = true; ping({ f: 3000, q: 3, dur: 0.03, vol: 0.14, sharp: 5 }); } }
     g.position.copy(q.p); q.pin.position.x = q.U.uOff.value.x = QRS.x0 - QRS.run * s; } }
-function strapPhysics(dt, lift, extra) { braceTick(dt); fallTick(dt);
+let mobileStrapPose = '';
+function strapPhysics(dt, lift, extra) {
+  if (!RAIL && !intro.on && !down && swapT < 0 && QR.every(q => q.t < 0)) {
+    const pose = [strapNow, lift, extra, gv.x, gv.y, gv.z, LAY.strap.o].map(v => typeof v === 'number' ? v.toFixed(3) : v).join('|');
+    if (pose === mobileStrapPose) return;
+    mobileStrapPose = pose;
+  } else mobileStrapPose = '';
+  braceTick(dt); fallTick(dt);
   if (LAY.strap.o <= 0.01 && swapT < 0 && !intro.on) return; // hidden straps need no mesh deformation
   if (RAIL && railBare()) { qrTick(dt); return; }   // between straps the watch wears nothing: the rail moves them
   const st = STRAPS[strapNow], n = 3, h = dt / n, cal = !!st.len, box = cal && ubk.on;
@@ -1924,7 +1932,7 @@ function strapPhysics(dt, lift, extra) { braceTick(dt); fallTick(dt);
   SIDES.forEach((S, i) => { const up = st.under && natoP < 0.999 && S.sy > 0, fl = up ? -1 : 1, gu = fl * S.sy * gv.y, gz = fl * gv.z, mag = Math.min(1, Math.hypot(gu, gz)); let dg = Math.atan2(gz, gu) - TH0; dg = ((dg + Math.PI) % TAU + TAU) % TAU - Math.PI; dg = clamp(dg, rad(-170), rad(up ? 130 : 36));
     const target = lerp(cal ? st.rests[i] : st.rest, dg, (up ? 1 : st.droop) * mag) + extra;
     /* while the webbing is being fed in, its tail is held up above the watch; let go, it falls. Buckled in the box, the free curve just waits at rest */
-    if (box && ubk.u < CALF.uc) { S.turn = target; S.v = 0; S.wob = 0; S.wv = 0; }
+    if ((!RAIL && !box) || (box && ubk.u < CALF.uc)) { S.turn = target; S.v = 0; S.wob = 0; S.wv = 0; }
     else for (let q = 0; q < n; q++) { const a = st.k * (target - S.turn) - st.c * S.v; S.v += a * h; S.turn += S.v * h; const wa = 120 * (-S.v * 0.03 - S.wob) - 9 * S.wv; S.wv += wa * h; S.wob = clamp(S.wob + S.wv * h, -0.45, 0.45); }
     S.c = box ? cPt[i] : strapCenter(S.turn, S.wob, lift, st.dz || 0, st.dy || 0, cal ? CALF.n[i] : st.sn ? st.sn[i] : SN, cal ? CALF.L[i] / CALF.n[i] : SSTEP); });
   if (box) cIntro(SIDES);
@@ -2716,10 +2724,19 @@ const ROLES = {
 if (CT.jobs) Object.keys(ROLES).forEach((k) => { const j = CT.jobs[k]; if (!j) return; ROLES[k] = [j.title || ROLES[k][0], j.text || ROLES[k][1], j.linkText || '', j.link || '', typeof j.place === 'string' ? j.place.trim() : ROLES[k][4]]; const b = document.querySelector('[data-strap="' + k + '"]'); if (b && j.chip) b.textContent = j.chip; });
 if (RAIL) railDom();
 const chips = [...document.querySelectorAll('[data-strap]')];
+if (!RAIL) {
+  const names = {consulting:'Consulting', engineering:'Engineering', quant:'Quant research', banking:'Investment banking', writing:'Journalism'};
+  chips.forEach(button => {
+    const key = button.dataset.strap, preview = document.createElement('span'), label = document.createElement('span');
+    preview.className = 'strap-thumbnail strap-' + key; preview.setAttribute('aria-hidden', 'true');
+    label.textContent = ((CT.jobs || {})[key] || {}).chip || names[key];
+    button.replaceChildren(preview, label);
+  });
+}
 function pickStrap(k) { const sk = k === 'consulting' && upGone ? 'upcycle' : k; setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k));
   const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1];
     sl.hidden = !R[3]; if (R[3]) { sl.textContent = R[2] || R[3]; sl.href = R[3]; } };
-  if (!rl.cardK || rl.cardK === k + sk) { rl.cardK = k + sk; fill(); return; } rl.cardK = k + sk; plateSwap(fill); }   // the plate changes on the click, not when the strap lands
+  if (!RAIL || !rl.cardK || rl.cardK === k + sk) { rl.cardK = k + sk; fill(); return; } rl.cardK = k + sk; plateSwap(fill); }   // the plate changes on the click, not when the strap lands
 /* the plate's change: the old lines lift a hair and fade together, then the new ones rise into place one after another (title, material, place and years, paragraph, link).
    A later click takes over from wherever the lines are. Reduced motion: a short crossfade and nothing moves. PL.hold (tests) freezes the new lines at that many ms in */
 const PL = { gen: 0, hold: null }, PLD = [0, 40, 80, 120, 160];
@@ -3253,6 +3270,18 @@ const vX1 = new THREE.Vector3(1, 0, 0), vY1 = new THREE.Vector3(0, 1, 0), qPl = 
    and from TU + 2.2 the watch travels to its place while the empty box closes and drifts off */
 const TU = 1.95, STAGE = { rock: 25, yaw: 36, zoom: 2.6, fx: 0, fy: 26, fz: 4, hov: 58 };
 function introPose(dt, visW, visH, mob, scHero, cx, cy) {
+  if (!RAIL && mob) {
+    const elapsed = intro.open ? (performance.now() - intro.mobileOpenedAt) / 1000 : 0;
+    const reveal = sSmooth((elapsed - 0.18) / 0.7);
+    const sb = Math.min(visW * 0.5, visH * 0.46) / (BW * 1.25);
+    ubk.on = false; intro.shake = null;
+    gBox.visible = true; gBox.position.set(0, visH * 0.06 - reveal * visH * 0.35, -reveal * 150);
+    eBox.set(rad(46), rad(-20), 0, 'YXZ'); gBox.quaternion.setFromEuler(eBox); gBox.scale.setScalar(sb * (1 - reveal * 0.5));
+    setDoors(sSmooth(elapsed / 0.45), sSmooth((elapsed - 0.04) / 0.45));
+    root.scale.setScalar(scHero * Math.max(0.001, reveal)); root.position.set(cx, cy - (1 - reveal) * 8, 0);
+    if (elapsed >= 1.05) { finishIntro(); gBox.visible = false; }
+    return {s: root.scale.x, lc:[cx, cy]};
+  }
   if (intro.open && intro.hold === null) intro.t += dt; const T = intro.hold !== null ? intro.hold : intro.open ? intro.t : 0, idle = intro.open ? 0 : performance.now() / 1000;
   const sb0 = Math.min(visW * 0.5, visH * 0.46) / (BW * 1.25); let bx0 = 0, by0 = visH * (mob ? 0.06 : 0.02);
   eBox.set(rad(46 + Math.sin(idle * 0.7) * 1.2), rad(lerp(-20, -6, smo(T / 1.1)) + Math.sin(idle * 0.45) * 3), 0, 'YXZ'); qBox.setFromEuler(eBox);   // tipped toward you, turned a little and breathing while it waits; it squares up as the lids open so the two halves match
@@ -3292,7 +3321,7 @@ function introPose(dt, visW, visH, mob, scHero, cx, cy) {
   if (u > 3.75 && intro.hold === null) finishIntro();
   return { s, lc: [lerp(bx0, cx, k), lerp(by0, cy, k)] };
 }
-function openBox() { if (!intro.on || intro.open) return; intro.open = true; intro.t = 0; audioOn(); snd.lid(); document.body.classList.add('opening'); }
+function openBox() { if (!intro.on || intro.open) return; intro.open = true; intro.mobileOpenedAt = performance.now(); intro.t = 0; audioOn(); snd.lid(); document.body.classList.add('opening'); }
 /* the lid sticks: it takes two or three goes. Each go shakes the box and something inside rattles */
 /* a buzz in the hand: phones that support vibration get a pattern; iPhones get the one tick Safari allows, from a hidden switch, and only inside a tap */
 const hapt = (() => { try { const l = document.createElement('label'), i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', ''); l.appendChild(i); l.style.cssText = 'position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none'; l.setAttribute('aria-hidden', 'true'); document.body.appendChild(l); return l; } catch (e) { return null; } })();
@@ -3558,7 +3587,7 @@ async function frame(now) {
     P = { rx: lerp(A.rx, B.rx, je), ry: lerp(A.ry, B.ry, je), rz: lerp(A.rz, B.rz, je), sc: lerp(A.sc, B.sc, je) * (1 - 0.1 * Math.sin(Math.PI * je) * clamp(jump.far / 3, 0, 1)), sy: lerp(A.sy, B.sy, je), f: mix(A.f, B.f, je), z: mix(A.z, B.z, je), o: mix(A.o, B.o, je), bg: mix(A.bg, B.bg, je), pe: jump.i };
     cv = lerp(jump.c0, jump.i, je); if (x >= 1) { const th = jump.then; jump = null; cur = Math.round(cv); if (th) th(); } }
   lastPose = P; const pe = P.pe, act = Math.round(pe);
-  if (strapDrawer.dialog.open && (act !== 1 || jump || intro.on)) strapDrawerClose(null, true);
+  if (strapDrawer.dialog?.open && (act !== 1 || jump || intro.on)) strapDrawerClose(null, true);
   if (strapDrawer.mobile) strapDrawer.trigger.disabled = swapT >= 0;
   tickGain = 0.35 + 0.65 * clamp(1 - Math.abs(pe - CB) / 0.8, 0, 1);
   if ((!mobileViewport.matches || !mobileMovementHidden) && typeof caseFX === 'function') caseFX(now / 1000, dt, (selInt === 'music' && !needle) || (selInt === 'cooking' && !(PAN.flare > 0.55)) ? null : selInt); snowTick(now / 1000, dt); panTick(dt);
@@ -3618,7 +3647,7 @@ async function frame(now) {
   key.target.position.set(lc[0], lc[1], 0); key.position.set(lc[0] - 70, lc[1] + 110, 190); key.shadow.normalBias = 0.05 * scU;
   scene.background.setRGB(P.bg[0] / 255, P.bg[1] / 255, P.bg[2] / 255, THREE.SRGBColorSpace);
   const bgHex = '#' + scene.background.getHexString(); if (bgHex !== bodyBg) { bodyBg = bgHex; document.body.style.background = bgHex; }
-  if (first) {
+  if (first && !mob) {
     await bootYield('Winding the movement…');
     const hidden = [], textures = new Set();
     [gMov, gBin, gBox, boxShadow, snow, gBuckle].forEach((object) => { if (object && !object.visible) { object.visible = true; hidden.push(object); } });

@@ -11,6 +11,9 @@ A scroll driven mechanical watch that holds a resume. Static site: no server, no
 | `index.html` | Page layout and styling | Claude |
 | `bundle.*.js` | The built watch (generated, do not edit) | Claude |
 | `src/main.js` | Source code for the watch | Claude |
+| `review.css` | Focused interface refinements | Developer |
+| `content-view.html` | Generated readable recovery page | Build script |
+| `DESIGN_REVIEW.md` | Review, rationale, remaining content priorities, and validation | Review |
 
 ## Where things are in `content.js`
 
@@ -34,7 +37,8 @@ Anything still in `[SQUARE BRACKETS]` is a placeholder. Search the file for `[` 
 
 1. Open `content.js` on GitHub and click the pencil icon.
 2. Change the text between the quote marks.
-3. Click "Commit changes". The site updates in about a minute.
+3. Click "Commit changes". The interactive site picks up the content on reload after deployment.
+4. Run the build below and commit `content-view.html` too, to refresh the generated readable recovery page.
 
 If the file has a typo that breaks it, the site still loads with its built in text, so nothing goes down. Fix the typo and commit again.
 
@@ -51,4 +55,24 @@ Upload `resume.pdf` next to `index.html`, then set `resume: "resume.pdf"` in `co
 
 ## Changing the watch, the layout or the animations
 
-Those live in `src/main.js` and `index.html`. Ask Claude to make the change. To rebuild by hand: `cd src && npm install && npm run build`, then rename `bundle.js` to match the name in `index.html`.
+Those live in `src/main.js`, `index.html`, and `review.css`. To rebuild by hand:
+
+```sh
+cd src
+npm ci
+npm run build
+npm test
+```
+
+The build generates the hashed `bundle.*.js`, updates its name in `index.html`, and refreshes `content-view.html`. Commit all generated changes with the source changes. Node 24 or newer is recommended for the development checks.
+
+## Local preview
+
+From the repository root:
+
+```sh
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+Leave Terminal running and open **http://localhost:8000/** in your browser. Use **http://localhost:8000/#nointro** to skip the opening, or **http://localhost:8000/content-view.html** for the readable content page. Control-C stops the server. The compiled watch is included, so no Node install is needed just to preview.
+

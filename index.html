@@ -478,6 +478,8 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 @media (prefers-reduced-motion:reduce){.hot::before{animation:none}}
 @media (max-width:800px){#snd::before{display:none}#snd{font-size:12px;display:grid;place-items:center}}
 </style>
+<link rel="stylesheet" href="./review.css">
+<script src="./startup.js"></script>
 </head>
 <body>
 <script>
@@ -493,14 +495,17 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   <div id="spot"></div>
   <div id="scrim"></div>
   <button id="zback" aria-label="Zoom back out"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14M5 7h4"/></svg><span>Zoom out</span></button>
-  <div id="load" role="status"><svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="52" fill="none" stroke="rgba(255,255,255,.14)"/><g id="ld-ticks"></g><circle class="arc" cx="66" cy="66" r="56" fill="none" stroke="#dcb872" stroke-width="1.5" transform="rotate(-90 66 66)"/><line id="ld-h" x1="66" y1="66" x2="66" y2="40" stroke="#eef1f4" stroke-width="2.4" stroke-linecap="round"/><line id="ld-m" x1="66" y1="66" x2="66" y2="24" stroke="#eef1f4" stroke-width="1.6" stroke-linecap="round"/><line class="sec" x1="66" y1="74" x2="66" y2="20" stroke="#dcb872" stroke-width="1"/><circle cx="66" cy="66" r="2.4" fill="#dcb872"/></svg><p class="flapline" hidden style="display:none" aria-label="Would you still love me if I was a watch?"><span aria-hidden="true">Would you still</span><span class="flap" id="flap" aria-hidden="true"></span><span aria-hidden="true">me if I was a watch?</span></p><div class="msg"></div></div>
-  <div id="intro"><button id="i-open" aria-label="Open the box"></button></div>
+  <div id="load" role="status"><svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="52" fill="none" stroke="rgba(255,255,255,.14)"/><g id="ld-ticks"></g><circle class="arc" cx="66" cy="66" r="56" fill="none" stroke="#dcb872" stroke-width="1.5" transform="rotate(-90 66 66)"/><line id="ld-h" x1="66" y1="66" x2="66" y2="40" stroke="#eef1f4" stroke-width="2.4" stroke-linecap="round"/><line id="ld-m" x1="66" y1="66" x2="66" y2="24" stroke="#eef1f4" stroke-width="1.6" stroke-linecap="round"/><line class="sec" x1="66" y1="74" x2="66" y2="20" stroke="#dcb872" stroke-width="1"/><circle cx="66" cy="66" r="2.4" fill="#dcb872"/></svg><p class="flapline" hidden style="display:none" aria-label="Would you still love me if I was a watch?"><span aria-hidden="true">Would you still</span><span class="flap" id="flap" aria-hidden="true"></span><span aria-hidden="true">me if I was a watch?</span></p><div class="msg"></div><a id="content-view" href="./content-view.html">Read the portfolio without 3D ↗</a></div>
+  <div id="intro"><button id="i-open" aria-label="Open the box">Open the box</button><button id="intro-skip" type="button">Skip intro</button></div>
   <div id="wash" aria-hidden="true"></div>
   <div id="toast" role="status"></div>
   <div id="nudge" role="dialog" aria-label="A question" hidden><p id="nudge-t"></p><div class="links" id="nudge-btns"><button class="btn sm" id="nudge-talk">Talk to Nikhil already</button><button class="btn sm" id="nudge-shy">I’m shy</button></div></div>
-  <div id="top"><button id="home" aria-label="Home" title="Home"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 10 6.4 7.6M10 10l4.3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.1" fill="currentColor"/></svg></button><div class="ways" role="group" aria-label="Dial"><span class="small">Dial</span><button data-way="silver" aria-label="Opaline silver dial"></button><button data-way="orge" aria-label="Grain d'orge guilloché dial"></button><button data-way="sky" aria-label="Day and night dial"></button><button data-way="ecru" aria-label="Écru sector dial"></button><button data-way="snow" aria-label="Snowdrift dial"></button><span class="small wayname"></span></div><span class="tr"><span class="sndw"><button id="snd" aria-pressed="true" aria-label="Sound on" data-lv="2"><svg viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h3l4-3.5v12l-4-3.5h-3z"/><path class="w1" d="M14 8.6a3.4 3.4 0 0 1 0 4.8"/><path class="w2" d="M16.4 6.2a6.8 6.8 0 0 1 0 9.6"/><path class="wx" d="M14.5 8.5l5 5M19.5 8.5l-5 5"/></svg></button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"></span><a href="#">Resume</a></span></div>
+  <div id="top"><button id="home" aria-label="Home" title="Home"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 10 6.4 7.6M10 10l4.3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.1" fill="currentColor"/></svg></button><span class="tr"><details id="dial-picker"><summary>Dial <span id="dial-current">Opaline silver</span><span aria-hidden="true">⌄</span></summary><div class="ways" role="group" aria-label="Dial finish"><span class="small picker-heading">Choose a dial finish</span><button data-way="silver" aria-label="Opaline silver dial"><span class="finish-name">Opaline silver</span></button><button data-way="orge" aria-label="Grain d'orge guilloché dial"><span class="finish-name">Grain d’orge</span></button><button data-way="sky" aria-label="Day and night dial"><span class="finish-name">Day and night</span></button><button data-way="ecru" aria-label="Écru sector dial"><span class="finish-name">Écru sector</span></button><button data-way="snow" aria-label="Snowdrift dial"><span class="finish-name">Snowdrift</span></button><span class="small wayname"></span></div></details><span class="sndw"><button id="snd" aria-pressed="true" aria-label="Sound on" data-lv="2"><svg viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h3l4-3.5v12l-4-3.5h-3z"/><path class="w1" d="M14 8.6a3.4 3.4 0 0 1 0 4.8"/><path class="w2" d="M16.4 6.2a6.8 6.8 0 0 1 0 9.6"/><path class="wx" d="M14.5 8.5l5 5M19.5 8.5l-5 5"/></svg></button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"></span><a href="#">Resume</a></span></div>
 
   <div id="hots">
+    <button class="hot work-pin" data-ch="2" data-k="moon" data-open="moon" aria-label="Open projects" tabindex="-1"><span>Projects</span></button>
+    <button class="hot work-pin" data-ch="2" data-k="sec" data-open="sec" aria-label="Open writing" tabindex="-1"><span>Writing</span></button>
+    <button class="hot work-pin" data-ch="2" data-k="date" data-open="date" aria-label="Open film" tabindex="-1"><span>Film</span></button>
     <button class="hot" data-ch="6" data-k="i-soccer" data-int="soccer" aria-label="Football"></button>
     <button class="hot" data-ch="6" data-k="i-cooking" data-int="cooking" aria-label="Cooking and baking"></button>
     <button class="hot" data-ch="6" data-k="i-snow" data-int="snow" aria-label="Snowboarding"></button>
@@ -512,15 +517,19 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 
   <div id="copy">
     <section class="panel" data-ch="0">
+      <p class="part home-context">Strategy · Data · Software</p>
       <h1 class="name" aria-label="Nikhil Kurmala"><span class="first" aria-hidden="true">Nikhil</span><span class="last" aria-hidden="true"><i>K</i><i>U</i><i>R</i><i>M</i><i>A</i><i>L</i><i>A</i></span></h1>
+      <p class="home-intro">An economic consultant who builds tools and used to write about watches.</p>
+      <p class="home-aside">This one holds a few things about me.</p>
     </section>
     <section class="panel" data-ch="1">
       <div class="part eyebrow">01 / Experience</div>
+      <p class="career-hint">Choose a strap to explore a chapter of my work.</p>
       <h2 class="sr">Experience</h2>
       <div class="chips">
         <button data-strap="consulting">Consulting</button><button data-strap="engineering">Engineering</button><button data-strap="quant">Quant</button><button data-strap="banking">Banking</button><button data-strap="writing">Journalism</button>
       </div>
-      <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3><div id="s-name"></div></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
+      <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3><span id="s-status" class="small" hidden>Details coming soon</span><div id="s-name"></div></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
     </section>
     <section class="panel hub" data-ch="2">
       <div class="part eyebrow">02 / Selected work</div>
@@ -542,27 +551,30 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
     </section>
     <section class="panel" data-ch="7">
       <div class="part eyebrow">04 / Contact</div>
-      <h2>The full set</h2>
+      <h2>Let's talk.</h2>
+      <p>About work, something you are building, or a particularly good watch.</p>
+      <div class="contact-actions"><a id="contact-email" href="mailto:nikhilkurmala28@gmail.com">Email Nikhil <span aria-hidden="true">↗</span></a><a id="contact-linkedin" href="https://www.linkedin.com/in/nikhilk28/" target="_blank" rel="noopener">LinkedIn ↗</a></div>
+      <p id="contact-resume" class="small">Resume on request</p>
       <dl class="spec">
-        <div><dt>Name</dt><dd>Nikhil Kurmala<span class="opt">. Senior Analyst, <a href="https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/" target="_blank" rel="noopener">Analysis Group</a>, San Francisco.</span></dd></div>
-        <div class="nav"><dt>Complications</dt><dd><a href="#" data-jump="projects">Projects</a>, <a href="#" data-jump="writing">articles</a>, <a href="#" data-jump="film">film</a></dd></div>
-        <div><dt>Included in box</dt><dd>Python, PySpark, SQL, Databricks, Azure OpenAI</dd></div>
-        <div class="opt"><dt>Origin</dt><dd>Singapore. B.S. Applied Mathematics, UCLA, 2023.</dd></div>
-        <div><dt>Price</dt><dd>On inquiry. <a href="mailto:nikhilkurmala28@gmail.com">nikhilkurmala28@gmail.com</a> or <a href="https://www.linkedin.com/in/nikhilk28/" target="_blank" rel="noopener">LinkedIn</a></dd></div>
-        <div><dt>Import duties</dt><dd>A standard H-1B transfer. No lottery, any time of year, and no $100,000 fee for a transfer within the US.</dd></div>
-        <div><dt>Box and papers</dt><dd>Current H-1B, in its first year, so plenty of time on the clock. I can start as soon as the transfer is filed. Resume on request.</dd></div>
+        <div data-field="Name"><dt>Currently</dt><dd></dd></div>
+        <div data-field="Included in box"><dt>Tools</dt><dd></dd></div>
+        <div data-field="Origin"><dt>Background</dt><dd></dd></div>
       </dl>
+      <details class="hiring-details"><summary>Work authorization</summary><p>I require H-1B transfer sponsorship.</p></details>
     </section>
 
     <section id="focus" tabindex="-1" aria-live="polite">
+      <div class="stops" role="group" aria-label="Work collections"><button data-stop="moon">Projects</button><button data-stop="sec">Writing</button><button data-stop="date">Film</button></div>
+      <p id="f-status" class="small" hidden></p>
       <div class="part" id="f-kicker"></div>
       <h3 id="f-title"></h3>
       <p id="f-body"></p>
       <div id="f-media" hidden></div>
       <a class="btn" id="f-link" href="#"></a>
       <p class="small" id="f-note"></p>
-      <div class="fbar"><button class="btn" id="f-prev" aria-label="Previous">Back</button><span id="f-count"></span><button class="btn" id="f-next" aria-label="Next">Next</button></div>
-      <div class="stops" aria-label="Complications"><button data-stop="moon">Projects</button><button data-stop="sec">Articles</button><button data-stop="date">Film</button></div>
+      <div class="fbar"><button class="btn" id="f-prev" aria-label="Previous project">Previous</button><span id="f-count"></span><button class="btn" id="f-next" aria-label="Next">Next</button></div>
+
+      <button id="f-onward" class="text-action" hidden></button>
       <p class="small" id="f-hint" hidden></p>
     </section>
   </div>
@@ -611,6 +623,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.71f79562.js"></script>
+<script src="./bundle.c695d3c0.js"></script>
 </body>
 </html>
+

@@ -1,3 +1,4 @@
+import { displayText, collectionSuggestion } from './presentation.mjs';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
@@ -112,10 +113,10 @@ const DATA = {
 };
 /* content.js, loaded before this script, holds everything the owner edits. Whatever it sets replaces the built-in text above; whatever it leaves out, or a file that fails to load, falls back to it */
 const CT = (typeof window !== 'undefined' && window.CONTENT) || {};
-if (Array.isArray(CT.projects) && CT.projects.length) DATA.moon.items = CT.projects.map((p) => ({ t: p.title || '', d: p.text || '', link: p.linkText || 'See it', url: p.link || '', video: typeof p.video === 'string' && p.video.trim() ? p.video.trim() : '', image: typeof p.image === 'string' && p.image.trim() ? p.image.trim() : '' }));
-if (Array.isArray(CT.articles) && CT.articles.length) DATA.sec.items = CT.articles.map((p) => ({ t: p.title || '', d: p.text || '', link: p.linkText || 'Read it', url: p.link || '' }));
+if (Array.isArray(CT.projects) && CT.projects.length) DATA.moon.items = CT.projects.map((p) => ({ t: p.title || '', d: displayText(p.text, 'Project notes are being added.'), link: p.linkText || 'See it', url: p.link || '', video: typeof p.video === 'string' && p.video.trim() ? p.video.trim() : '', image: typeof p.image === 'string' && p.image.trim() ? p.image.trim() : '' }));
+if (Array.isArray(CT.articles) && CT.articles.length) DATA.sec.items = CT.articles.map((p) => ({ t: p.title || '', d: displayText(p.text, 'Article notes are being added.'), link: p.linkText || 'Read it', url: p.link || '' }));
 if (typeof CT.articlesNote === 'string') DATA.sec.note = CT.articlesNote;
-if (Array.isArray(CT.film) && CT.film.length) DATA.date.items = CT.film.map((p) => ({ t: p.title || '', d: p.caption || '', r: p.landscape ? 1.418 : 0.705, file: p.file || '' }));
+if (Array.isArray(CT.film) && CT.film.length) DATA.date.items = CT.film.map((p) => ({ t: p.title || '', d: displayText(p.caption, '35mm film.'), r: p.landscape ? 1.418 : 0.705, file: p.file || '' }));
 const NPROJ = DATA.moon.items.length;
 
 /* ---------- dimensions (mm), from the build spec: 39 x 10.6, 46.5 lug to lug, 20 lugs ---------- */
@@ -1995,7 +1996,7 @@ function keepTick(st) { const o = KEEPS[strapNow]; if (!o || !cKeep.length) retu
    at y = 0); the group is scaled to the page. RAIL, at the top of the straps section, switches it all off ---------- */
 const RJ = (() => { const def = ['consulting', 'engineering', 'quant', 'banking', 'writing'], o = Array.isArray(CT.jobOrder) ? CT.jobOrder.filter((k, i, a) => def.includes(k) && a.indexOf(k) === i) : [];
   def.forEach((k) => { if (!o.includes(k)) o.push(k); });
-  const yrs = { consulting: '2023 to now', engineering: '[years]', quant: '[years]', banking: '[years]', writing: '2019' }; if (CT.jobs) def.forEach((k) => { const y = CT.jobs[k] && CT.jobs[k].years; if (typeof y === 'string' && y.trim()) yrs[k] = y.trim(); });
+  const yrs = { consulting: '2023 to now', engineering: '[years]', quant: '[years]', banking: '[years]', writing: '2019' }; if (CT.jobs) def.forEach((k) => { const y = CT.jobs[k] && CT.jobs[k].years; yrs[k] = displayText(y ?? yrs[k]); });
   return { order: o, years: yrs }; })();
 /* the board: an industrial pegboard, a dark powder coated steel sheet with round holes on a square grid, stood a little off the wall on four screws. top and drop are how far it runs above
    and below the row of holes' hooks (every strap hangs at full length, so the longest, the NATO, sets the drop); z is its back, t its thickness, hy how far the hooks' holes sit above
@@ -2460,7 +2461,7 @@ const NAMES = ['Start', 'Experience', 'Side projects', 'Projects', 'Articles / b
 const STOP = ['moon', 'sec', 'date'], S0 = 3, stopCh = (k) => S0 + STOP.indexOf(k);
 /* the three works can change places for one visit: whichever one a visitor jumps to from outside comes first, and the other two follow in their
    usual order, so scrolling on from it still passes through all three before the caseback. Back at the dial, the usual order returns */
-const WORK0 = ['moon', 'sec', 'date'], WNAME = { moon: 'Projects', sec: 'Articles', date: 'Film' }, RNAME = { moon: 'Projects', sec: 'Articles / blogs', date: 'Film' }, seenW = new Set();
+const WORK0 = ['moon', 'sec', 'date'], WNAME = { moon: 'Projects', sec: 'Writing', date: 'Film' }, RNAME = { moon: 'Projects', sec: 'Writing', date: 'Film' }, seenW = new Set();
 // z: [crystal, hands, dial, movement, back]   o: ORDER   sy: how far the straps have come off
 const KD = { rx: -10, ry: 0, rz: 0, sc: 1.08, sy: 16, f: [0, 0, 6], z: [22, 11, 11, 0, 0], o: [0, 1, 1, 1, 1, 1, 1, 1, 0] };
 const K = [
@@ -2537,7 +2538,7 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 /* the strap display's test pages (window.STRAPSKIP): no unboxing, and the page opens on the Strap chapter. Without the flag nothing here changes */
 const SKIP = !!window.STRAPSKIP;
 if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (N - 1)); }
-const NAV = [['Home', 0], ['Experience', 1], ['Side Projects', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
+const NAV = [['Home', 0], ['Experience', 1], ['Work', 2], ['About', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
 NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
 /* the arrow at the foot: on to the next chapter, as a key press would be (into the three works through goWork, so their order holds) */
 let cueY0 = null, cueGone = false; const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
@@ -2555,17 +2556,24 @@ let focus = null, idx = { date: 0, moon: 0, sec: 0 }, wDate = 0, wMoon = 0, slid
 const fEl = $('focus'), nextOf = (k) => { const j = STOP.indexOf(k); return j < 2 ? WNAME[STOP[j + 1]].toLowerCase() : 'the caseback'; };
 const wCount = (k) => DATA[k].items.length;   // the same number the Back and Next counter shows
 /* the switch between the three works, under each one: in this visit's order, with how many are in each and a mark on the ones already seen */
-function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); b.classList.toggle('new', !seenW.has(k)); }); }   /* a work not yet visited glows softly until it is */
+function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); b.classList.toggle('new', !seenW.has(k)); b.setAttribute('aria-pressed', String(k === focus)); b.setAttribute('aria-label', WNAME[k] + (k === focus ? ', current collection' : seenW.has(k) ? ', opened' : ', open collection')); const status = b.querySelector('small'); if (status) status.textContent = k === focus ? 'Current' : seenW.has(k) ? 'Opened' : 'Open'; }); }   /* a work not yet visited glows softly until it is */
 { const wd = $('w-date'), n = DATA.date.items.length, W = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve']; if (wd && n) wd.textContent = (W[n] || n) + (n === 1 ? ' frame' : ' frames') + '. Shot on 35 mm.'; }
-document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.textContent = WNAME[k]; b.setAttribute('aria-label', WNAME[k]); });
+document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.textContent = WNAME[k]; const status = document.createElement('small'); status.textContent = 'Open'; b.appendChild(status); b.setAttribute('aria-label', WNAME[k]); });
 function paint() {
   const D = DATA[focus], n = D.items.length, it = D.items[idx[focus]];
   $('f-kicker').textContent = '02 / Selected work / ' + WNAME[focus]; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
-  { const fm = $('f-media'), src = focus === 'moon' && (it.video || it.image); fm.hidden = !src; if (src && fm.dataset.src !== src) { fm.dataset.src = src; fm.replaceChildren(); const m = document.createElement(it.video ? 'video' : 'img'); m.src = src; if (it.video) { m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = true; m.controls = true; } else m.alt = it.t; fm.appendChild(m); } }
+  { const fm = $('f-media'), src = focus === 'moon' && (it.video || it.image); fm.querySelectorAll('video').forEach(v => { if (!src || fm.dataset.src !== src) v.pause(); }); fm.hidden = !src; if (src && fm.dataset.src !== src) { fm.dataset.src = src; fm.replaceChildren(); const m = document.createElement(it.video ? 'video' : 'img'); m.src = src; if (it.video) { m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = !reduce; m.controls = true; } else m.alt = it.t; fm.appendChild(m); } }
   const l = $('f-link'); l.style.display = it.link && it.url ? 'inline-block' : 'none'; if (it.url) { l.textContent = it.link; l.href = it.url; l.target = '_blank'; l.rel = 'noopener'; }   // no button until there is somewhere to go
   $('f-note').textContent = D.note || ''; $('f-count').textContent = (idx[focus] + 1) + ' of ' + n; $('f-hint').textContent = '';
+  const unit = { moon: 'project', sec: 'article', date: 'frame' }[focus];
+  $('f-prev').textContent = 'Previous'; $('f-prev').setAttribute('aria-label', 'Previous ' + unit);
+  $('f-next').textContent = 'Next ' + unit; $('f-next').setAttribute('aria-label', 'Next ' + unit);
+  const status = $('f-status'); status.hidden = focus !== 'moon' || !!(it.url || it.video || it.image); status.textContent = 'Project notes';
+  const next = collectionSuggestion(STOP, focus, seenW), onward = $('f-onward');
+  onward.hidden = !next; onward.dataset.next = next || ''; if (next) onward.textContent = 'Also inside: ' + WNAME[next] + ' →';
   stopsPaint();
 }
+$('f-onward').addEventListener('click', () => { if ($('f-onward').dataset.next) goWork($('f-onward').dataset.next); });
 function stepFocus(dir) {
   if (!focus || slide) return; const n = DATA[focus].items.length; idx[focus] = (idx[focus] + dir + n) % n;
   if (focus === 'date') { photoB.material.map = photos[idx.date]; photoB.visible = true; slide = { t: 0, dir }; snd.date(); }
@@ -2579,7 +2587,7 @@ function enterStop(k) {
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();
 }
-function leaveStop() { if (!focus) return; focus = null; document.body.classList.remove('focused'); }
+function leaveStop() { if (!focus) return; document.querySelectorAll('#f-media video').forEach(v => v.pause()); focus = null; document.body.classList.remove('focused'); }
 function openFocus(k) { goWork(k); }
 function closeFocus() {}
 $('f-prev').onclick = () => { audioOn(); stepFocus(-1); }; $('f-next').onclick = () => { audioOn(); stepFocus(1); };
@@ -2615,11 +2623,11 @@ const ROLES = {
   banking: ['Investment banking', '[ONE LINE ON THE DEALS OR COVERAGE]', '', '', '[EMPLOYER, CITY]'],
   writing: ['Watch journalism', 'My own blog and a Wrist Review byline, plus a lot of ghostwriting.', 'Read them on Wrist Review', 'https://wristreview.com/?s=NIKHIL+KURMALA', 'Wrist Review']
 };
-if (CT.jobs) Object.keys(ROLES).forEach((k) => { const j = CT.jobs[k]; if (!j) return; ROLES[k] = [j.title || ROLES[k][0], j.text || ROLES[k][1], j.linkText || '', j.link || '', typeof j.place === 'string' ? j.place.trim() : ROLES[k][4]]; const b = document.querySelector('[data-strap="' + k + '"]'); if (b && j.chip) b.textContent = j.chip; });
+if (CT.jobs) Object.keys(ROLES).forEach((k) => { const j = CT.jobs[k]; if (!j) return; ROLES[k] = [j.title || ROLES[k][0], displayText(j.text, 'More about this chapter soon.'), j.linkText || '', j.link || '', typeof j.place === 'string' ? displayText(j.place) : ROLES[k][4]]; const b = document.querySelector('[data-strap="' + k + '"]'); if (b && j.chip) b.textContent = j.chip; });
 if (RAIL) railDom();
 const chips = [...document.querySelectorAll('[data-strap]')];
 function pickStrap(k) { const sk = k === 'consulting' && upGone ? 'upcycle' : k; setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k));
-  const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1];
+  const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1]; $('s-status').hidden = !!displayText(CT.jobs?.[k]?.text); $('s-meta').hidden = !R[4] && !RJ.years[k];
     sl.hidden = !R[3]; if (R[3]) { sl.textContent = R[2] || R[3]; sl.href = R[3]; } };
   if (!rl.cardK || rl.cardK === k + sk) { rl.cardK = k + sk; fill(); return; } rl.cardK = k + sk; plateSwap(fill); }   // the plate changes on the click, not when the strap lands
 /* the plate's change: the old lines lift a hair and fade together, then the new ones rise into place one after another (title, material, place and years, paragraph, link).
@@ -2636,8 +2644,17 @@ chips.forEach((c) => c.addEventListener('click', () => pickStrap(c.dataset.strap
 const fixEl = $('fix'); let fixT = 0, fixDone = !fixEl; if (fixEl && reduce) { fixEl.classList.add('on'); fixDone = true; }
 function fixTick(dt) { if (fixDone) return; const p = panels.find((q) => q.dataset.ch === '1'); if (p && p.classList.contains('live')) { fixT += dt; if (fixT > (SNAP ? 0.6 : 1.4)) { fixDone = true; fixEl.classList.add('on'); snd.scribble(); } } else fixT = 0; }
 const dots = [...document.querySelectorAll('[data-way]')]; let wayFlash = false;   /* on phones the dial's name is not in the top row: it shows for a moment under the swatches when a dial is picked */
-function pickWay(k) { setWay(k); dots.forEach((c) => c.setAttribute('aria-pressed', c.dataset.way === k)); document.querySelectorAll('.wayname').forEach((e) => { e.textContent = WAYS[k].name; if (wayFlash) { e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); } }); }
+function pickWay(k) { setWay(k); if ($('dial-current')) $('dial-current').textContent = WAYS[k].name; dots.forEach((c) => c.setAttribute('aria-pressed', c.dataset.way === k)); document.querySelectorAll('.wayname').forEach((e) => { e.textContent = WAYS[k].name; if (wayFlash) { e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); } }); }
 dots.forEach((c) => { c.style.background = 'radial-gradient(circle at 35% 30%,' + WAYS[c.dataset.way].dot[0] + ',' + WAYS[c.dataset.way].dot[1] + ')'; c.addEventListener('click', () => { pickWay(c.dataset.way); const p = WAYS[c.dataset.way].pair; if (p) pickStrap(p); }); }); pickWay('silver'); wayFlash = true;
+const dialPicker = $('dial-picker');
+dialPicker.addEventListener('click', e => { if (e.target.closest('[data-way]')) { dialPicker.open = false; dialPicker.querySelector('summary').focus(); } });
+addEventListener('click', e => { if (!dialPicker.contains(e.target)) dialPicker.open = false; });
+addEventListener('keydown', e => { if (e.key === 'Escape' && dialPicker.open) { dialPicker.open = false; dialPicker.querySelector('summary').focus(); } });
+document.querySelectorAll('.wlist [data-open]').forEach(row => {
+  const pin = document.querySelector('.work-pin[data-k="' + row.dataset.open + '"]');
+  ['mouseenter', 'focus'].forEach(ev => row.addEventListener(ev, () => pin?.classList.add('previewed')));
+  ['mouseleave', 'blur'].forEach(ev => row.addEventListener(ev, () => pin?.classList.remove('previewed')));
+});
 
 /* under the hood: four parts of the movement are not quite standard. No labels on the watch: the parts give themselves away, and a tap tells the rest */
 /* each entry: [the part, the title, a line about it, a heading for the list, the list, photos]. Add to the lists and photo arrays freely */
@@ -2646,15 +2663,22 @@ const INTS = {
   cooking: ['The jewel on the balance cock, lit', 'Cooking and baking', 'Always experimenting with something new, on the stove, in the oven and in the ice cream maker. Tonight: tofu stir fry noodles. Take the pan by the handle and give it a shake.', 'Lately', ['[Something you cooked]', '[Something you baked]', '[An ice cream flavor]'], []],
   snow: ['Escapement cock, waxed', 'Snowboarding', 'An escapement lets the energy out one controlled turn at a time. On a board, that is the whole idea.', 'Where I have ridden', ['[Mountain 1]', '[Mountain 2]', '[Mountain 3]'], []],
   music: ['Ratchet wheel, on the decks', 'Music', 'Electronic, mostly, and festivals like Outside Lands.', 'Top five artists this year', ['[Artist 1]', '[Artist 2]', '[Artist 3]', '[Artist 4]', '[Artist 5]'], [], true] };
-if (CT.interests) Object.keys(INTS).forEach((k) => { const c = CT.interests[k], r = INTS[k]; if (!c) return; if (c.title) r[1] = c.title; if (c.text) r[2] = c.text; if (c.listTitle) r[3] = c.listTitle; if (Array.isArray(c.list)) r[4] = c.list; if (Array.isArray(c.photos)) r[5] = c.photos.map((p) => typeof p === 'string' ? { src: 'photos/' + p, alt: '' } : { src: 'photos/' + p.file, alt: p.alt || '' }); });
+if (CT.interests) Object.keys(INTS).forEach((k) => { const c = CT.interests[k], r = INTS[k]; if (!c) return; if (c.title) r[1] = c.title; if (c.text) r[2] = c.text; r[3] = displayText(c.listTitle); if (Array.isArray(c.list)) r[4] = c.list.map(x => displayText(x)).filter(Boolean); if (Array.isArray(c.photos)) r[5] = c.photos.map((p) => typeof p === 'string' ? { src: 'photos/' + p, alt: '' } : { src: 'photos/' + p.file, alt: p.alt || '' }); });
 { const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch])), q = (s) => document.querySelector(s), ext = (u, t) => '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(t) + '</a>';
   if (CT.name) { const parts = String(CT.name).trim().split(/\s+/), first = parts[0], last = parts.slice(1).join(' '), h1 = q('h1.name'); if (h1) { h1.setAttribute('aria-label', CT.name); h1.querySelector('.first').textContent = first; h1.querySelector('.last').innerHTML = [...last.toUpperCase()].map((ch) => '<i>' + esc(ch) + '</i>').join(''); } document.title = CT.name; }
   if (Array.isArray(CT.signedOnTheBack)) document.querySelectorAll('.rows.sign > div').forEach((d, i) => { const s = CT.signedOnTheBack[i]; if (!s) return; d.querySelector('b').textContent = s.title || ''; d.querySelector('span').textContent = s.text || ''; });
-  const F = CT.fullSet, C = CT.contact || {}, rows = [...document.querySelectorAll('dl.spec > div')].reduce((o, d) => { o[d.querySelector('dt').textContent.trim()] = d.querySelector('dd'); return o; }, {});
-  if (F) { if (rows.Name && (CT.name || F.role)) rows.Name.innerHTML = esc(CT.name || 'Nikhil Kurmala') + '<span class="opt">. ' + esc(F.role || '') + (F.employer ? ', ' + (F.employerLink ? ext(F.employerLink, F.employer) : esc(F.employer)) : '') + (F.city ? ', ' + esc(F.city) : '') + '.</span>';
-    if (rows['Included in box'] && F.includedInBox) rows['Included in box'].textContent = F.includedInBox; if (rows.Origin && F.origin) rows.Origin.textContent = F.origin; if (rows['Import duties'] && F.importDuties) rows['Import duties'].textContent = F.importDuties; }
-  if (rows.Price && (C.email || C.linkedin)) rows.Price.innerHTML = 'On inquiry. ' + (C.email ? '<a href="mailto:' + esc(C.email) + '">' + esc(C.email) + '</a>' : '') + (C.email && C.linkedin ? ' or ' : '') + (C.linkedin ? ext(C.linkedin, 'LinkedIn') : '');
-  if (rows['Box and papers'] && (C.resume || (F && F.papers))) { const o = rows['Box and papers'].querySelector('.opt'); rows['Box and papers'].innerHTML = (F && F.papers ? esc(F.papers) + ' ' : '') + (C.resume ? ext(C.resume, 'Resume (PDF)') + '.' : 'Resume on request.') + (o ? o.outerHTML : ''); } if (rows['Box and papers'] && C.resume) { document.querySelectorAll('#top a').forEach((a) => { if (a.textContent.trim() === 'Resume') { a.href = C.resume; a.target = '_blank'; a.rel = 'noopener'; a.removeAttribute('data-jump'); } }); } }
+  const F = CT.fullSet || {}, C = CT.contact || {};
+  const rows = Object.fromEntries([...document.querySelectorAll('dl.spec > div')].map(d => [d.dataset.field || d.querySelector('dt').textContent.trim(), d.querySelector('dd')]));
+  if (rows.Name) rows.Name.textContent = [F.role, F.employer, F.city].filter(Boolean).join(' · ');
+  if (rows['Included in box']) rows['Included in box'].textContent = F.includedInBox || '';
+  if (rows.Origin) rows.Origin.textContent = F.origin || '';
+  if (C.email) $('contact-email').href = 'mailto:' + C.email;
+  if (C.linkedin) $('contact-linkedin').href = C.linkedin;
+  const resume = document.querySelector('#top .tr > a');
+  if (C.resume) { resume.href = C.resume; resume.target = '_blank'; resume.rel = 'noopener'; $('contact-resume').innerHTML = ext(C.resume, 'Resume (PDF)'); }
+  else { resume.href = '#'; resume.textContent = 'Resume on request'; resume.addEventListener('click', e => { e.preventDefault(); jumpTo(N - 1); }); }
+}
+
 const ZSIGN = -1, ARMSWING = 0.3;
 /* snow for the board: flakes streaming past as if it were on its way down */
 const SNOWN = 170, snowP = new Float32Array(SNOWN * 3), snowS = Array.from({ length: SNOWN }, () => [Math.random(), Math.random() * 2 - 1, Math.random(), 0.6 + Math.random() * 0.8]);
@@ -2855,7 +2879,7 @@ function snowTick(t, dt) { snowA += ((zoomK === 'snow' ? 1 : 0) - snowA) * Math.
 const intPins = [...document.querySelectorAll('.hot[data-int]')], cbPanel = document.querySelector('.panel[data-ch="6"]'); let selInt = null, zoomK = null;
 /* tapping a dot goes in close on that part and opens its notes */
 function footFix(on) { const t = $('int-t'); t.style.paddingTop = on ? '1.45em' : ''; if (!on) return; t.innerHTML = '<span class="sr">Football</span><span aria-hidden="true" class="fix" id="fixf"><span class="was">Soccer</span><svg class="strike" viewBox="0 0 100 20" preserveAspectRatio="none"><path pathLength="1" vector-effect="non-scaling-stroke" d="M1 12.5C18 11 36 14 54 11S84 8.5 99 9.5"/></svg><span class="now">Football</span></span>'; const f = $('fixf'); if (reduce || footFix.done) { f.classList.add('on'); return; } setTimeout(() => { f.classList.add('on'); if (!footFix.done) { footFix.done = true; snd.scribble(); } }, 900); }
-function pickInt(k) { zbLabel('Zoom out'); document.body.classList.add('dotted'); selInt = zoomK = k; const r = INTS[k]; cbPanel.classList.add('zoomed'); document.body.classList.add('zoomed'); $('int-d').hidden = false; $('int-k').textContent = r[0]; $('int-t').textContent = r[1]; footFix(k === 'soccer'); $('int-b').textContent = r[2]; $('int-l').textContent = r[3];
+function pickInt(k) { zbLabel('Zoom out'); document.body.classList.add('dotted'); selInt = zoomK = k; const r = INTS[k]; cbPanel.classList.add('zoomed'); document.body.classList.add('zoomed'); $('int-d').hidden = false; $('int-k').textContent = r[0]; $('int-t').textContent = r[1]; footFix(k === 'soccer'); $('int-b').textContent = r[2]; $('int-l').textContent = r[3]; $('int-l').hidden = !r[4].length; $('int-list').hidden = !r[4].length;
   const ol = $('int-list'); ol.className = r[6] ? 'num' : ''; ol.replaceChildren(...r[4].map((t) => { const li = document.createElement('li'); li.textContent = t; return li; }));
   $('int-ph').replaceChildren(...r[5].map((p) => { const im = document.createElement('img'); im.src = p.src; im.alt = p.alt || ''; im.loading = 'lazy'; return im; }));
   intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; setNeedle(false); }
@@ -2887,7 +2911,7 @@ function zoomApply(dt, sc, cx, cy, act) {
 
 /* ---------- unboxing: a plain box on an empty page. Its lid opens as a pair of butterfly doors, a sprung platform pops the watch up,
    the watch flies to its place, and the empty box drifts back and drops beside a recycling bin at the back of the scene ---------- */
-const intro = { on: document.body.classList.contains('intro'), open: false, t: 0, hold: null, tries: 0, need: Math.random() < 0.5 ? 2 : 3, lastTry: -1e9, shake: null, idleT: 0, nextTw: 2.4 };
+const intro = { on: document.body.classList.contains('intro'), open: false, t: 0, hold: null, tries: 0, need: 1, lastTry: -1e9, shake: null, idleT: 0, nextTw: 2.4 };
 let upDone = false;   // every visit starts fresh: the recycled dial only appears once the box goes in the bin
 const gBox = new THREE.Group(); scene.add(gBox);
 const BW = 104, BH = 56, BL = 18, BWT = 4;   // footprint, base height, lid height, wall (mm, the watch's own scale)
@@ -3176,8 +3200,9 @@ let introCool = 0;
 function finishIntro() { intro.on = false; ubk.on = false; gravW.set(0, -1, 0); document.body.classList.remove('intro', 'opening'); if (scrollY > 1) scrollTo(0, 0); document.documentElement.style.overflow = ''; introCool = performance.now() + 1200; }   // land on the start, and let a trackpad's leftover momentum die out
 function introAt(T) { intro.on = true; document.body.classList.add('intro'); boxS.mode = 'intro'; boxS.hold = null; binIn = 0; if (T < 0) { intro.open = false; intro.hold = null; document.body.classList.remove('opening'); } else { intro.open = true; intro.hold = T; document.body.classList.add('opening'); } }
 if (intro.on) { document.documentElement.style.overflow = 'hidden'; scrollTo(0, 0);
-  $('i-open').textContent = ''; $('i-open').setAttribute('aria-label', 'Open the box');
+  $('i-open').textContent = 'Open the box'; $('i-open').setAttribute('aria-label', 'Open the box');
   $('i-open').addEventListener('click', tryOpen);
+  $('intro-skip').addEventListener('click', () => { boxS.mode = 'gone'; gBox.visible = false; boxShadow.visible = false; gPil.visible = false; burst.done = true; binIn = 0; finishIntro(); });
   let pdx = 0, pdy = 0; canvas.addEventListener('pointerdown', (e) => { pdx = e.clientX; pdy = e.clientY; });
   const onBox = (e) => { const r = canvas.getBoundingClientRect(), rc = onBox.r || (onBox.r = new THREE.Raycaster()), v2 = onBox.v || (onBox.v = new THREE.Vector2()); v2.set((e.clientX - r.left) / r.width * 2 - 1, 1 - (e.clientY - r.top) / r.height * 2); rc.setFromCamera(v2, camera); gBox.updateMatrixWorld(true); return rc.intersectObject(gBox, true).length > 0; };
   canvas.addEventListener('pointerup', (e) => { if (intro.on && !intro.open && Math.hypot(e.clientX - pdx, e.clientY - pdy) < 12 && onBox(e)) tryOpen(); });   // a tap on the box itself, not the end of a swipe and not the empty page
@@ -3186,7 +3211,7 @@ if (intro.on) { document.documentElement.style.overflow = 'hidden'; scrollTo(0, 
   addEventListener('wheel', (e) => { const now = performance.now(); if (intro.on || now < introCool) { e.preventDefault(); const fresh = e.timeStamp - wheelAt > 320; wheelAt = e.timeStamp; } }, { passive: false });
   addEventListener('touchstart', () => { touchNew = true; }, { passive: true });
   addEventListener('touchmove', (e) => { if (intro.on || performance.now() < introCool) { e.preventDefault(); } }, { passive: false });
-  addEventListener('keydown', (e) => { if (intro.on && !intro.open && ['Enter', ' ', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); tryOpen(); } }); }
+  addEventListener('keydown', (e) => { if (intro.on && !intro.open && !e.target.closest?.('button,a,input,select,textarea,summary') && ['Enter', ' ', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); tryOpen(); } }); }
 
 
 /* ---------- the Easter egg: find the box, throw it about, get it in the bin. It unlocks a dial made of recycled plastic ---------- */
@@ -3298,7 +3323,7 @@ function burstUpdate(dt) { if (!burst.on) return; if (burst.hold === null) burst
     toast(TIER[bt.tier] + ' batch: ' + bt.name + (bt.tier === 2 ? '. Only ' + bt.odds + ' in 100 boxes.' : '. New dial unlocked.'), bt.tier); if (bt.tier === 2) sndUltra(); countBox(); }
   if (T > 1.75 && burst.hold === null) { burst.on = false; burst.mesh.visible = false; } }
 function toast(msg, tier) { const el = $('toast'); el.textContent = msg; el.dataset.tier = tier ?? ''; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); }
-function unlockUpcycle(animate) { const had = document.querySelector('[data-way="upcycle"]'); if (had) { had.style.background = WAYS.upcycle.dotCss; return; } const b = document.createElement('button'); b.dataset.way = 'upcycle'; b.setAttribute('aria-label', WAYS.upcycle.name + ' dial'); b.style.background = WAYS.upcycle.dotCss;
+function unlockUpcycle(animate) { const had = document.querySelector('[data-way="upcycle"]'); if (had) { had.style.background = WAYS.upcycle.dotCss; return; } const b = document.createElement('button'); b.dataset.way = 'upcycle'; b.textContent = 'Upcycled plastic'; b.setAttribute('aria-label', WAYS.upcycle.name + ' dial'); b.style.background = WAYS.upcycle.dotCss;
   b.addEventListener('click', () => { pickWay('upcycle'); if (WAYS.upcycle.pair) pickStrap(WAYS.upcycle.pair); }); const ref = document.querySelector('#top .ways .wayname'); ref.parentNode.insertBefore(b, ref); dots.push(b); if (animate) b.classList.add('pop');
   upDone = true; }
 const TIER = ['Common', 'Rare', 'Ultra rare'];
@@ -3476,12 +3501,18 @@ function frame(now) {
   renderer.render(scene, camera); if (RAIL) railOverlay(mob);
   panels.forEach((p) => { const k = +p.dataset.ch; let o, ty2 = 0; if (jump) o = k === jump.i ? clamp(je * 3 - 2, 0, 1) : clamp(1 - je * 3, 0, 1) * (parseFloat(p.style.opacity) > 0.01 ? 1 : 0); else { o = clamp(1 - Math.abs(pe - k) * 2.4, 0, 1); ty2 = (k - pe) * 40; }
     o *= (k === CD ? 1 - fe : 1); p.style.opacity = o; p.style.transform = 'translateY(' + ty2 + 'px)'; p.classList.toggle('live', k === act && !jump && !(k === CD && focus)); p.style.visibility = o < 0.01 ? 'hidden' : 'visible'; });
+  $('top').inert = intro.on;
+  rail.inert = intro.on;
+  $('intro').inert = !intro.on;
+  $('zback').tabIndex = focus || zoomK ? 0 : -1;
+  $('cue').tabIndex = intro.on || focus || zoomK || $('cue').classList.contains('off') ? -1 : 0;
+  $('more').tabIndex = $('more').classList.contains('on') ? 0 : -1;
   fixTick(dt);
   fEl.style.opacity = fe * tf; fEl.style.visibility = fe * tf < 0.01 ? 'hidden' : 'visible';
-  { const na = navOf(act); [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === na); bt.classList.toggle('past', k < na); }); }
+  { const na = navOf(act); [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === na); bt.classList.toggle('past', k < na); if (k === na) bt.setAttribute('aria-current', 'page'); else bt.removeAttribute('aria-current'); }); }
   if (!intro.on && cueY0 == null) cueY0 = scrollY; if (!cueGone && cueY0 != null && (Math.abs(scrollY - cueY0) > 8 || jump)) cueGone = true; cueEl.classList.toggle('off', cueGone || act >= N - 1);   /* the arrow is only an invitation: the first scroll or move puts it away for the visit */ { const PTS = [[0, 0], [1, 1], [2, 2], [CB - 1, 2], [CB, 3], [N - 1, 4]]; let q = 4; for (let k = 0; k < PTS.length - 1; k++) if (pe < PTS[k + 1][0]) { const a = PTS[k], b = PTS[k + 1]; q = a[1] + (b[1] - a[1]) * clamp((pe - a[0]) / (b[0] - a[0]), 0, 1); break; } rail.style.setProperty('--p', clamp(q / 4, 0, 1).toFixed(4)); }   /* the brass line runs dot to dot: the five dots are evenly spaced, so the fill follows them, and it rests on Side Projects while the three works are open */
   const near = !jump && Math.abs(pe - act) < 0.15 && !focus && fe < 0.2;
-  hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
+  hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); h.tabIndex = on ? 0 : -1; if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
   pullTick(W, H);
   $('hint').style.opacity = cv < 0.3 && !intro.on ? 1 : 0;
   scrim.style.opacity = fe; renderer.toneMappingExposure = 1 - 0.36 * fe;
@@ -3493,3 +3524,4 @@ if (SKIP) { boxS.mode = 'gone'; burst.done = true; binIn = 0; }   // and no box 
 requestAnimationFrame(frame);
 window.__watch = { railTest: (k) => { rl.force = true; pickStrap(k); }, brace: () => ({ k: +BRSH.k.toFixed(4), res: +BRSH.res.toFixed(4), a: +BRSH.a.toFixed(2), b: +BRSH.b.toFixed(2), zc: +BRSH.zc.toFixed(2), sag: +BRSH.sag.toFixed(2), L: BRSH.L.map((x) => +x.toFixed(2)), ph: [BRWP.ph[BRC.m - 1], BRWP.ph[BRC.m], BRWP.ph[BRC.m + 1], BRWP.ph[BRC.m + 2]].map((x) => +(x * 180 / Math.PI).toFixed(1)), gh: +GHU.uGhP.value.x.toFixed(3), ghost: STRAPS.engineering.objs[0].parts.filter((P) => P.g).length, nan: STRAPS.engineering.objs[0].parts.some((P) => !isFinite(P.m.position.y)) }), calf: () => ({ L: CALF.L, n: CALF.n, hole: CALF.hole, keeps: cKeep.map((K) => [+K.s.toFixed(2), +K.b0.toFixed(2)]) }), nato: () => ({ q: +NT.q.toFixed(4), st: RS.writing && RS.writing.state, bars: NT.bars, par: STRAPS.writing.natoG && STRAPS.writing.natoG.parent && STRAPS.writing.natoG.parent.type }), natoGap: () => NT.gap, slotAt: (k) => { const S = rl.slots[RJ.order.indexOf(k)], v = new THREE.Vector3(); S.piv.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }, railState: () => ({ now: strapNow, next: strapNext, swapT, rs: Object.assign({}, rs), st: Object.fromEntries(Object.entries(RS).map(([k, R]) => [k, R.state])), ppm: rl.ppm, s: rl.s, vis: rl.vis, ms: [rl.bakeMs, rl.furnMs], sw: rl.slots.map((S) => [+S.piv.rotation.z.toFixed(4), +S.ph.toFixed(4)]) }), railBtn: () => rl.btns.map((b) => { const r = b.getBoundingClientRect(); return [b.dataset.rail, r.left + r.width / 2, r.top + r.height * 0.4, r.width, r.height]; }), qr: (i) => { const q = QR.filter((x) => x.k === strapNow)[i]; q.t = 0; q.p.set(0, 0, 0); q.v.set((q.i ? -1 : 1) * 5, q.o.sy * HEAD[0] * 22, HEAD[1] * 22); }, qrAt: () => QR.filter((x) => x.k === strapNow).map((q) => { const v = new THREE.Vector3(); q.hit.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }), gem: (rx, ry, rz, s) => { const o = anchors['z-music']; gCase.add(o); o.position.set(0, -19.3, ZB + 3.5); ZTILT.music = [rx, ry, rz]; ZOOMS.music = s; pickInt('music'); }, throwBox, setHold: (x) => { if (jump) jump.hold = x; }, pose: () => [root.quaternion.x, root.quaternion.y, root.quaternion.z, root.quaternion.w, root.scale.x, root.position.x, root.position.y, SIDES[0].turn, SIDES[1].turn], zoomTune: (k, rx, ry, rz, s) => { ZTILT[k] = [rx, ry, rz]; ZOOMS[k] = s; pickInt(k); }, cur: () => ({ cur, sy: scrollY, total: total() }), plateHold: (ms) => { PL.hold = ms; }, upNow: (i) => { const bt = DIALS.upcycle.roll(i); upUnlocked(bt, false); return bt.name; }, fallAt: (t) => { fallHold = t >= 0; FALL.forEach((F) => { F.t = Math.max(0, t); }); return FALL.length; }, brCl: (v) => { BCL.hold = v; return [BCL.cl, BCL.fl, +BCL.gap.toFixed(2)]; }, sw: () => [+(rl.t - (rl.jt >= 0 ? rl.jt : rl.t)).toFixed(3)].concat(rl.slots.map((S) => +(S.piv.rotation.z * 180 / Math.PI).toFixed(3))), natoTw: () => [+(NT.tw * 180 / Math.PI).toFixed(1), +(NT.endDot || 0).toFixed(2)], sway: () => rl.slots.map((S) => [+(S.amp * 180 / Math.PI).toFixed(2), +(S.piv.rotation.z * 180 / Math.PI).toFixed(3)]), upRoll: (i) => { const bt = DIALS.upcycle.roll(i); WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(false); pickWay('upcycle'); return bt.name; }, talk: (n) => talkNudge(n), introState: () => ({ on: intro.on, open: intro.open, tries: intro.tries, need: intro.need, shaking: !!intro.shake, hint: $('i-open').textContent, sy: scrollY }), dbg: () => ({ cw: canvas.width, ch: canvas.height, ccw: canvas.clientWidth, cch: canvas.clientHeight, sw: stage.clientWidth, sh: stage.clientHeight, W, H, asp: camera.aspect, pr: renderer.getPixelRatio(), cur, sy: scrollY, bin: gBin.visible, binPos: gBin.position.toArray().map((x) => +x.toFixed(1)), binS: gBin.scale.x, box: gBox.visible, boxPos: gBox.position.toArray().map((x) => +x.toFixed(1)), mode: boxS.mode, binIn, up: upDone, C: [+boxS.C.x.toFixed(2), +boxS.C.y.toFixed(2)], v: [+boxS.v.x.toFixed(2), +boxS.v.y.toFixed(2)], th: +boxS.th.toFixed(3), hw: +RP.hw.toFixed(1), hh: +RP.hh.toFixed(1), yF: +RP.yF.toFixed(1), mouth: RP.mouth.toArray().map((q) => +q.toFixed(1)) }), jumpHold: (i, x) => { jumpTo(i); if (jump) jump.hold = x; }, introAt, recycleAt, nudge: (x, y) => { tx = x; ty = y || 0; down = { x: 0, y: 0, yaw: heroYaw, pitch: heroPitch, tx: x, ty: y || 0, hero: false, mouse: true }; }, swapAt: (T) => { swapT = T; swapHold = T >= 0; }, pickStrap, pickWay, jumpTo, openFocus, stepFocus, closeFocus, spin: (y, p) => { heroYaw = y; heroPitch = p || 0; hy = y; hp = p || 0; } };
 Object.assign(window.__watch, { work: () => ({ order: STOP.slice(), focus, seen: [...seenW], ch: +(scrollY / PITCH).toFixed(2), cur: +cur.toFixed(2) }), boxScr: () => toScreen(gBox.position), qr: (i) => { const q = QR.filter((x) => x.k === strapNow)[i]; q.t = 0; q.p.set(0, 0, 0); q.v.set((q.i ? -1 : 1) * 5, q.o.sy * HEAD[0] * 22, HEAD[1] * 22); }, qrAt: () => QR.filter((x) => x.k === strapNow).map((q) => { const v = new THREE.Vector3(); q.hit.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }), gem: (rx, ry, rz, s) => { const o = anchors['z-music']; gCase.add(o); o.position.set(0, -19.3, ZB + 3.5); ZTILT.music = [rx, ry, rz]; ZOOMS.music = s; pickInt('music'); }, throwBox, setHold: (x) => { if (jump) jump.hold = x; }, pose: () => [root.quaternion.x, root.quaternion.y, root.quaternion.z, root.quaternion.w, root.scale.x, root.position.x, root.position.y, SIDES[0].turn, SIDES[1].turn], zoomTune: (k, rx, ry, rz, s) => { ZTILT[k] = [rx, ry, rz]; ZOOMS[k] = s; pickInt(k); }, cur: () => ({ cur, sy: scrollY, total: total() }), upRoll: (i) => { const bt = DIALS.upcycle.roll(i); WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(false); pickWay('upcycle'); return bt.name; }, talk: (n) => talkNudge(n), introState: () => ({ on: intro.on, open: intro.open, tries: intro.tries, need: intro.need, shaking: !!intro.shake, hint: $('i-open').textContent, sy: scrollY }), dbg: () => ({ cw: canvas.width, ch: canvas.height, ccw: canvas.clientWidth, cch: canvas.clientHeight, sw: stage.clientWidth, sh: stage.clientHeight, W, H, asp: camera.aspect, pr: renderer.getPixelRatio(), cur, sy: scrollY, bin: gBin.visible, binPos: gBin.position.toArray().map((x) => +x.toFixed(1)), binS: gBin.scale.x, box: gBox.visible, boxPos: gBox.position.toArray().map((x) => +x.toFixed(1)), mode: boxS.mode, binIn, up: upDone, C: [+boxS.C.x.toFixed(2), +boxS.C.y.toFixed(2)], v: [+boxS.v.x.toFixed(2), +boxS.v.y.toFixed(2)], th: +boxS.th.toFixed(3), hw: +RP.hw.toFixed(1), hh: +RP.hh.toFixed(1), yF: +RP.yF.toFixed(1), mouth: RP.mouth.toArray().map((q) => +q.toFixed(1)) }), jumpHold: (i, x) => { jumpTo(i); if (jump) jump.hold = x; }, introAt, recycleAt, nudge: (x, y) => { tx = x; ty = y || 0; down = { x: 0, y: 0, yaw: heroYaw, pitch: heroPitch, tx: x, ty: y || 0, hero: false, mouse: true }; }, swapAt: (T) => { swapT = T; swapHold = T >= 0; }, pickStrap, pickWay, jumpTo, openFocus, stepFocus, closeFocus, spin: (y, p) => { heroYaw = y; heroPitch = p || 0; hy = y; hp = p || 0; } });
+

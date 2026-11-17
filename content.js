@@ -30,7 +30,7 @@ window.CONTENT = {
 
   /* ---- the two quiet lines under the name on the first screen. tagline is set in the
           body type, education in the small mono labels. Leave either empty to hide it. */
-  tagline: "Strategy and Consulting",
+  tagline: "Strategy and Litigation Consulting",
   education: "UCLA · Applied Math + Computing",
 
   /* ---- contact. resume: put the file in this folder (for example resume.pdf)
@@ -51,7 +51,7 @@ window.CONTENT = {
           for no link. */
   jobs: {
     consulting: {
-      years: "2023 to now",
+      years: "2022 to now",
       chip: "Consulting",
       place: "Analysis Group, San Francisco",
       title: "Economic consulting",
@@ -59,27 +59,27 @@ window.CONTENT = {
       linkText: "My Analysis Group profile",
       link: "https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/",
     },
-    engineering: {
-      years: "[years]",
-      chip: "Engineering",
-      place: "[EMPLOYER, CITY]",
-      title: "Software engineering",
-      text: "[ONE LINE ON WHAT YOU BUILT]",
-      linkText: "",
-      link: "",
-    },
     quant: {
-      years: "[years]",
-      chip: "Quant",
-      place: "[EMPLOYER, CITY]",
+      years: "2021",
+      chip: "Quant Researcher",
+      place: "Arch Capital, Remote",
       title: "Quant research",
       text: "[ONE LINE ON WHAT YOU MODELED]",
       linkText: "",
       link: "",
     },
+     engineering: {
+      years: "2020",
+      chip: "Software Engineer",
+      place: "Automation Anywhere, Remote",
+      title: "Software engineering",
+      text: "[ONE LINE ON WHAT YOU BUILT]",
+      linkText: "",
+      link: "",
+    },
     banking: {
-      years: "[years]",
-      chip: "Banking",
+      years: "2019",
+      chip: "Investment Banking",
       place: "[EMPLOYER, CITY]",
       title: "Investment banking",
       text: "[ONE LINE ON THE DEALS OR COVERAGE]",
@@ -87,10 +87,10 @@ window.CONTENT = {
       link: "",
     },
     writing: {
-      years: "2019",
+      years: "2018",
       chip: "Journalism",
       place: "Wrist Review",
-      title: "Watch journalism",
+      title: "Independent Watch Blogger",
       text: "My own blog and a Wrist Review byline, plus a lot of ghostwriting.",
       linkText: "Read them on Wrist Review",
       link: "https://wristreview.com/?s=NIKHIL+KURMALA",
@@ -99,7 +99,7 @@ window.CONTENT = {
 
   /* ---- the order the straps hang on the board, left to right: newest job first.
           Use the names above (consulting, engineering, quant, banking, writing). */
-  jobOrder: ["consulting", "engineering", "quant", "banking", "writing"],
+  jobOrder: ["consulting", "quant", "engineering", "banking", "writing"],
 
   /* ---- Projects (moonphase). Add, remove or reorder the blocks freely.
           The button only shows when link has an address in it.
@@ -110,19 +110,19 @@ window.CONTENT = {
           Until a project has one, its screen on the dial says "Work in progress". */
   projects: [
     {
-      title: "Notch",
+      title: "Notch-y",
       text: "A Mac notch app with agents built in. Drop in a resume or an article and get a summary.",
       linkText: "See it",
       link: "",
     },
     {
-      title: "Overflow clone",
+      title: "Whisper",
       text: "[ONE OR TWO LINES ON WHAT IT DOES]",
       linkText: "See it",
       link: "",
     },
     {
-      title: "On device agents",
+      title: "The Council",
       text: "Open source models running locally, on my own data.",
       linkText: "See it",
       link: "",
@@ -232,9 +232,8 @@ window.CONTENT = {
     employerLink: "https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/",
     city: "San Francisco",
     includedInBox: "Python, PySpark, SQL, Databricks, Azure OpenAI",
-    origin: "Singapore. B.S. Applied Mathematics, UCLA, 2023.",
-    importDuties: "A standard H-1B transfer. No lottery, any time of year, and no $100,000 fee for a transfer within the US.",
-    papers: "Current H-1B, in its first year, so plenty of time on the clock. I can start as soon as the transfer is filed.",
+    origin: "Singapore",
+    importDuties: "H-1B transfer",
     /* The Full Specifications rows shown are Name, Tools Included (includedInBox), Origin,
        Price, Import Duties (importDuties) and Contact (from contact above). papers is not
        shown at the moment (the Box and papers row is hidden), kept here in case it comes back. */

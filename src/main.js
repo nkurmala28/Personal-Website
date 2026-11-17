@@ -2883,7 +2883,23 @@ anchor('i-arm', gBr, 0, 0, 0); anchor('arm-a', gBr, 0, 0, 0); anchor('arm-b', gB
   hd.addEventListener('pointermove', (e) => { if (!armDrag) return; if (Math.hypot(e.clientX - armDrag.x, e.clientY - armDrag.y) > 5) armDrag.moved = true; const A = scr('arm-a'), B = scr('arm-b'), ux = B[0] - A[0], uy = B[1] - A[1]; armDrag.t = clamp(((e.clientX - A[0]) * ux + (e.clientY - A[1]) * uy) / (ux * ux + uy * uy), -0.25, 1.1); });
   const end = () => { if (!armDrag) return; const d = armDrag; armDrag = null; hd.classList.remove('grab'); if (d.moved ? d.t < 0.45 : !d.was) { setNeedle(true); buzz(12, true); } else setNeedle(false); };
   hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end); } const TONE0 = gTone.rotation.z, NOW = '[Your last played song]';
-function setNeedle(on) { needle = on && selInt === 'music'; $('int-needle').textContent = needle ? 'Lift the needle' : 'Drop the needle'; $('int-now').textContent = needle ? 'Now playing: ' + NOW : 'Take the tonearm and drop the needle on the record.';
+/* the record player's own records: tracks listed in content.js (music.tracks) play when the needle drops, one after another, through the
+   site's volume. Each needle drop moves on to the next track. With no tracks listed, the needle only crackles */
+const TRACKS = (((CT.interests || {}).music || {}).tracks || []).filter((t) => t && t.file); let trackI = -1, trackEl = null, trackSrc = null, trackGain = null;
+function trackPlay(on) { try {
+  if (!on) { if (trackEl) trackEl.pause(); return; }
+  if (!TRACKS.length || muted) return; audioOn(); if (!actx) return;
+  if (!trackEl) { trackEl = new Audio(); trackEl.preload = 'none'; trackEl.crossOrigin = 'anonymous'; trackSrc = actx.createMediaElementSource(trackEl); trackGain = actx.createGain(); trackGain.gain.value = 0.9; trackSrc.connect(trackGain); trackGain.connect(master);
+    trackEl.addEventListener('ended', () => { if (needle) { trackI = (trackI + 1) % TRACKS.length; trackLoad(); trackEl.play().catch(() => {}); } }); }
+  trackI = (trackI + 1) % TRACKS.length; trackLoad(); trackEl.play().catch(() => {});
+} catch (e) {} }
+function trackLoad() { const t = TRACKS[trackI]; trackEl.src = t.file; nowShow(); }
+function nowShow() { const el = $('int-now'), t = TRACKS[trackI]; if (!el) return;
+  if (!needle) { el.textContent = 'Take the tonearm and drop the needle on the record.'; return; }
+  if (!t) { el.textContent = 'Now playing: ' + NOW; return; }
+  el.replaceChildren(); if (t.cover) { const im = document.createElement('img'); im.src = t.cover; im.alt = ''; im.className = 'npc'; el.appendChild(im); }
+  const sp = document.createElement('span'); sp.textContent = 'Now playing: ' + (t.title || 'Untitled') + (t.artist ? ', ' + t.artist : ''); el.appendChild(sp); }
+function setNeedle(on) { const was = needle; needle = on && selInt === 'music'; if (needle !== was) trackPlay(needle); $('int-needle').textContent = needle ? 'Lift the needle' : 'Drop the needle'; nowShow();
   if (needle) { audioOn(); ping({ f: 180, q: 1, dur: 0.05, vol: 0.09, sharp: 3, thump: 70 }); if (actx && !muted && !crackle) try { const sr = actx.sampleRate, n = sr * 2, b = actx.createBuffer(1, n, sr), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * 0.012 + (Math.random() < 0.0007 ? (Math.random() * 2 - 1) * 0.5 : 0);
       const s = actx.createBufferSource(), g = actx.createGain(), lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200; s.buffer = b; s.loop = true; g.gain.value = 0.0001; g.gain.exponentialRampToValueAtTime(0.5, actx.currentTime + 0.4); s.connect(lp).connect(g).connect(master); s.start(); crackle = { s, g }; } catch (e) {} }
   else if (crackle) { try { crackle.g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 0.25); crackle.s.stop(actx.currentTime + 0.3); } catch (e) {} crackle = null; } }

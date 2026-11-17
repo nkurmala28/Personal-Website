@@ -205,6 +205,15 @@ window.CONTENT = {
          playlist's share link (Share, then Copy link to playlist). The playlist
          must be public. Leave it empty "" to hide the player. */
       spotify: "https://open.spotify.com/playlist/5Ke943duOiS4zGLe7CLwE1",
+      /* the songs the record player plays when the needle drops, in order.
+         Put the MP3 files and their cover images in the music folder, then add
+         one line per song, for example:
+           { file: "music/song.mp3", title: "Song name", artist: "Artist", cover: "music/song.jpg" },
+         cover is optional. Each needle drop moves on to the next song.
+         This page is public: only add songs you have the right to share
+         (your own mixes, or tracks licensed for reuse). */
+      tracks: [
+      ],
     },
   },
 

@@ -27,7 +27,7 @@
    ============================================================================ */
 window.CONTENT = {
   // Set to the deployed shared leaderboard API URL (see leaderboard/README.md).
-  soccerLeaderboardUrl: "",
+  soccerLeaderboardUrl: "https://nikhil-soccer-leaderboard.nkurmala.workers.dev",
 
 
   name: "Nikhil Kurmala",

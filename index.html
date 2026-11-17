@@ -566,6 +566,40 @@ body.zoomed #dial-picker *{pointer-events:none!important}
 #dial-picker.unlocked .unlock-ring rect{animation:dial-orbit 1.6s linear 4}
 @keyframes dial-orbit{to{stroke-dashoffset:-100}}
 @media(prefers-reduced-motion:reduce){.music-scope input,.music-scope input::before{transition:none}#dial-picker.unlocked .unlock-ring rect{animation:none;stroke-dasharray:none}}
+
+/* Mobile: the original 3D strap board slides in with its own touch targets. */
+#strap-drawer-tab{display:none}
+#strap-drawer{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;color:var(--ink);background:transparent;overflow:hidden}
+#strap-drawer::backdrop{background:transparent}
+.strap-drawer-shade{position:absolute;inset:0 min(92vw,560px) 0 0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .28s}
+.strap-drawer-surface{position:absolute;right:0;top:0;bottom:0;width:min(92%,560px);display:flex;flex-direction:column;border-left:1px solid var(--line);transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.7,.3,1)}
+#strap-drawer.open .strap-drawer-surface{transform:translateX(0)}
+#strap-drawer.open .strap-drawer-shade{opacity:1}
+/* The board is drawn by the existing WebGL canvas through this clear window. */
+
+.strap-drawer-surface header,.strap-drawer-surface footer{background:#0c1016}
+.strap-drawer-surface header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:calc(32px + env(safe-area-inset-top)) 20px 22px;min-height:clamp(92px,22svh,190px)}
+.strap-drawer-surface h2{font:400 38px/1 'Instrument Serif',serif;margin:0}
+.strap-drawer-surface p{font-size:13px;color:var(--mut);margin:8px 0 0}
+#strap-drawer-close{display:grid;place-items:center;align-self:flex-start;width:44px;height:44px;background:none;border:1px solid var(--line);border-radius:50%;font-size:26px;cursor:pointer}
+#strap-drawer-board{flex:none}
+#strap-drawer #s-rail{height:clamp(180px,44svh,340px);min-height:0;max-width:none;width:100%;margin:0;padding:0;grid-auto-columns:minmax(0,1fr)}
+#strap-drawer .rail3d .rj{font-size:15px;min-height:2.2em}
+#strap-drawer .rail3d .ry{font-size:9px;letter-spacing:0}
+.strap-drawer-surface footer{flex:1;padding:24px 20px calc(24px + env(safe-area-inset-bottom));font-size:13px;color:var(--mut)}
+.strap-drawer-surface footer span{color:var(--brass);margin-right:6px}
+body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;transition:none!important}
+@media(max-width:800px){
+  .panel.railed{top:50%;max-height:calc(50% - var(--rail) - 8px);padding-top:20px;background:linear-gradient(180deg,rgba(12,16,22,.95),rgba(12,16,22,.98));gap:0}
+  .panel.railed>.part{min-height:44px;padding-right:100px;display:flex;align-items:center}
+  .panel.railed .worn{margin-top:0}
+  .panel.railed .plate{margin-top:18px}
+  #strap-drawer-tab{position:absolute;right:0;top:16px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 13px;border:1px solid var(--brass);border-right:0;border-radius:8px 0 0 8px;background:#151b22;color:var(--brass);font:500 12px 'JetBrains Mono',monospace;cursor:pointer;margin-right:0}
+  #strap-drawer-tab span{font-size:22px;line-height:1}
+  #strap-drawer-tab:disabled{opacity:.5;cursor:wait}
+}
+@media(prefers-reduced-motion:reduce){.strap-drawer-surface,.strap-drawer-shade{transition:none}}
+
 </style>
 </head>
 <body>
@@ -703,7 +737,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.20261117-interactions.js"></script>
+<script src="./bundle.20261117-mobile-drawer.js"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

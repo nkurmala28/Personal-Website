@@ -109,7 +109,8 @@ body.zoomed .hot[data-int].sel,body.zoomed #rail,body.zoomed #top .ways{opacity:
 #int-ph{display:flex;gap:8px;flex-wrap:wrap}
 #int-ph:empty{display:none}
 #int-ph img{width:112px;height:112px;object-fit:cover;border-radius:8px}
-#int-back{align-self:flex-start;margin-top:4px}
+#int-back{align-self:flex-start;margin-top:32px}
+#int-d[hidden] + #int-back{display:none}   /* the way back sits below the story, clear of its pink rule */
 #arm,#pan,#kick{touch-action:none;cursor:grab}#arm.grab,#pan.grab,#kick.grab{cursor:grabbing}
 body:not(.pitch) #kick{display:none}
 #kick.busy{opacity:0;pointer-events:none}
@@ -562,7 +563,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <p class="prov">Singapore <span>→</span> UCLA <span>→</span> San Francisco</p>
       <div class="igrid"><button data-interest="soccer" aria-label="Soccer"><span>01</span>Soccer<i aria-hidden="true">↗</i></button><button data-interest="cooking"><span>02</span>Cooking<i aria-hidden="true">↗</i></button><button data-interest="snow"><span>03</span>Snowboarding<i aria-hidden="true">↗</i></button><button data-interest="music"><span>04</span>Music<i aria-hidden="true">↗</i></button></div>
       <p id="int-hint">Pick a part of the movement to get to know me.</p>
-      <div class="detail" id="int-d" style="min-height:0" hidden><div class="part" id="int-k"></div><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><p id="int-score" hidden></p><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><button class="btn sm" id="int-needle">Drop the needle</button></div><button class="btn sm" id="int-back">Back to the movement</button></div>
+      <div class="detail" id="int-d" style="min-height:0" hidden><div class="part" id="int-k"></div><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><p id="int-score" hidden></p><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><button class="btn sm" id="int-needle">Drop the needle</button></div></div><button class="btn sm" id="int-back">Back to the movement</button>
     </section>
     <section class="panel" data-ch="7">
       <div class="part eyebrow">04 / Contact</div>

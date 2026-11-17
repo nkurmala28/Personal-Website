@@ -2471,7 +2471,8 @@ function mechanism(setW) {
   const tt = ((Math.floor(b) + step) / BPS) % 43200; secNow = tt % 60;
   const aH = tt / 43200 * TAU, hr = aH + (((H1010 - aH + Math.PI) % TAU + TAU) % TAU - Math.PI) * setW;   // rolls the short way round to 10:10
   if (focus === 'sec') secDisp += (secSteps * TAU / DATA.sec.items.length - secDisp) * (snap ? 1 : 0.3); else secDisp = secNow / 60 * TAU;
-  hSec.rotation.z = -secDisp; hHour.rotation.z = -hr; hMin.rotation.z = -hr * 12; dialTick(t, hr);
+  hSec.visible = !mobileViewport.matches;
+  if (hSec.visible) hSec.rotation.z = -secDisp; hHour.rotation.z = -hr; hMin.rotation.z = -hr * 12; dialTick(t, hr);
   // each tick is booked on the audio clock a little ahead, for the instant the balance passes the middle of its swing, so frame hiccups never smear the rhythm
   if (actx && actx.state === 'running' && !muted && !document.hidden && !focus && !intro.on && !needle && zoomK !== 'cooking' && zoomK !== 'snow' && zoomK !== 'soccer') { if (nextBeat <= b) nextBeat = Math.floor(b) + 1; while (nextBeat / BPS - t < 0.12) { snd.tick(nextBeat % 2, nextBeat / BPS - t, tickGain); nextBeat++; } } else nextBeat = 0;
   const pull = Math.sin(Math.PI * setW); gCrown.position.x = 19.7 + 1.3 * pull; gCrown.rotation.x = hr * 12 * (pull > 0.001 ? 1 : 0);

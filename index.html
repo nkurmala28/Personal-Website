@@ -259,6 +259,51 @@ body.focused #focus>*{pointer-events:auto}
 .stops button.seen::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--brass);margin-left:7px;vertical-align:2px}
 #hint{position:absolute;left:30%;transform:translateX(-50%);bottom:26px;font:500 12px 'JetBrains Mono',monospace;color:var(--mut);transition:opacity .4s;pointer-events:none}
 #more{display:none}
+/* the strap display (RAIL in main.js): an empty block the 3D display is drawn into, one button per strap over it, each strap's job and years set small at its foot.
+   The strap on the watch is marked by a short brass rule over its name. Without RAIL none of this applies */
+.panel.railed{gap:12px}
+.panel.railed>.chips{display:none}
+.rail3d{position:relative;flex:none;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);height:clamp(190px,calc(100vh - 480px),400px);max-width:32em;margin:4px 0 0}
+.rail3d button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;padding:0 2px 2px;text-align:center;min-height:44px;-webkit-tap-highlight-color:transparent}
+.rail3d button::before{content:"";flex:none;width:0;height:1px;margin:0 0 8px;background:var(--brass);transition:width .45s ease}
+.rail3d button:focus-visible{outline:1.5px solid var(--brass);outline-offset:0;border-radius:0}   /* the whole column, strap and name, is the button */
+.rail3d .rj{font:400 19px/1.05 'Instrument Serif',Georgia,serif;color:var(--mut);letter-spacing:.005em;white-space:nowrap;transition:color .3s}
+.rail3d .ry{font:400 10px/1.4 'JetBrains Mono',monospace;color:var(--mut);opacity:.6;letter-spacing:.03em;white-space:nowrap;transition:color .3s,opacity .3s}
+.rail3d button:hover .rj{color:var(--ink)}
+.rail3d button:not([aria-pressed=true]):hover::before{width:10px;background:rgba(238,241,244,.45)}
+.rail3d button[aria-pressed=true]::before{width:20px}
+.rail3d button[aria-pressed=true] .rj{color:var(--ink)}
+.rail3d button[aria-pressed=true] .ry{color:var(--brass);opacity:1}
+.partrow{display:flex;align-items:baseline;justify-content:space-between;gap:16px;max-width:32em}
+.panel.railed .detail{min-height:0}
+/* the job, set like a catalogue plate: the title, the material in italic under it, the place and the years over a hairline, a paragraph, and a plain link */
+.plate{border:0;padding:0;gap:0;min-height:0;max-width:none}
+.plate .pl1{display:flex;flex-direction:column}
+#s-title{font:400 54px/1 'Instrument Serif',serif;letter-spacing:-.005em;color:var(--ink)}
+#s-name{font:italic 400 24px/1.15 'Instrument Serif',serif;color:var(--mut);margin-top:4px}
+#s-meta{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:20px;padding-bottom:11px;border-bottom:1px solid rgba(238,241,244,.14)}
+#s-place{font:400 15px/1.2 'Inter Tight',sans-serif;color:rgba(238,241,244,.78)}
+#s-years{margin-left:auto;font:400 12px/1 'JetBrains Mono',monospace;color:var(--brass);white-space:nowrap}
+#s-body{font:400 17px/1.58 'Inter Tight',sans-serif;color:rgba(238,241,244,.9);margin-top:15px;max-width:none}
+.plate #s-link{margin-top:16px;border:0;border-radius:0;padding:0;background:none;font:400 15px/1.3 'Inter Tight',sans-serif;color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-decoration-color:rgba(220,184,114,.55);text-underline-offset:5px}
+.plate #s-link:hover{color:var(--brass);text-decoration-color:var(--brass)}
+.plate #s-link:focus-visible{outline:1.5px solid var(--brass);outline-offset:4px;border-radius:0}
+/* desktop: the column runs from 57vw to 96.5vw, centred in the right half and clear of the watch. The heading and its line sit small at the top, the plate below them, and the board stands at the foot,
+   its names ending 30px above the bottom (so a longer or shorter job never moves the board) */
+@media (min-width:801px){
+  .panel.railed{justify-content:flex-start;gap:0;left:-3vw;padding:54px 3.5vw 30px 0}
+  .panel.railed .partrow{height:22px;align-items:center;max-width:none}
+  .panel.railed>h2{font-size:38px;line-height:1;letter-spacing:-.005em;color:rgba(238,241,244,.84);margin-top:max(2px,calc(10vh - 76px))}
+  .panel.railed>p{font:400 15px/1.4 'Inter Tight',sans-serif;color:var(--mut);margin-top:5px}
+  .panel.railed .plate{margin-top:3.2vh;order:1}.panel.railed .rail3d{order:2}
+  .panel.railed .rail3d{margin:auto 0 0;padding:0 5%;height:clamp(240px,40vh,390px);max-width:none;grid-auto-columns:minmax(85px,1fr)}   /* the names inset a little, so the end straps hang clear of the board's edges */
+  .panel.railed .rail3d .rj{font-size:17px}
+}
+/* shorter screens: the line under the heading goes first and the plate moves up; then the type steps down; below about 660 the column scrolls */
+@media (min-width:801px) and (max-height:780px){.panel.railed>p{display:none}.panel.railed .plate{margin-top:14px}}
+@media (min-width:801px) and (max-height:740px){.panel.railed>h2{font-size:30px}#s-title{font-size:44px}#s-body{font-size:16px}}
+@media (min-width:801px) and (max-height:659px){.panel.railed{overflow-y:auto;scrollbar-width:none}.panel.railed .rail3d{margin-top:18px}}
+@media (prefers-reduced-motion:reduce){.rail3d button::before,.rail3d .rj,.rail3d .ry{transition:none}}
 /* ---------- phones ----------
    One compact row on top, the watch in whatever the text leaves, the text as a sheet standing on a slim chapter bar.
    --tb is the top row, --rail the chapter bar; both include the safe areas, so nothing hides behind a notch or a home bar */
@@ -316,6 +361,22 @@ body.focused #focus>*{pointer-events:auto}
   .chips button::after{content:"";position:absolute;inset:-3px 0}
   .panel[data-ch="1"] .chips{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;margin:0 calc(-1*var(--gx));padding:2px var(--gx);-webkit-mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 34px),transparent)}
   .detail{min-height:0;gap:6px;padding:2px 0 2px 14px}
+  /* strap rail: the sheet keeps a clear window where the rail hangs (main.js sets --rh0 and --rh1, its top and bottom in the sheet) */
+  .panel.railed{top:calc(28vh - 34px);max-height:none;padding-top:46px;gap:0;background:linear-gradient(180deg,rgba(12,16,22,0),rgba(12,16,22,.92) 34px,rgba(12,16,22,.96) calc(var(--rh0,100%) - 22px),rgba(12,16,22,0) var(--rh0,100%),rgba(12,16,22,0) var(--rh1,100%),rgba(12,16,22,.96) calc(var(--rh1,100%) + 16px))}
+  .panel.railed .partrow{height:14px;align-items:center}
+  .panel.railed>h2{font-size:30px;line-height:1.05;margin-top:6px}
+  .panel.railed>p{font-size:14.5px;line-height:1.4;color:var(--mut);margin-top:6px}
+  .rail3d{flex:0 1 214px;height:214px;min-height:150px;max-width:none;margin:10px 0 0}   /* drawn 174 high with 40 for the names; on a short phone it gives way down to 150 before the sheet scrolls */
+  .plate{margin-top:14px}
+  .plate .pl1{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:8px}
+  #s-title{font-size:27px}
+  #s-name{font-size:17px;line-height:1;margin-top:0}
+  #s-meta{margin-top:11px;padding-bottom:8px}
+  #s-place{font-size:14px}#s-years{font-size:11px}
+  #s-body{font-size:15px;line-height:1.5;margin-top:10px}
+  .plate #s-link{margin-top:0;padding:12px 0 13px;font-size:15px;align-self:flex-start}
+  .rail3d .rj{font-size:14.5px}.rail3d .ry{font-size:9px;letter-spacing:0}.rail3d button::before{margin-bottom:6px}.rail3d button[aria-pressed=true]::before{width:16px}
+  .partrow{max-width:none}  .panel.railed .detail{min-height:0}
   .btn.sm{padding:11px 16px;font-size:14px}
   .rows div{padding:7px 0}
   .rows button{padding:9px 0;min-height:44px}
@@ -363,6 +424,8 @@ body.focused #focus>*{pointer-events:auto}
   #toast{top:calc(var(--tb) + 10px);white-space:normal;width:max-content;max-width:86%;text-align:center}
   #nudge{padding:22px 20px}#nudge p{font-size:23px}#nudge .btn.sm{min-height:44px}
 }
+/* a short phone: the line under the heading goes first (then the display gives way to its minimum, then the sheet scrolls) */
+@media (max-width:800px) and (max-height:780px){.panel.railed>p{display:none}}
 @media (max-width:374px){
   :root{--gx:16px}
   #top{gap:7px}#top .ways{gap:7px}#top .ways button{width:21px;height:21px}
@@ -378,7 +441,7 @@ body.focused #focus>*{pointer-events:auto}
 try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0); addEventListener('pageshow', function () { if (document.body.classList.contains('intro')) scrollTo(0, 0); }); } catch (e) {}   // a reload starts at the top, where the box is: never back on the section you left
 (function () { var b = document.body, h = location.hash;
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (h.indexOf('nointro') < 0 && (h.indexOf('intro') > -1 || (!reduce && h.indexOf('#snap') !== 0))) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
+  if (!window.STRAPSKIP && h.indexOf('nointro') < 0 && (h.indexOf('intro') > -1 || (!reduce && h.indexOf('#snap') !== 0))) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
 </script>
 <div id="track">
 <div id="stage">
@@ -414,7 +477,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <div class="chips">
         <button data-strap="consulting">Consulting</button><button data-strap="engineering">Engineering</button><button data-strap="quant">Quant</button><button data-strap="banking">Banking</button><button data-strap="writing">Journalism</button>
       </div>
-      <div class="detail" style="min-height:0"><div class="part" id="s-name"></div><h3 id="s-title"></h3><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
+      <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3><div id="s-name"></div></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
     </section>
     <section class="panel" data-ch="2">
       <div class="part">Side projects</div>
@@ -477,7 +540,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
   document.querySelector('#load .sec').style.setProperty('--sd', -s + 's'); })();
 /* underneath, a departures board asks the question. Each letter flips through a few others before it lands, like the real thing */
 (function () { var W = ['LOVE', 'HIRE', 'FRIEND', 'INVITE'], HOLD = [1500, 1400, 700], BLANK = 2000, N = 6, AB = 'ABCDEFGHIJKLMNOPRSTUWY', board = document.getElementById('flap'), cells = [], reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (location.hash.indexOf('#snap') === 0 || location.hash.indexOf('nointro') > -1) { window.__flapEnd = 0; }
+  if (location.hash.indexOf('#snap') === 0 || location.hash.indexOf('nointro') > -1 || window.STRAPSKIP) { window.__flapEnd = 0; }
   function half(cls, ch) { var h = document.createElement('div'); h.className = 'h ' + cls; var sp = document.createElement('span'); sp.textContent = ch; h.appendChild(sp); return h; }
   for (var i = 0; i < N; i++) { var c = document.createElement('div'); c.className = 'fc'; c.ch = ' '; c.appendChild(half('t', ' ')); c.appendChild(half('b', ' ')); board.appendChild(c); cells.push(c); }
   function show(c, ch) { c.ch = ch; c.children[0].firstChild.textContent = ch; c.children[1].firstChild.textContent = ch; }
@@ -507,6 +570,6 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.b4d58406.js"></script>
+<script src="./bundle.08a82856.js"></script>
 </body>
 </html>

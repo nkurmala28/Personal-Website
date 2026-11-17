@@ -1,6 +1,18 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
+function watchBootFailed(error) {
+  const message = document.body.classList.contains('nogl') ? 'This browser couldn’t start the 3D watch. Check that WebGL is available, then try again.' : undefined;
+  if (window.__watchBoot) window.__watchBoot.fail(message); console.error(error);
+}
+async function initWatch() {
+const afterInit = [];
+// Yield after each real build stage so cached loads also paint the loader before heavy work.
+async function bootYield(label) {
+  if (window.__watchBoot && label) window.__watchBoot.stage(label);
+  await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+}
+await bootYield('Winding up…');
 const TAU = Math.PI * 2, rad = (d) => d * Math.PI / 180;
 const lerp = (a, b, t) => a + (b - a) * t, clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const $ = (id) => document.getElementById(id);
@@ -42,6 +54,7 @@ const glow = new THREE.Mesh(new THREE.PlaneGeometry(520, 520), new THREE.MeshBas
 glow.position.z = -160; glow.renderOrder = -10; scene.add(glow);
 const root = new THREE.Group(); scene.add(root);
 
+await bootYield('Finishing the case…');
 /* ---------- layers and materials ---------- */
 const ORDER = ['crystal', 'hands', 'dial', 'case', 'mov', 'bridges', 'rotor', 'back', 'strap'];
 const LAY = {}; ORDER.forEach((n) => { LAY[n] = { g: new THREE.Group(), mats: [], meshes: [], o: 1 }; });
@@ -334,6 +347,7 @@ const gCrown = new THREE.Group(); gCrown.position.set(19.7, 0, ZB + 3.5); gCase.
 const glassP = { color: 0x11131d, metalness: 1, roughness: 0.02, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide };
 add(LAY.crystal.g, lathe([[0, ZTOP], [14.6, ZTOP - 0.06], [15.7, ZTOP - 0.2], [16.1, ZTOP - 0.6], [16.2, ZB + 6.4], [0, ZB + 6.4]], 128), M('crystal', glassP));
 
+await bootYield('Setting the dial…');
 /* ---------- dial: five dial types, not five colours ---------- */
 const gDial = LAY.dial.g;
 const BLUED = 0x1c2f8c, RHOD = 0xeceef0, GOLD = 0xe3bd6a;
@@ -808,6 +822,7 @@ DIALS.upcycle = (() => { const g = new THREE.Group(); gDial.add(g); g.visible = 
     wear(mSP, { map: secTrack('#e9edf0') });
   } }; })();
 
+await bootYield('Building the movement…');
 /* ---------- movement (local +z points to the caseback) ---------- */
 const gMov = LAY.mov.g, gBr = LAY.bridges.g, gRot = LAY.rotor.g; gMov.rotation.y = Math.PI;
 const mov = new THREE.Group(); mov.position.z = -MZ; gMov.add(mov); mov.add(gBr); mov.add(gRot);
@@ -1317,6 +1332,7 @@ add(gBack, turned([[14.6, ZB - 0.02], [16.0, ZB - 0.02], [16.0, ZB - 1.2], [15.5
 add(gBack, new THREE.RingGeometry(RI, RO, 160), mBackFace, 0, 0, ZBACK - 0.02).rotation.y = Math.PI;
 add(gBack, new THREE.CircleGeometry(13.05, 96), M('back', Object.assign({}, glassP, { color: 0x090b10 })), 0, 0, ZB - 2.25).rotation.y = Math.PI;
 
+await bootYield('Fitting the straps…');
 /* ---------- straps: one watch, many jobs ---------- */
 const RAIL = true;   // the straps wait on a pegboard beside the watch. false brings back the row of chips
 let natoP = 1;
@@ -1785,7 +1801,7 @@ function braceTick(dt) { const o = STRAPS.engineering.objs[0], U = GHU.uGhP.valu
   const mesh = sn.natoMesh; if (backN !== !!sn.gOn) { sn.gOn = backN; mesh.material = backN ? [sn.matG[0], sn.matG[0], sn.matG[1]] : [sn.mat, sn.mat, sn.matEnd]; sn.hw.fold.material = backN ? sn.matG[1] : sn.matEnd; }
   if (backN) sn.matG.forEach((g) => { const x = g.userData.src; g.opacity = LAY.strap.o; g.depthWrite = true; if (g.map !== x.map) { g.map = x.map; g.normalMap = x.normalMap; g.roughnessMap = x.roughnessMap; g.needsUpdate = true; } g.color.copy(x.color); }); }
 seed = 77;   // leave the shared random sequence where the dial expects it
-dress(STRAPS.consulting); { const rest = Object.values(STRAPS), idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump || performance.now() - (window.__act || 0) < 3000) { setTimeout(next, 700); return; } const st = rest.find((q) => q.maps && !q.dressed); if (st) { dress(st); idle(next); } }; setTimeout(() => idle(next), 1200); }
+dress(STRAPS.consulting); { const rest = Object.values(STRAPS), idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump || performance.now() - (window.__act || 0) < 3000) { setTimeout(next, 700); return; } const st = rest.find((q) => q.maps && !q.dressed); if (st) { dress(st); idle(next); } }; afterInit.push(() => setTimeout(() => idle(next), 1200)); }
 let pendTint = null, tintHold = false, strapNow = 'consulting', strapNext = null, swapT = -1, swapHold = false; STRAPS[strapNow].objs.forEach((o) => { o.obj.visible = true; });
 /* the leather takes a new colour only when the strap tool has it off the watch: a dial that brings its own leather asks for it here, and the swap fits it */
 function tintNow() { if (pendTint == null) return; const sc = STRAPS.consulting; sc.mat.color.setHex(pendTint); sc.matEnd.color.setHex(pendTint); pendTint = null; }
@@ -1997,8 +2013,9 @@ function keepTick(st) { const o = KEEPS[strapNow]; if (!o || !cKeep.length) retu
   if (strapNow !== 'consulting') keepTick.away = true; if (!st.km) { if (!snap && !keepTick.away) return; keepMat(st, o); }   /* the strap the page opens on waits for idle time; one picked later is baked as it is fitted */
   st.km.color.copy(st.mat.color); if (st.nap) napSheen(st.km.sheenColor, st.mat.color); cKeep.forEach((K) => { if (K.m.material !== st.km) K.m.material = st.km; }); }
 /* and in idle time once the box is open, starting with the one on the watch: small enough not to wait for the visitor to sit still, as the straps do */
-{ const idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump) { setTimeout(next, 700); return; } const k = [strapNow].concat(Object.keys(KEEPS)).find((q) => KEEPS[q] && STRAPS[q].mats && !STRAPS[q].km); if (k && cKeep.length) { keepMat(STRAPS[k], KEEPS[k]); idle(next); } }; setTimeout(() => idle(next), 1400); }
+{ const idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump) { setTimeout(next, 700); return; } const k = [strapNow].concat(Object.keys(KEEPS)).find((q) => KEEPS[q] && STRAPS[q].mats && !STRAPS[q].km); if (k && cKeep.length) { keepMat(STRAPS[k], KEEPS[k]); idle(next); } }; afterInit.push(() => setTimeout(() => idle(next), 1400)); }
 
+await bootYield('Setting the display…');
 /* ---------- the strap display: the straps that are not on the watch wait beside it on a workshop pegboard, newest job on the left, oldest on the right: a dark powder coated
    steel sheet with a grid of round holes, and one single prong hook per strap set in a hole. Every strap hangs as a shop hangs it: a two piece strap by its buckle, the long half slipped
    through the buckle half's keepers so the pair stays together; the NATO by its buckle, full length; the bracelet, clasp open, folded once over a small printed cradle. A strap is only
@@ -2526,6 +2543,7 @@ sndBtn.onclick = () => { if (muted) volEl.value = lastVol || 50; else { lastVol 
 volEl.oninput = setVol;
 
 
+await bootYield('Preparing the watch…');
 /* ---------- choreography ---------- */
 const NAMES = ['Start', 'Experience', 'Side projects', 'Projects', 'Articles / blogs', 'Film', 'Background and interests', 'Contact'], N = NAMES.length, CD = 2, CB = 6;
 /* chapters 3 to 5 are the complications, visited in this order as you scroll: the camera goes in to each one and stops there */
@@ -3514,8 +3532,8 @@ const mobileContentObserver = new MutationObserver(() => { mobL.n = 0; });
 [fEl, ...panels].forEach((el) => { mobileContentObserver.observe(el, { subtree: true, childList: true, characterData: true }); el.addEventListener('load', () => { mobL.n = 0; }, true); });
 if (document.fonts) document.fonts.ready.then(() => { mobL.n = 0; });
 moreEl.addEventListener('click', () => { const lp = focus ? fEl : panels.find((q) => q.classList.contains('live')); if (lp) lp.scrollBy({ top: lp.clientHeight * 0.7, behavior: reduce ? 'auto' : 'smooth' }); });
-function frame(now) {
-  if (document.hidden) { last = now; requestAnimationFrame(frame); return; }
+async function frame(now) {
+  if (document.hidden) { last = now; requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); }); return; }
   pace((now - last) / 1000); const dt = clamp((now - last) / 1000, 0, 0.05); last = now; size();   // clamped: the first frame's timestamp can be earlier than the moment the script finished
   if (intro.on) { if (scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' }); cur = 0; sPrev = 0; }
   brakeCheck(); const target = settle(clamp(scrollY / total(), 0, 1) * (N - 1));
@@ -3584,9 +3602,19 @@ function frame(now) {
   key.target.position.set(lc[0], lc[1], 0); key.position.set(lc[0] - 70, lc[1] + 110, 190); key.shadow.normalBias = 0.05 * scU;
   scene.background.setRGB(P.bg[0] / 255, P.bg[1] / 255, P.bg[2] / 255, THREE.SRGBColorSpace);
   const bgHex = '#' + scene.background.getHexString(); if (bgHex !== bodyBg) { bodyBg = bgHex; document.body.style.background = bgHex; }
-  if (first) { const hid = []; [gBin, gBox, boxShadow, snow, gBuckle].forEach((o) => { if (o && !o.visible) { o.visible = true; hid.push(o); } });   // warm up: build every shader and send every texture to the card now, so nothing stalls when the bin and the box's landing first appear
-    try { renderer.compile(scene, camera); scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; ms.forEach((mt) => ['map', 'normalMap', 'roughnessMap', 'bumpMap', 'alphaMap', 'emissiveMap'].forEach((k) => { if (mt[k] && mt[k].image) renderer.initTexture(mt[k]); })); }); } catch (e) {}
-    hid.forEach((o) => { o.visible = false; }); }
+  if (first) {
+    await bootYield('Winding the movement…');
+    const hidden = [], textures = new Set();
+    [gBin, gBox, boxShadow, snow, gBuckle].forEach((object) => { if (object && !object.visible) { object.visible = true; hidden.push(object); } });
+    try {
+      await renderer.compileAsync(scene, camera);
+      scene.traverse((object) => { const materials = object.material ? (Array.isArray(object.material) ? object.material : [object.material]) : [];
+        materials.forEach((material) => ['map', 'normalMap', 'roughnessMap', 'bumpMap', 'alphaMap', 'emissiveMap'].forEach((key) => { if (material[key] && material[key].image) textures.add(material[key]); })); });
+      let chunkStarted = performance.now();
+      for (const texture of textures) { renderer.initTexture(texture); if (performance.now() - chunkStarted >= 8) { await bootYield(); chunkStarted = performance.now(); } }
+    } finally { hidden.forEach((object) => { object.visible = false; }); }
+    last = performance.now();
+  }
   renderer.render(scene, camera); if (RAIL) railOverlay(mob);
   panels.forEach((p) => { const k = +p.dataset.ch; let o, ty2 = 0; if (jump) o = k === jump.i ? clamp(je * 3 - 2, 0, 1) : clamp(1 - je * 3, 0, 1) * (parseFloat(p.style.opacity) > 0.01 ? 1 : 0); else { o = clamp(1 - Math.abs(pe - k) * 2.4, 0, 1); ty2 = (k - pe) * 40; }
     o *= (k === CD ? 1 - fe : 1); p.style.opacity = o; p.style.transform = 'translateY(' + ty2 + 'px)'; p.classList.toggle('live', k === act && !jump && !(k === CD && focus)); p.style.visibility = o < 0.01 ? 'hidden' : 'visible'; });
@@ -3600,10 +3628,19 @@ function frame(now) {
   $('hint').style.opacity = cv < 0.3 && !intro.on ? 1 : 0;
   scrim.style.opacity = fe; renderer.toneMappingExposure = 1 - 0.36 * fe;
   if (fe > 0.01) { const px = H / visH, rr = FZ.r * sc * px; spot.style.setProperty('--sx', ((cx / visW + 0.5) * W) + 'px'); spot.style.setProperty('--sy', ((0.5 - cy / visH) * H) + 'px'); spot.style.setProperty('--sr', rr + 'px'); } spot.style.opacity = fe;
-  if (first) { first = false; if (window.__flapGo) window.__flapGo(); const go = () => { const e2 = typeof window.__flapEnd === 'number' ? window.__flapEnd : 1100, t2 = e2 - performance.now(); if (t2 > 0) setTimeout(go, Math.min(t2, 250)); else document.body.classList.add('ready'); }; go(); { const lp = () => { if (intro.on) setTimeout(lp, 400); else setTimeout(loadPhotos, 1500); }; setTimeout(lp, 2500); } }   // the loader stays until its sentence has had its say
-  requestAnimationFrame(frame);
+  if (first) {
+    first = false;
+    // A real rendered frame, followed by a paint opportunity, is the only success signal.
+    requestAnimationFrame(() => setTimeout(() => { if (window.__watchBoot) window.__watchBoot.ready(); else document.body.classList.add('ready'); }, 0));
+    const lp = () => { if (intro.on) setTimeout(lp, 400); else setTimeout(loadPhotos, 1500); }; setTimeout(lp, 2500);
+  }
+  requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); });
 }
 if (SKIP) { boxS.mode = 'gone'; burst.done = true; binIn = 0; }   // and no box to throw or bin to throw it in
-requestAnimationFrame(frame);
+requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); });
 window.__watch = { railTest: (k) => { rl.force = true; pickStrap(k); }, brace: () => ({ k: +BRSH.k.toFixed(4), res: +BRSH.res.toFixed(4), a: +BRSH.a.toFixed(2), b: +BRSH.b.toFixed(2), zc: +BRSH.zc.toFixed(2), sag: +BRSH.sag.toFixed(2), L: BRSH.L.map((x) => +x.toFixed(2)), ph: [BRWP.ph[BRC.m - 1], BRWP.ph[BRC.m], BRWP.ph[BRC.m + 1], BRWP.ph[BRC.m + 2]].map((x) => +(x * 180 / Math.PI).toFixed(1)), gh: +GHU.uGhP.value.x.toFixed(3), ghost: STRAPS.engineering.objs[0].parts.filter((P) => P.g).length, nan: STRAPS.engineering.objs[0].parts.some((P) => !isFinite(P.m.position.y)) }), calf: () => ({ L: CALF.L, n: CALF.n, hole: CALF.hole, keeps: cKeep.map((K) => [+K.s.toFixed(2), +K.b0.toFixed(2)]) }), nato: () => ({ q: +NT.q.toFixed(4), st: RS.writing && RS.writing.state, bars: NT.bars, par: STRAPS.writing.natoG && STRAPS.writing.natoG.parent && STRAPS.writing.natoG.parent.type }), natoGap: () => NT.gap, slotAt: (k) => { const S = rl.slots[RJ.order.indexOf(k)], v = new THREE.Vector3(); S.piv.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }, railState: () => ({ now: strapNow, next: strapNext, swapT, rs: Object.assign({}, rs), st: Object.fromEntries(Object.entries(RS).map(([k, R]) => [k, R.state])), ppm: rl.ppm, s: rl.s, vis: rl.vis, ms: [rl.bakeMs, rl.furnMs], sw: rl.slots.map((S) => [+S.piv.rotation.z.toFixed(4), +S.ph.toFixed(4)]) }), railBtn: () => rl.btns.map((b) => { const r = b.getBoundingClientRect(); return [b.dataset.rail, r.left + r.width / 2, r.top + r.height * 0.4, r.width, r.height]; }), qr: (i) => { const q = QR.filter((x) => x.k === strapNow)[i]; q.t = 0; q.p.set(0, 0, 0); q.v.set((q.i ? -1 : 1) * 5, q.o.sy * HEAD[0] * 22, HEAD[1] * 22); }, qrAt: () => QR.filter((x) => x.k === strapNow).map((q) => { const v = new THREE.Vector3(); q.hit.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }), gem: (rx, ry, rz, s) => { const o = anchors['z-music']; gCase.add(o); o.position.set(0, -19.3, ZB + 3.5); ZTILT.music = [rx, ry, rz]; ZOOMS.music = s; pickInt('music'); }, throwBox, setHold: (x) => { if (jump) jump.hold = x; }, pose: () => [root.quaternion.x, root.quaternion.y, root.quaternion.z, root.quaternion.w, root.scale.x, root.position.x, root.position.y, SIDES[0].turn, SIDES[1].turn], zoomTune: (k, rx, ry, rz, s) => { ZTILT[k] = [rx, ry, rz]; ZOOMS[k] = s; pickInt(k); }, cur: () => ({ cur, sy: scrollY, total: total() }), plateHold: (ms) => { PL.hold = ms; }, upNow: (i) => { const bt = DIALS.upcycle.roll(i); upUnlocked(bt, false); return bt.name; }, fallAt: (t) => { fallHold = t >= 0; FALL.forEach((F) => { F.t = Math.max(0, t); }); return FALL.length; }, ghostOff: (v) => { GHU.off = v; }, brCl: (v) => { BCL.hold = v; return [BCL.cl, BCL.fl, +BCL.gap.toFixed(2)]; }, sw: () => [+(rl.t - (rl.jt >= 0 ? rl.jt : rl.t)).toFixed(3)].concat(rl.slots.map((S) => +(S.piv.rotation.z * 180 / Math.PI).toFixed(3))), natoTw: () => [+(NT.tw * 180 / Math.PI).toFixed(1), +(NT.endDot || 0).toFixed(2)], sway: () => rl.slots.map((S) => [+(S.amp * 180 / Math.PI).toFixed(2), +(S.piv.rotation.z * 180 / Math.PI).toFixed(3)]), upRoll: (i) => { const bt = DIALS.upcycle.roll(i); WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(false); pickWay('upcycle'); return bt.name; }, talk: (n) => talkNudge(n), introState: () => ({ on: intro.on, open: intro.open, tries: intro.tries, need: intro.need, shaking: !!intro.shake, hint: $('i-open').textContent, sy: scrollY }), dbg: () => ({ cw: canvas.width, ch: canvas.height, ccw: canvas.clientWidth, cch: canvas.clientHeight, sw: stage.clientWidth, sh: stage.clientHeight, W, H, asp: camera.aspect, pr: renderer.getPixelRatio(), cur, sy: scrollY, bin: gBin.visible, binPos: gBin.position.toArray().map((x) => +x.toFixed(1)), binS: gBin.scale.x, box: gBox.visible, boxPos: gBox.position.toArray().map((x) => +x.toFixed(1)), mode: boxS.mode, binIn, up: upDone, C: [+boxS.C.x.toFixed(2), +boxS.C.y.toFixed(2)], v: [+boxS.v.x.toFixed(2), +boxS.v.y.toFixed(2)], th: +boxS.th.toFixed(3), hw: +RP.hw.toFixed(1), hh: +RP.hh.toFixed(1), yF: +RP.yF.toFixed(1), mouth: RP.mouth.toArray().map((q) => +q.toFixed(1)) }), jumpHold: (i, x) => { jumpTo(i); if (jump) jump.hold = x; }, introAt, recycleAt, nudge: (x, y) => { tx = x; ty = y || 0; down = { x: 0, y: 0, yaw: heroYaw, pitch: heroPitch, tx: x, ty: y || 0, hero: false, mouse: true }; }, swapAt: (T) => { swapT = T; swapHold = T >= 0; }, pickStrap, pickWay, jumpTo, openFocus, stepFocus, closeFocus, spin: (y, p) => { heroYaw = y; heroPitch = p || 0; hy = y; hp = p || 0; } };
 Object.assign(window.__watch, { work: () => ({ order: STOP.slice(), focus, seen: [...seenW], ch: +(scrollY / PITCH).toFixed(2), cur: +cur.toFixed(2) }), boxScr: () => toScreen(gBox.position), qr: (i) => { const q = QR.filter((x) => x.k === strapNow)[i]; q.t = 0; q.p.set(0, 0, 0); q.v.set((q.i ? -1 : 1) * 5, q.o.sy * HEAD[0] * 22, HEAD[1] * 22); }, qrAt: () => QR.filter((x) => x.k === strapNow).map((q) => { const v = new THREE.Vector3(); q.hit.getWorldPosition(v); v.project(camera); return [(v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight]; }), gem: (rx, ry, rz, s) => { const o = anchors['z-music']; gCase.add(o); o.position.set(0, -19.3, ZB + 3.5); ZTILT.music = [rx, ry, rz]; ZOOMS.music = s; pickInt('music'); }, throwBox, setHold: (x) => { if (jump) jump.hold = x; }, pose: () => [root.quaternion.x, root.quaternion.y, root.quaternion.z, root.quaternion.w, root.scale.x, root.position.x, root.position.y, SIDES[0].turn, SIDES[1].turn], zoomTune: (k, rx, ry, rz, s) => { ZTILT[k] = [rx, ry, rz]; ZOOMS[k] = s; pickInt(k); }, cur: () => ({ cur, sy: scrollY, total: total() }), upRoll: (i) => { const bt = DIALS.upcycle.roll(i); WAYS.upcycle.dotCss = DIALS.upcycle.css(bt); WAYS.upcycle.name = 'Upcycled plastic, ' + bt.name.toLowerCase(); unlockUpcycle(false); pickWay('upcycle'); return bt.name; }, talk: (n) => talkNudge(n), introState: () => ({ on: intro.on, open: intro.open, tries: intro.tries, need: intro.need, shaking: !!intro.shake, hint: $('i-open').textContent, sy: scrollY }), dbg: () => ({ cw: canvas.width, ch: canvas.height, ccw: canvas.clientWidth, cch: canvas.clientHeight, sw: stage.clientWidth, sh: stage.clientHeight, W, H, asp: camera.aspect, pr: renderer.getPixelRatio(), cur, sy: scrollY, bin: gBin.visible, binPos: gBin.position.toArray().map((x) => +x.toFixed(1)), binS: gBin.scale.x, box: gBox.visible, boxPos: gBox.position.toArray().map((x) => +x.toFixed(1)), mode: boxS.mode, binIn, up: upDone, C: [+boxS.C.x.toFixed(2), +boxS.C.y.toFixed(2)], v: [+boxS.v.x.toFixed(2), +boxS.v.y.toFixed(2)], th: +boxS.th.toFixed(3), hw: +RP.hw.toFixed(1), hh: +RP.hh.toFixed(1), yF: +RP.yF.toFixed(1), mouth: RP.mouth.toArray().map((q) => +q.toFixed(1)) }), jumpHold: (i, x) => { jumpTo(i); if (jump) jump.hold = x; }, introAt, recycleAt, nudge: (x, y) => { tx = x; ty = y || 0; down = { x: 0, y: 0, yaw: heroYaw, pitch: heroPitch, tx: x, ty: y || 0, hero: false, mouse: true }; }, swapAt: (T) => { swapT = T; swapHold = T >= 0; }, pickStrap, pickWay, jumpTo, openFocus, stepFocus, closeFocus, spin: (y, p) => { heroYaw = y; heroPitch = p || 0; hy = y; hp = p || 0; } });
+
+afterInit.forEach((start) => start());
+}
+initWatch().catch(watchBootFailed);

@@ -51,7 +51,7 @@ window.CONTENT = {
           for no link. */
   jobs: {
     consulting: {
-      years: "2022 to now",
+      years: "2022 to Present",
       chip: "Consulting",
       place: "Analysis Group, San Francisco",
       title: "Economic Consulting",
@@ -64,7 +64,7 @@ window.CONTENT = {
       chip: "Quant Researcher",
       place: "Arch Capital, Remote",
       title: "Quant Research",
-      text: "[ONE LINE ON WHAT YOU MODELED]",
+      text: "Researched and tested short-term systematic trading strategies, building Python tools to evaluate mean reversion in ETF pairs and presenting findings to senior managers. The work spanned asset pricing, ETF management, and portfolio optimization.",
       linkText: "",
       link: "",
     },
@@ -73,25 +73,25 @@ window.CONTENT = {
       chip: "Software Engineer",
       place: "Automation Anywhere, Remote",
       title: "Software Engineering",
-      text: "[ONE LINE ON WHAT YOU BUILT]",
+      text: "Worked on the Enterprise Engineering and Business Solutions team, building a production JavaScript module for JSON parsing. Evaluated UI automation approaches using Python and Selenium, and implemented Automation Anywhere bots to test and automate interactive forms.",
       linkText: "",
       link: "",
     },
     banking: {
-      years: "2019",
+      years: "2018",
       chip: "Investment Banking",
-      place: "[EMPLOYER, CITY]",
+      place: "[RiverBridge Investment Advisors]",
       title: "Investment banking",
-      text: "[ONE LINE ON THE DEALS OR COVERAGE]",
+      text: "Interned during my senior year of high school, analyzing financials for 300+ SMEs to identify prospective IPO clients and supporting valuations for a fashion label and an EdTech company. Also helped identify and coordinate with potential buyers for a manufacturing facility in South India.",
       linkText: "",
       link: "",
     },
     writing: {
-      years: "2018",
+      years: "2019",
       chip: "Writing",
-      place: "Wrist Review",
+      place: "WristReview & other publications",
       title: "Independent Watch Blogger",
-      text: "My own blog and a Wrist Review byline, plus a lot of ghostwriting.",
+      text: "Wrote 50+ articles across watch publications, including bylined work for WristReview and ghostwritten pieces for other blogs, specializing in the mechanics behind modern watch movements.",
       linkText: "Read them on Wrist Review",
       link: "https://wristreview.com/?s=NIKHIL+KURMALA",
     },
@@ -99,7 +99,7 @@ window.CONTENT = {
 
   /* ---- the order the straps hang on the board, left to right: newest job first.
           Use the names above (consulting, engineering, quant, banking, writing). */
-  jobOrder: ["consulting", "quant", "engineering", "banking", "writing"],
+  jobOrder: ["consulting", "quant", "engineering","writing", "banking"],
 
   /* ---- Projects (moonphase). Add, remove or reorder the blocks freely.
           The button only shows when link has an address in it.

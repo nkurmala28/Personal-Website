@@ -169,13 +169,16 @@ const moonTex = tex(1024, (g, S) => { const k = S / 2 / MDR; sky(g, S);
   DATA.moon.items.forEach((it, i) => { const a = Math.PI / 2 + i * TAU / NPROJ, r = 2.2 * k; g.save(); g.translate(S / 2 + DM * k * Math.cos(a), S / 2 - DM * k * Math.sin(a)); g.rotate(-(a - Math.PI / 2)); g.beginPath(); g.arc(0, 0, r, 0, TAU); g.clip();
     const c = TILE[i % TILE.length], gr = g.createLinearGradient(-r, -r, r, r); gr.addColorStop(0, c[0]); gr.addColorStop(1, c[1]); g.fillStyle = gr; g.fillRect(-r, -r, 2 * r, 2 * r);
     projTile(g, it, r); g.restore(); }); });
-/* one project's round screen: its image or its film's first frame once loaded, and until then a small work in progress mark (a crane over a half built block) with its name */
+/* one project's round screen: its image or its film's first frame once loaded, and until then a small cine camera mark saying the demo is being filmed, with its name */
 function projTile(g, it, r, media) {
   if (media) { const w = media.videoWidth || media.naturalWidth || 1, h = media.videoHeight || media.naturalHeight || 1, s = 2 * r / Math.min(w, h); g.drawImage(media, -w * s / 2, -h * s / 2, w * s, h * s); if (it.video) { g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(0, 0, r * 0.22, 0, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.92)'; g.beginPath(); g.moveTo(-r * 0.07, -r * 0.11); g.lineTo(r * 0.12, 0); g.lineTo(-r * 0.07, r * 0.11); g.closePath(); g.fill(); } return; }
   const u = r / 10; g.strokeStyle = '#dcb872'; g.fillStyle = '#dcb872'; g.lineWidth = u * 0.35; g.lineCap = 'round';
-  g.beginPath(); g.moveTo(-u * 2.2, u * 1.2); g.lineTo(-u * 2.2, -u * 5); g.lineTo(u * 3.2, -u * 5); g.moveTo(-u * 3.2, -u * 5); g.lineTo(-u * 2.2, -u * 5); g.moveTo(-u * 2.2, -u * 3.9); g.lineTo(-u * 1.1, -u * 5); g.moveTo(u * 2.2, -u * 5); g.lineTo(u * 2.2, -u * 3.2); g.stroke();
-  g.fillRect(u * 1.85, -u * 3.3, u * 0.7, u * 0.6); g.fillStyle = 'rgba(220,184,114,.35)'; g.fillRect(-u * 0.6, -u * 1.1, u * 3.4, u * 2.3); g.strokeRect(-u * 0.6, -u * 1.1, u * 3.4, u * 2.3);
-  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#dcb872'; g.font = '500 ' + Math.round(r * 0.1) + 'px Menlo, monospace'; g.fillText('FILMING IN PROGRESS', 0, r * 0.33);
+  g.save(); g.translate(-u * 0.5, 0);
+  [[-u * 1.7, -u * 4.3], [u * 1.2, -u * 4.3]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, u * 1.35, 0, TAU); g.stroke(); g.beginPath(); g.arc(x, y, u * 0.28, 0, TAU); g.fill(); for (let q = 0; q < 3; q++) { const t = q * TAU / 3 + 0.5; g.beginPath(); g.arc(x + Math.cos(t) * u * 0.78, y + Math.sin(t) * u * 0.78, u * 0.3, 0, TAU); g.stroke(); } });
+  g.fillStyle = 'rgba(220,184,114,.3)'; g.fillRect(-u * 3.1, -u * 2.75, u * 5.6, u * 3.1); g.strokeRect(-u * 3.1, -u * 2.75, u * 5.6, u * 3.1);
+  g.beginPath(); g.moveTo(u * 2.5, -u * 1.85); g.lineTo(u * 4.1, -u * 2.75); g.lineTo(u * 4.1, u * 0.35); g.lineTo(u * 2.5, -u * 0.55); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#e04a3c'; g.beginPath(); g.arc(-u * 2.3, -u * 2.0, u * 0.32, 0, TAU); g.fill(); g.restore();   /* a cine camera with its two reels, and a red light: recording */
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#dcb872'; g.font = '500 ' + Math.round(r * 0.085) + 'px Menlo, monospace'; g.fillText('DEMO FILMING IN PROGRESS', 0, r * 0.33);
   g.fillStyle = 'rgba(255,255,255,.92)'; g.font = '600 ' + Math.round(r * 0.17) + 'px Helvetica, Arial, sans-serif'; g.fillText(it.t, 0, r * 0.56); }
 /* a project given a video or an image in content.js shows it on its screen as soon as the file has loaded (a video shows its first frame there and plays in the notes) */
 DATA.moon.items.forEach((it, i) => { const src = it.video || it.image; if (!src) return; const done = (m) => { const S = moonTex.image.width, k = S / 2 / MDR, a = Math.PI / 2 + i * TAU / NPROJ, r = 2.2 * k, g = moonTex.image.getContext('2d');

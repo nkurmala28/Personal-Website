@@ -109,7 +109,7 @@ body.zoomed .hot[data-int].sel,body.zoomed #rail,body.zoomed #top .ways{opacity:
 #int-ph{display:flex;gap:8px;flex-wrap:wrap}
 #int-ph:empty{display:none}
 #int-ph img{width:112px;height:112px;object-fit:cover;border-radius:8px}
-#int-back{align-self:flex-start;margin-top:32px}
+#int-back{align-self:flex-start;margin-top:32px;margin-left:18px}
 #int-d[hidden] + #int-back{display:none}   /* the way back sits below the story, clear of its pink rule */
 #arm,#pan,#kick{touch-action:none;cursor:grab}#arm.grab,#pan.grab,#kick.grab{cursor:grabbing}
 body:not(.pitch) #kick{display:none}
@@ -499,6 +499,7 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 #int-spot[hidden]{display:none}
 #int-now{display:flex;align-items:center;gap:10px}
 #int-now .npc{width:40px;height:40px;object-fit:cover;border-radius:4px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+@media (max-width:800px){#int-back{margin-left:16px}}
 </style>
 </head>
 <body>
@@ -635,6 +636,6 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.f8e0f245.js"></script>
+<script src="./bundle.0a479018.js"></script>
 </body>
 </html>

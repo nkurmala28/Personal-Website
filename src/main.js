@@ -2627,7 +2627,7 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 /* the strap display's test pages (window.STRAPSKIP): no unboxing, and the page opens on the Strap chapter. Without the flag nothing here changes */
 const SKIP = !!window.STRAPSKIP;
 if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (N - 1)); }
-const NAV = [['Home', 0], ['Experience', 1], ['Work', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
+const NAV = [['Home', 0], ['Experience', 1], ['Selected work', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
 NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
 /* the arrow at the foot: on to the next chapter, as a key press would be (into the three works through goWork, so their order holds) */
 let cueY0 = null, cueGone = false; const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
@@ -2646,7 +2646,7 @@ const fEl = $('focus'), nextOf = (k) => { const j = STOP.indexOf(k); return j < 
 const wCount = (k) => DATA[k].items.length;   // the same number the Back and Next counter shows
 /* the switch between the three works, under each one: in this visit's order, with how many are in each and a mark on the ones already seen */
 function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); b.classList.toggle('new', !seenW.has(k)); }); }   /* a work not yet visited glows softly until it is */
-{ const wd = $('w-date'), n = DATA.date.items.length, W = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve']; if (wd && n) wd.textContent = (W[n] || n) + (n === 1 ? ' frame' : ' frames') + '. Shot on 35 mm.'; }
+{ const wd = $('w-date'), n = DATA.date.items.length, W = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve']; if (wd && typeof CT.filmCaption === 'string') wd.textContent = CT.filmCaption; else if (wd && n) wd.textContent = (W[n] || n) + (n === 1 ? ' frame' : ' frames') + '. Shot on 35 mm.'; }
 document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.textContent = WNAME[k]; b.setAttribute('aria-label', WNAME[k]); });
 function paint() {
   const D = DATA[focus], n = D.items.length, it = D.items[idx[focus]];

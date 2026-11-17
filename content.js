@@ -16,6 +16,7 @@
      jobOrder         the order the straps sit on the display, left to right
      projects         Projects, on the moonphase
      articles         Articles, on the small seconds
+     filmCaption      Caption beneath Film in Selected work
      film             Film, in the date window (photos go in the photos folder)
      interests        Caseback, the four parts you can play with
      signedOnTheBack  Caseback, the three engraved lines
@@ -160,6 +161,8 @@ window.CONTENT = {
 
   /* ---- Film (date window). Put each photo in the photos folder and list it
           here. landscape: true for a wide photo, false for a tall one. */
+  /* Caption beneath Film in the Selected work section. */
+  filmCaption: "Reached the amateur photographer age. Shot on 35mm",
   film: [
     { file: "film-ice-cream-truck.jpg", title: "Ice cream truck", caption: "35mm film.", landscape: false },
     { file: "film-christmas.jpg", title: "Christmas evening", caption: "35mm film.", landscape: false },
@@ -228,9 +231,10 @@ window.CONTENT = {
     includedInBox: "Python, SQL, Databricks, AI, Strategy, etc.",
     origin: "Singapore",
     importDuties: "H-1B transfer",
-    /* The Full Specifications rows shown are Name, Location (city), Origin, Tools Included (includedInBox),
+    /* The Full Specifications rows shown are Name, Location (city), Origin,
        Price, Import Duties (importDuties) and Contact (from contact above). papers is not
-       shown at the moment (the Box and papers row is hidden), kept here in case it comes back. */
+       shown at the moment (the Box and papers row is hidden), kept here in case it comes back.
+       Tools Included (includedInBox) is also kept here; its row is commented out in index.html. */
   },
 
 };

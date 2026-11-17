@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
-import {displayText,collectionSuggestion} from '../src/presentation.mjs';
+import {displayText,collectionSuggestion,compositionAt} from '../src/presentation.mjs';
 
 test('authoring placeholders never become employer, date, or caption copy',()=>{
  assert.equal(displayText('[EMPLOYER, CITY]'),'');
@@ -26,4 +26,11 @@ test('generated content view includes actual content and no authoring placeholde
  assert.ok(html.includes('mailto:'+context.window.CONTENT.contact.email));
  assert.equal((html.match(/<figure>/g)||[]).length,7);
  assert.ok(!/\[(?:years|EMPLOYER|WHERE|ONE LINE|Artist|Mountain)/.test(html));
+});
+
+
+test('chapter compositions interpolate continuously and keep all camera values finite',()=>{
+ for(let chapter=-1;chapter<9;chapter+=0.05){const c=compositionAt(chapter);assert.ok(Number.isFinite(c.x)&&Number.isFinite(c.scale));assert.ok(c.scale>0.7&&c.scale<1.1);}
+ assert.ok(compositionAt(1).x<compositionAt(0).x);assert.ok(compositionAt(1).scale<compositionAt(0).scale);
+ for(let i=1;i<7;i++){const a=compositionAt(i-0.0001),b=compositionAt(i+0.0001);assert.ok(Math.abs(a.x-b.x)<0.001);assert.ok(Math.abs(a.scale-b.scale)<0.001);}
 });

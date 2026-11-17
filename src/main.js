@@ -1,4 +1,4 @@
-import { displayText, collectionSuggestion } from './presentation.mjs';
+import { displayText, collectionSuggestion, compositionAt } from './presentation.mjs';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
@@ -2002,10 +2002,10 @@ const RJ = (() => { const def = ['consulting', 'engineering', 'quant', 'banking'
    and below the row of holes' hooks (every strap hangs at full length, so the longest, the NATO, sets the drop); z is its back, t its thickness, hy how far the hooks' holes sit above
    the prongs. PAIR: where a hung buckle's strap tip lies under the prong, how far the long half's tip stops short of the buckle bar, and how far it slides to come out of the keepers */
 const RB = { top: 13, drop: 171, z: -8.4, t: 1.6, hy: 5 }, PAIR = { tip: -7.5, gap: 3, D: 30 }, BRY = 2.5;   // BRY: the height of the cradle's saddle edge
-const mBoard = new THREE.MeshStandardMaterial({ color: 0x2c3138, metalness: 0.45, roughness: 0.62, envMapIntensity: 0.55 });
+const mBoard = new THREE.MeshStandardMaterial({ color: 0x292827, metalness: 0.3, roughness: 0.82, envMapIntensity: 0.35 });
 /* the printed cradle: matte, with the fine ridges a printer's layers leave */
 const mCradle = new THREE.MeshStandardMaterial({ color: 0x8a8f96, metalness: 0, roughness: 0.82, envMapIntensity: 0.35, bumpScale: 0.6, bumpMap: (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d'); for (let y = 0; y < 64; y++) { const v = Math.round(128 + 100 * Math.sin(y / 8 * TAU)); g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; g.fillRect(0, y, 4, 1); } const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })() });
-const mSteelR = new THREE.MeshStandardMaterial({ color: 0xcfd1d4, metalness: 1, roughness: 0.3, envMapIntensity: 1.15 }), RFURN = [mSteelR, mBoard, mCradle];
+const mSteelR = new THREE.MeshStandardMaterial({ color: 0xb9bab9, metalness: 0.8, roughness: 0.45, envMapIntensity: 0.7 }), RFURN = [mSteelR, mBoard, mCradle];
 const railG = new THREE.Group(); railG.visible = false; if (RAIL) scene.add(railG);
 const rF = new THREE.Group(); railG.add(rF);   // rF: the furniture, rebuilt only when the block on the page changes size
 const rl = { op: -1, opDirty: true, t: 0, inCh: false, jt: -1, desk: false, gx: 0, drop: 0, s: 0.3, ppm: 2, vis: 0, el: null, btns: [], key: '', rodL: 100, force: false, slots: [], cw: 0, ch: 0, top: 10, mobBg: '' };
@@ -2297,7 +2297,7 @@ function railArrive(k) { const R = RS[k], st = R.st; if (st.links) { BCL.cl = 0;
 function railDom() { const p = panels.find((q) => q.dataset.ch === '1'); if (!p) return; p.classList.add('railed');
   const box = document.createElement('div'); box.className = 'rail3d'; box.id = 's-rail'; box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Straps on their board, newest first. Choose one to wear it');
   RJ.order.forEach((k) => { const b = document.createElement('button'), j = CT.jobs && CT.jobs[k], chip = (j && j.chip) || { consulting: 'Consulting', engineering: 'Engineering', quant: 'Quant', banking: 'Banking', writing: 'Journalism' }[k];
-    b.dataset.strap = k; b.dataset.rail = k; b.innerHTML = '<span class="rj"></span><span class="ry"></span>'; b.children[0].textContent = chip; b.children[1].textContent = RJ.years[k]; b.setAttribute('aria-label', chip + ', ' + RJ.years[k] + ', ' + STRAPS[k].name.toLowerCase());
+    b.dataset.strap = k; b.dataset.rail = k; b.setAttribute('aria-controls', 's-detail'); b.innerHTML = '<span class="rj"></span><span class="ry"></span>'; b.children[0].textContent = chip; b.children[1].textContent = RJ.years[k]; b.setAttribute('aria-label', [chip, RJ.years[k], STRAPS[k].name.toLowerCase()].filter(Boolean).join(', '));
     b.addEventListener('pointerenter', (e) => railNudge(k, e.movementX || 1, 1)); b.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') railNudge(k, e.movementX, 0.25); }); b.addEventListener('pointerdown', () => railNudge(k, 1, 1.4)); box.appendChild(b); rl.btns.push(b); });
   box.addEventListener('keydown', (e) => { const i = rl.btns.indexOf(document.activeElement); if (i < 0) return; let n = -1; if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = Math.min(rl.btns.length - 1, i + 1); if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = Math.max(0, i - 1); if (e.key === 'Home') n = 0; if (e.key === 'End') n = rl.btns.length - 1; if (n >= 0) { e.preventDefault(); e.stopPropagation(); rl.btns[n].focus(); } });
   const ch = p.querySelector('.chips'); ch.parentNode.insertBefore(box, ch.nextSibling); rl.el = box;
@@ -2495,7 +2495,7 @@ function wheelStep(dir) { const now = performance.now(), base = now - WG.at < 90
 if (SNAP) addEventListener('wheel', (e) => {
   if (intro.on || jump || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
   const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1); if (!d) return;
-  const sc = e.target.closest && e.target.closest('.panel, #focus'); if (sc && sc.scrollHeight > sc.clientHeight + 2 && (d > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0)) return;
+  const sc = e.target.closest && e.target.closest('.work-reading, .panel, #focus'); if (sc && sc.scrollHeight > sc.clientHeight + 2 && (d > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0)) return;
   e.preventDefault(); const now = e.timeStamp, sign = Math.sign(d), a = Math.abs(d), gap = now - WG.t;
   if (gap > 180 || sign !== WG.sign || (a > WG.abs * 1.6 && a > 12 && now - WG.at > 280) || (now - WG.t0 > 1800 && a >= 4)) { WG.t0 = now; WG.acc = 0; WG.done = false; }
   WG.t = now; WG.sign = sign; WG.abs = a; WG.acc += d;
@@ -2556,13 +2556,18 @@ let focus = null, idx = { date: 0, moon: 0, sec: 0 }, wDate = 0, wMoon = 0, slid
 const fEl = $('focus'), nextOf = (k) => { const j = STOP.indexOf(k); return j < 2 ? WNAME[STOP[j + 1]].toLowerCase() : 'the caseback'; };
 const wCount = (k) => DATA[k].items.length;   // the same number the Back and Next counter shows
 /* the switch between the three works, under each one: in this visit's order, with how many are in each and a mark on the ones already seen */
-function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); b.classList.toggle('new', !seenW.has(k)); b.setAttribute('aria-pressed', String(k === focus)); b.setAttribute('aria-label', WNAME[k] + (k === focus ? ', current collection' : seenW.has(k) ? ', opened' : ', open collection')); const status = b.querySelector('small'); if (status) status.textContent = k === focus ? 'Current' : seenW.has(k) ? 'Opened' : 'Open'; }); }   /* a work not yet visited glows softly until it is */
+function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); b.classList.toggle('new', !seenW.has(k)); b.setAttribute('aria-pressed', String(k === focus)); b.setAttribute('aria-label', WNAME[k] + (k === focus ? ', current collection' : seenW.has(k) ? ', opened' : ', open collection')); const status = b.querySelector('.collection-dot'); if (status) status.dataset.state = k === focus ? 'current' : seenW.has(k) ? 'seen' : 'new'; }); }   /* a work not yet visited glows softly until it is */
 { const wd = $('w-date'), n = DATA.date.items.length, W = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve']; if (wd && n) wd.textContent = (W[n] || n) + (n === 1 ? ' frame' : ' frames') + '. Shot on 35 mm.'; }
-document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.textContent = WNAME[k]; const status = document.createElement('small'); status.textContent = 'Open'; b.appendChild(status); b.setAttribute('aria-label', WNAME[k]); });
+document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.textContent = WNAME[k]; const status = document.createElement('span'); status.className = 'collection-dot'; status.setAttribute('aria-hidden', 'true'); b.appendChild(status); b.setAttribute('aria-label', WNAME[k]); });
 function paint() {
+  fEl.querySelector('.work-reading').scrollTop = 0; mobL.n = 0;
   const D = DATA[focus], n = D.items.length, it = D.items[idx[focus]];
-  $('f-kicker').textContent = '02 / Selected work / ' + WNAME[focus]; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
-  { const fm = $('f-media'), src = focus === 'moon' && (it.video || it.image); fm.querySelectorAll('video').forEach(v => { if (!src || fm.dataset.src !== src) v.pause(); }); fm.hidden = !src; if (src && fm.dataset.src !== src) { fm.dataset.src = src; fm.replaceChildren(); const m = document.createElement(it.video ? 'video' : 'img'); m.src = src; if (it.video) { m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = !reduce; m.controls = true; } else m.alt = it.t; fm.appendChild(m); } }
+  $('f-kicker').textContent = { moon: 'Projects / Moonphase', sec: 'Writing / Small seconds', date: 'Film / Date window' }[focus]; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
+  { const fm = $('f-media'), src = focus === 'moon' ? (it.video || it.image) : focus === 'date' && it.file ? 'photos/' + it.file : '';  fm.querySelectorAll('video').forEach(v => { if (!src || fm.dataset.src !== src) v.pause(); }); fm.hidden = !src; if (src && fm.dataset.src !== src) { fm.dataset.src = src; fm.replaceChildren(); const m = document.createElement(focus === 'moon' && it.video ? 'video' : 'img'); m.src = src; if (focus === 'moon' && it.video) { m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = !reduce; m.controls = true; } else m.alt = it.t; fm.appendChild(m); } }
+  const preview = $('work-stage'); preview.dataset.collection = focus; preview.setAttribute('aria-label', WNAME[focus] + ' preview'); preview.setAttribute('aria-hidden', String($('f-media').hidden));
+  $('preview-kind').textContent = { moon: 'Project preview', sec: 'Watch stories', date: '35 mm film' }[focus];
+  $('preview-count').textContent = String(idx[focus] + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
+  $('preview-caption').textContent = focus === 'sec' ? 'Small seconds / Wrist Review' : focus === 'moon' && $('f-media').hidden ? 'Moonphase / Project notes' : it.t;
   const l = $('f-link'); l.style.display = it.link && it.url ? 'inline-block' : 'none'; if (it.url) { l.textContent = it.link; l.href = it.url; l.target = '_blank'; l.rel = 'noopener'; }   // no button until there is somewhere to go
   $('f-note').textContent = D.note || ''; $('f-count').textContent = (idx[focus] + 1) + ' of ' + n; $('f-hint').textContent = '';
   const unit = { moon: 'project', sec: 'article', date: 'frame' }[focus];
@@ -2582,18 +2587,18 @@ function stepFocus(dir) {
   paint();
 }
 function enterStop(k) {
-  focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
+  focus = k; seenW.add(k); document.body.classList.add('focused'); document.body.dataset.collection = k; mobL.n = 0; zbLabel('All work');
   if (k === 'date') { loadPhotos(); photoA.material.map = photos[idx.date]; }
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();
 }
-function leaveStop() { if (!focus) return; document.querySelectorAll('#f-media video').forEach(v => v.pause()); focus = null; document.body.classList.remove('focused'); }
+function leaveStop() { if (!focus) return; document.querySelectorAll('#f-media video').forEach(v => v.pause()); focus = null; document.body.classList.remove('focused'); document.body.dataset.collection = ''; mobL.n = 0; }
 function openFocus(k) { goWork(k); }
 function closeFocus() {}
 $('f-prev').onclick = () => { audioOn(); stepFocus(-1); }; $('f-next').onclick = () => { audioOn(); stepFocus(1); };
 document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => openFocus(b.dataset.open)));
 document.querySelectorAll('[data-stop]').forEach((b) => b.addEventListener('click', () => openFocus(b.dataset.stop)));
-addEventListener('keydown', (e) => { if (!focus || (e.target && e.target.tagName === 'INPUT')) return; if (e.key === 'ArrowRight') { e.preventDefault(); stepFocus(1); } if (e.key === 'ArrowLeft') { e.preventDefault(); stepFocus(-1); } });
+addEventListener('keydown', (e) => { if (!focus || e.target.closest?.('input,textarea,select,video,audio,[contenteditable]')) return; if (e.key === 'ArrowRight') { e.preventDefault(); stepFocus(1); } if (e.key === 'ArrowLeft') { e.preventDefault(); stepFocus(-1); } });
 /* where the camera looks and how close, between and at the three stops */
 const RADS = { date: 2.2, moon: AR + 0.5, sec: SR + 0.45 }, FZ = { c: [0, MC], s: FSC.moon, r: RADS.moon };
 function focusPath(cv) { const u = clamp(cv - S0, 0, 2), i0 = Math.min(1, Math.floor(u)), t = ease(u - i0), A = STOP[i0], B = STOP[i0 + 1], dip = 1 - 0.38 * Math.sin(Math.PI * t);   // pulls back a little while it travels across the dial
@@ -2627,7 +2632,7 @@ if (CT.jobs) Object.keys(ROLES).forEach((k) => { const j = CT.jobs[k]; if (!j) r
 if (RAIL) railDom();
 const chips = [...document.querySelectorAll('[data-strap]')];
 function pickStrap(k) { const sk = k === 'consulting' && upGone ? 'upcycle' : k; setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k));
-  const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1]; $('s-status').hidden = !!displayText(CT.jobs?.[k]?.text); $('s-meta').hidden = !R[4] && !RJ.years[k];
+  const fill = () => { const R = ROLES[k], sl = $('s-link'); const chip = CT.jobs?.[k]?.chip || k; $('s-selection').textContent = String(RJ.order.indexOf(k) + 1).padStart(2, '0') + ' / ' + chip;  $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1]; $('s-status').hidden = !!displayText(CT.jobs?.[k]?.text); $('s-meta').hidden = !R[4] && !RJ.years[k];
     sl.hidden = !R[3]; if (R[3]) { sl.textContent = R[2] || R[3]; sl.href = R[3]; } };
   if (!rl.cardK || rl.cardK === k + sk) { rl.cardK = k + sk; fill(); return; } rl.cardK = k + sk; plateSwap(fill); }   // the plate changes on the click, not when the strap lands
 /* the plate's change: the old lines lift a hair and fade together, then the new ones rise into place one after another (title, material, place and years, paragraph, link).
@@ -3423,11 +3428,11 @@ const sheetOf = (k) => k >= S0 && k < S0 + 3 ? fEl : panels.find((q) => +q.datas
 function mobMeasure() { mobL.top = topEl.offsetHeight; for (let k = 0; k < N; k++) { const p = sheetOf(k); mobL.t[k] = p ? p.offsetTop + (p.classList.contains('railed') ? 34 : 0) : H * 0.62; } }   // the strap chapter's sheet starts with a 34px fade the watch may reach into
 function mobLayout(P, je) { if (mobL.n-- <= 0) { mobL.n = 3; mobMeasure();
     const lp = focus ? fEl : panels.find((q) => q.classList.contains('live')); let more = false;   /* a sheet with more than fits scrolls inside itself, and says so */
-    [fEl, ...panels].forEach((p) => { if (p === lp) { const ovf = p.scrollHeight > p.clientHeight + 2, m = ovf && p.scrollHeight - p.scrollTop - p.clientHeight > 8; p.classList.toggle('ovf', ovf); p.classList.toggle('more', m); p.classList.toggle('scr', p.scrollTop > 4); more = m && p.dataset.ch !== '1'; } else { if (p.scrollTop && !(parseFloat(p.style.opacity) > 0.01)) p.scrollTop = 0; p.classList.remove('more', 'scr'); } });
+    [fEl, ...panels].forEach((p) => { if (p === lp) { const sc = p === fEl ? p.querySelector('.work-reading') : p, ovf = sc.scrollHeight > sc.clientHeight + 2, m = ovf && sc.scrollHeight - sc.scrollTop - sc.clientHeight > 8; p.classList.toggle('ovf', ovf); p.classList.toggle('more', m && p !== fEl); p.classList.toggle('scr', sc.scrollTop > 4 && p !== fEl); if (p === fEl) sc.classList.toggle('more', m); more = m && p.dataset.ch !== '1'; } else { if (p.scrollTop && !(parseFloat(p.style.opacity) > 0.01)) p.scrollTop = 0; p.classList.remove('more', 'scr'); } });
     if (more !== mobL.more) { mobL.more = more; moreEl.classList.toggle('on', more); } }
   const T = mobL.t, a = jump ? clamp(Math.round(jump.c0), 0, N - 1) : Math.min(N - 2, Math.floor(P.pe)), b = jump ? jump.i : a + 1, u = jump ? je : clamp(P.pe - a, 0, 1), to = lerp(T[a], T[b], u);
   mobL.pt = mobL.pt < 0 || snap ? to : mobL.pt + (to - mobL.pt) * 0.2; }
-moreEl.addEventListener('click', () => { const lp = focus ? fEl : panels.find((q) => q.classList.contains('live')); if (lp) lp.scrollBy({ top: lp.clientHeight * 0.7, behavior: reduce ? 'auto' : 'smooth' }); });
+moreEl.addEventListener('click', () => { const lp = focus ? fEl : panels.find((q) => q.classList.contains('live')); if (lp) { const sc = lp === fEl ? lp.querySelector('.work-reading') : lp; sc.scrollBy({ top: sc.clientHeight * 0.7, behavior: reduce ? 'auto' : 'smooth' }); } });
 function frame(now) {
   pace((now - last) / 1000); const dt = clamp((now - last) / 1000, 0, 0.05); last = now; size();   // clamped: the first frame's timestamp can be earlier than the moment the script finished
   if (intro.on) { if (scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' }); cur = 0; sPrev = 0; }
@@ -3459,14 +3464,15 @@ function frame(now) {
   const mob = W <= 800, visH = 2 * camera.position.z * Math.tan(rad(camera.fov / 2)), visW = visH * camera.aspect;
   let mTop = 0, mH = 0; if (mob) { mobLayout(P, je); mTop = mobL.top - 10; mH = Math.max(80, mobL.pt - mTop); }   /* the clear band between the top row and the sheet, in pixels */
   const fit = mob ? Math.min(visW * 0.96, visH * mH / H * 1.25) : Math.min(visH * 0.7, visW * 0.5), unit = fit / 50;
-  let sc = P.sc * unit * (mob ? 0.9 : 1);
-  sc = lerp(sc, unit * FZ.s * (mob ? 0.66 : 1), fe);
+  const layout = jump ? (() => { const a = compositionAt(jump.c0), b = compositionAt(jump.i); return {x:lerp(a.x,b.x,je),scale:lerp(a.scale,b.scale,je)}; })() : compositionAt(cv);
+  let sc = P.sc * unit * (mob ? 0.9 : layout.scale);
+  sc = lerp(sc, unit * FZ.s * (mob ? 0.66 : layout.scale), fe);
   const pan = snap ? 0 : cz;   // in close, the camera never quite sits still: a slow pan round the part
   e.set(rad(lerp(P.rx, -6, fe) + dragY + hp * freeW + Math.sin(s * 0.5) * 1.5 * sway + ZSIGN * zTilt[0] + Math.sin(s * 0.31) * 2.5 * pan), rad(P.ry + dragX + hy * freeW + Math.sin(s * 0.33) * 4 * sway + zTilt[1] + Math.sin(s * 0.23 + 1) * 6 * pan), rad(P.rz + zTilt[2]), 'XYZ');
   root.quaternion.setFromEuler(e); root.scale.setScalar(sc);
   const fc = FZ.c;
   v.set(lerp(P.f[0], fc[0], fe), lerp(P.f[1], fc[1], fe), lerp(P.f[2], ZD + P.z[2] * (1 - fe), fe)).multiplyScalar(sc).applyQuaternion(root.quaternion);
-  const cx = mob ? 0 : -visW * 0.2, cy = mob ? visH * (0.5 - (mTop + mH * 0.5) / H) : 0;
+  const cx = mob ? 0 : visW * layout.x, cy = mob ? visH * (0.5 - (mTop + mH * 0.5) / H) : 0;
   root.position.set(cx - v.x, cy - v.y, -v.z); glow.position.x = cx; glow.position.y = cy;
   zoomApply(dt, sc, cx, cy, act);
   let lc = [cx, cy], scU = sc; if (intro.on) { const r = introPose(dt, visW, visH, mob, sc, cx, cy); lc = r.lc; scU = r.s; glow.position.x = lc[0]; glow.position.y = lc[1]; }
@@ -3501,10 +3507,14 @@ function frame(now) {
   renderer.render(scene, camera); if (RAIL) railOverlay(mob);
   panels.forEach((p) => { const k = +p.dataset.ch; let o, ty2 = 0; if (jump) o = k === jump.i ? clamp(je * 3 - 2, 0, 1) : clamp(1 - je * 3, 0, 1) * (parseFloat(p.style.opacity) > 0.01 ? 1 : 0); else { o = clamp(1 - Math.abs(pe - k) * 2.4, 0, 1); ty2 = (k - pe) * 40; }
     o *= (k === CD ? 1 - fe : 1); p.style.opacity = o; p.style.transform = 'translateY(' + ty2 + 'px)'; p.classList.toggle('live', k === act && !jump && !(k === CD && focus)); p.style.visibility = o < 0.01 ? 'hidden' : 'visible'; });
+  const preview = $('work-stage'), previewOpacity = fe * tf;
+  preview.hidden = !focus || intro.on || previewOpacity < 0.01; preview.style.opacity = previewOpacity;
+  if (mob) { preview.style.setProperty('--preview-top', (mTop + 10) + 'px'); preview.style.setProperty('--preview-height', Math.max(80, mH - 20) + 'px'); }
+  document.body.dataset.section = ['home','experience','work','work','work','work','about','contact'][act];
   $('top').inert = intro.on;
   rail.inert = intro.on;
   $('intro').inert = !intro.on;
-  $('zback').tabIndex = focus || zoomK ? 0 : -1;
+  $('zback').tabIndex = focus || zoomK ? 0 : -1; $('zback').setAttribute('aria-hidden', String(!focus && !zoomK));
   $('cue').tabIndex = intro.on || focus || zoomK || $('cue').classList.contains('off') ? -1 : 0;
   $('more').tabIndex = $('more').classList.contains('on') ? 0 : -1;
   fixTick(dt);
@@ -3512,7 +3522,7 @@ function frame(now) {
   { const na = navOf(act); [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === na); bt.classList.toggle('past', k < na); if (k === na) bt.setAttribute('aria-current', 'page'); else bt.removeAttribute('aria-current'); }); }
   if (!intro.on && cueY0 == null) cueY0 = scrollY; if (!cueGone && cueY0 != null && (Math.abs(scrollY - cueY0) > 8 || jump)) cueGone = true; cueEl.classList.toggle('off', cueGone || act >= N - 1);   /* the arrow is only an invitation: the first scroll or move puts it away for the visit */ { const PTS = [[0, 0], [1, 1], [2, 2], [CB - 1, 2], [CB, 3], [N - 1, 4]]; let q = 4; for (let k = 0; k < PTS.length - 1; k++) if (pe < PTS[k + 1][0]) { const a = PTS[k], b = PTS[k + 1]; q = a[1] + (b[1] - a[1]) * clamp((pe - a[0]) / (b[0] - a[0]), 0, 1); break; } rail.style.setProperty('--p', clamp(q / 4, 0, 1).toFixed(4)); }   /* the brass line runs dot to dot: the five dots are evenly spaced, so the fill follows them, and it rests on Side Projects while the three works are open */
   const near = !jump && Math.abs(pe - act) < 0.15 && !focus && fe < 0.2;
-  hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); h.tabIndex = on ? 0 : -1; if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
+  hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); h.tabIndex = on ? 0 : -1; h.setAttribute('aria-hidden', String(!on)); if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
   pullTick(W, H);
   $('hint').style.opacity = cv < 0.3 && !intro.on ? 1 : 0;
   scrim.style.opacity = fe; renderer.toneMappingExposure = 1 - 0.36 * fe;

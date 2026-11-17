@@ -12,6 +12,8 @@ A scroll driven mechanical watch that holds a resume. Static site: no server, no
 | `bundle.*.js` | The built watch (generated, do not edit) | Claude |
 | `src/main.js` | Source code for the watch | Claude |
 | `review.css` | Focused interface refinements | Developer |
+| `composition.css` | Section compositions, hanger hierarchy, work reading layout | Developer |
+| `COMPOSITION_NOTES.md` | Current design proposal, preview commands, checks and limits | Review |
 | `content-view.html` | Generated readable recovery page | Build script |
 | `DESIGN_REVIEW.md` | Review, rationale, remaining content priorities, and validation | Review |
 

@@ -238,9 +238,10 @@ body.focused #focus>*{pointer-events:auto}
 #rail button.sub.cur::before{width:26px}
 @media (min-width:801px){
   #rail{padding-left:2px}
-  #rail::before,#rail::after{content:"";position:absolute;left:6px;top:4px;width:1px;border-radius:1px}
-  #rail::before{bottom:4px;background:rgba(238,241,244,.16)}
-  #rail::after{height:calc((100% - 8px) * var(--p,0));background:linear-gradient(180deg,rgba(220,184,114,.55),var(--brass));transition:height .25s linear}
+  #rail::before,#rail::after{content:"";position:absolute;left:6px;top:18px;width:1px;border-radius:1px}
+  #rail::before{bottom:18px;background:rgba(238,241,244,.16)}
+  #rail::after{height:calc((100% - 36px) * var(--p,0));background:var(--brass);transition:height .35s ease}
+  #rail button{min-height:36px;height:36px;box-sizing:border-box}   /* every row the same height, so the dots sit evenly on the line */
   #rail button{position:relative;padding-left:22px}
   #rail button::before{position:absolute;left:2px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:#0d1117;border:1px solid rgba(238,241,244,.35);box-sizing:border-box;transition:background .3s,border-color .3s,transform .3s}
   #rail button.sub{padding-left:32px}
@@ -610,6 +611,6 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.d2c9996d.js"></script>
+<script src="./bundle.71f79562.js"></script>
 </body>
 </html>

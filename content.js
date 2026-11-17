@@ -73,7 +73,7 @@ window.CONTENT = {
       chip: "Software Engineer",
       place: "Automation Anywhere, Remote",
       title: "Software Engineering",
-      text: "Basically built bots before they got promoted to ‘agents.’\n\nWorked on the Enterprise Engineering and Business Solutions team, building a production JavaScript module for JSON parsing. Evaluated UI automation approaches using Python and Selenium, and implemented Automation Anywhere bots to automate interactive forms.",
+      text: "Basically built bots before they became ‘Agents.’\n\nWorked with the Enterprise Engineering team building a production JavaScript module for parsing, evaluating UI automation approaches using Python and Selenium, and implemented Automation Anywhere bots to automate interactive forms.",
       linkText: "",
       link: "",
     },

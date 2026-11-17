@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mobilePixelRatio, movementIsCovered, ribbonNeedsUpdate, shadowUpdateDue } from './mobile-render-policy.mjs';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 function watchBootFailed(error) {
@@ -17,6 +18,7 @@ const TAU = Math.PI * 2, rad = (d) => d * Math.PI / 180;
 const lerp = (a, b, t) => a + (b - a) * t, clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const $ = (id) => document.getElementById(id);
 const stage = $('stage'), canvas = $('gl');
+const mobileViewport = matchMedia('(max-width:800px)');
 
 let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
@@ -1488,6 +1490,7 @@ const STRAPS = {
 };
 /* the cross-section, as [across, height]: a padded strap is domed between its seams and thin at its edges, webbing is flat with a rolled selvedge. Faces are one smooth sheet; groups are face, lining, edges (with the cut ends) */
 function ribbonGeo(center, width, thick, sy = 1, into, flat) {
+  if (into && mobileViewport.matches && !ribbonNeedsUpdate(into, center, width, thick, sy, flat)) return into;
   const half = flat ? [[0, 1], [0.93, 1], [0.975, 0.9], [1, 0.55]] : [[0, 1], [0.2, 0.99], [0.4, 0.95], [0.56, 0.87], [0.68, 0.76], [0.76, 0.67], [0.82, 0.635], [0.9, 0.64], [0.96, 0.625], [0.985, 0.57], [1, 0.47]], be = flat ? -0.55 : -0.8;
   const top = half.slice(1).reverse().map((p) => [-p[0], p[1]]).concat(half), bot = [[1, be], [0.975, -0.94], [0.93, -1], [-0.93, -1], [-0.975, -0.94], [-1, be]], te = half[half.length - 1][1], eb = (x) => { const a = Math.abs(x); return a <= 0.93 ? -1 : a <= 0.975 ? lerp(-1, -0.94, (a - 0.93) / 0.045) : lerp(-0.94, be, (a - 0.975) / 0.025); };
   const pos = [], uv = [], idx = [], n = center.length, rows = []; let len = 0;
@@ -1801,7 +1804,7 @@ function braceTick(dt) { const o = STRAPS.engineering.objs[0], U = GHU.uGhP.valu
   const mesh = sn.natoMesh; if (backN !== !!sn.gOn) { sn.gOn = backN; mesh.material = backN ? [sn.matG[0], sn.matG[0], sn.matG[1]] : [sn.mat, sn.mat, sn.matEnd]; sn.hw.fold.material = backN ? sn.matG[1] : sn.matEnd; }
   if (backN) sn.matG.forEach((g) => { const x = g.userData.src; g.opacity = LAY.strap.o; g.depthWrite = true; if (g.map !== x.map) { g.map = x.map; g.normalMap = x.normalMap; g.roughnessMap = x.roughnessMap; g.needsUpdate = true; } g.color.copy(x.color); }); }
 seed = 77;   // leave the shared random sequence where the dial expects it
-dress(STRAPS.consulting); { const rest = Object.values(STRAPS), idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump || performance.now() - (window.__act || 0) < 3000) { setTimeout(next, 700); return; } const st = rest.find((q) => q.maps && !q.dressed); if (st) { dress(st); idle(next); } }; afterInit.push(() => setTimeout(() => idle(next), 1200)); }
+dress(STRAPS.consulting); { const rest = Object.values(STRAPS), idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (mobileViewport.matches) return; if (intro.on || jump || performance.now() - (window.__act || 0) < 3000) { setTimeout(next, 700); return; } const st = rest.find((q) => q.maps && !q.dressed); if (st) { dress(st); idle(next); } }; afterInit.push(() => setTimeout(() => idle(next), 1200)); }
 let pendTint = null, tintHold = false, strapNow = 'consulting', strapNext = null, swapT = -1, swapHold = false; STRAPS[strapNow].objs.forEach((o) => { o.obj.visible = true; });
 /* the leather takes a new colour only when the strap tool has it off the watch: a dial that brings its own leather asks for it here, and the swap fits it */
 function tintNow() { if (pendTint == null) return; const sc = STRAPS.consulting; sc.mat.color.setHex(pendTint); sc.matEnd.color.setHex(pendTint); pendTint = null; }
@@ -2013,7 +2016,7 @@ function keepTick(st) { const o = KEEPS[strapNow]; if (!o || !cKeep.length) retu
   if (strapNow !== 'consulting') keepTick.away = true; if (!st.km) { if (!snap && !keepTick.away) return; keepMat(st, o); }   /* the strap the page opens on waits for idle time; one picked later is baked as it is fitted */
   st.km.color.copy(st.mat.color); if (st.nap) napSheen(st.km.sheenColor, st.mat.color); cKeep.forEach((K) => { if (K.m.material !== st.km) K.m.material = st.km; }); }
 /* and in idle time once the box is open, starting with the one on the watch: small enough not to wait for the visitor to sit still, as the straps do */
-{ const idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (intro.on || jump) { setTimeout(next, 700); return; } const k = [strapNow].concat(Object.keys(KEEPS)).find((q) => KEEPS[q] && STRAPS[q].mats && !STRAPS[q].km); if (k && cKeep.length) { keepMat(STRAPS[k], KEEPS[k]); idle(next); } }; afterInit.push(() => setTimeout(() => idle(next), 1400)); }
+{ const idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (mobileViewport.matches) return; if (intro.on || jump) { setTimeout(next, 700); return; } const k = [strapNow].concat(Object.keys(KEEPS)).find((q) => KEEPS[q] && STRAPS[q].mats && !STRAPS[q].km); if (k && cKeep.length) { keepMat(STRAPS[k], KEEPS[k]); idle(next); } }; afterInit.push(() => setTimeout(() => idle(next), 1400)); }
 
 await bootYield('Setting the display…');
 /* ---------- the strap display: the straps that are not on the watch wait beside it on a workshop pegboard, newest job on the left, oldest on the right: a dark powder coated
@@ -2399,7 +2402,7 @@ let railDressAt = 0;
 function railTick(dt, pe, je, sy0, mob, visW, visH) { if (!rl.el) return;
   const o = jump ? (jump.i === 1 ? clamp(je * 3 - 2, 0, 1) : clamp(1 - je * 3, 0, 1) * (rl.vis > 0.004 ? 1 : 0)) : clamp(1 - Math.abs(pe - 1) * 2.4, 0, 1), vis = intro.on ? 0 : o, busy = swapT >= 0;
   const drawerVisible = !mob || strapDrawer.dialog.open;
-  if ((vis <= 0.3 || !drawerVisible) && !intro.on && !jump && railDressAt >= 0 && performance.now() > railDressAt && performance.now() - (window.__act || 0) > 250) { const R = RSV.find((q) => q.st.maps && !q.st.dressed); if (R) { dress(R.st); railDressAt = performance.now() + 700; } else railDressAt = -1; }   /* straps are dressed ahead of time, one every 0.7 s away from the display, so it never shows bare leather */
+  if (!mob && vis <= 0.3 && !intro.on && !jump && railDressAt >= 0 && performance.now() > railDressAt && performance.now() - (window.__act || 0) > 250) { const R = RSV.find((q) => q.st.maps && !q.st.dressed); if (R) { dress(R.st); railDressAt = performance.now() + 700; } else railDressAt = -1; }   /* straps are dressed ahead of time, one every 0.7 s away from the display, so it never shows bare leather */
   if (mob && !drawerVisible) {
     rl.vis = 0; railG.visible = false; rl.desk = false;
     if (busy) { railLayout(visW, visH, 0); railG.updateMatrixWorld(true); railFlights(swapT, sy0); natoTick(swapT, sy0); }
@@ -2917,7 +2920,7 @@ function snowLoop(on) { if (on && !slope && actx && actx.state === 'running' && 
     l1.frequency.value = 0.11; l1g.gain.value = 210; l1.connect(l1g).connect(wind.frequency); l2.frequency.value = 0.42; l2g.gain.value = 0.15; l2.connect(l2g).connect(eg.gain); l3.frequency.value = 0.42; l3g.gain.value = 1300; l3.connect(l3g).connect(edge.frequency);
     s.connect(wind).connect(wg).connect(out); s.connect(hp).connect(edge).connect(eg).connect(out); out.connect(master); s.start(); l1.start(); l2.start(); l3.start(); out.gain.setTargetAtTime(0.2, actx.currentTime, 0.5); slope = { s, out, l: [l1, l2, l3] }; } catch (e) {}
   if (slope && (!on || muted)) { const z = slope; slope = null; try { z.out.gain.setTargetAtTime(0.0001, actx.currentTime, 0.25); z.s.stop(actx.currentTime + 1.2); z.l.forEach((o) => o.stop(actx.currentTime + 1.2)); } catch (e) {} } }
-function panTick(dt) { pitTick(dt); snowLoop(zoomK === 'snow'); const want = zoomK === 'cooking' ? 1 : 0; PAN.a += (want - PAN.a) * Math.min(1, dt * 5); gPan.visible = PAN.a > 0.01; gSpill.visible = steam.visible = gPan.visible; if (!gPan.visible) { fryLoop(false, 0); stS.forEach((q) => { q.life = 0; }); stC.fill(0); steam.geometry.attributes.color.needsUpdate = true; if (PAN.bits[0] && PAN.a <= 0.01) PAN.bits.forEach((b) => { b.on = false; b.me.visible = false; }); PAN.off.set(0, 0); PAN.vel.set(0, 0); return; }
+function panTick(dt) { const wasVisible = gPan.visible; pitTick(dt); snowLoop(zoomK === 'snow'); const want = zoomK === 'cooking' ? 1 : 0; PAN.a += (want - PAN.a) * Math.min(1, dt * 5); gPan.visible = PAN.a > 0.01; gSpill.visible = steam.visible = gPan.visible; if (!gPan.visible) { if (mobileViewport.matches && !wasVisible) return; fryLoop(false, 0); stS.forEach((q) => { q.life = 0; }); stC.fill(0); steam.geometry.attributes.color.needsUpdate = true; if (PAN.bits[0] && PAN.a <= 0.01) PAN.bits.forEach((b) => { b.on = false; b.me.visible = false; }); PAN.off.set(0, 0); PAN.vel.set(0, 0); return; }
   const n = 4, h = dt / n; let sp = 0, acc = 0; PAN.t += dt;
   for (let s = 0; s < n; s++) { pv.copy(PAN.tgt || pv.set(0, 0)); const k = PAN.tgt ? 420 : 120, c = PAN.tgt ? 24 : 9, ax = k * (pv.x - PAN.off.x) - c * PAN.vel.x, ay = k * (pv.y - PAN.off.y) - c * PAN.vel.y; PAN.vel.x += ax * h; PAN.vel.y += ay * h; PAN.off.addScaledVector(PAN.vel, h); acc = Math.max(acc, Math.hypot(ax, ay));
     /* the food is loose in the pan: it lags, slides up the wall, and comes back late */
@@ -3503,15 +3506,18 @@ function throwBox(vx, vy, w) { if (boxS.mode === 'gone' || boxS.mode === 'intro'
 
 /* ---------- frame ---------- */
 let W = 0, H = 0, last = performance.now(); const v = new THREE.Vector3(), e = new THREE.Euler();
-let prCap = innerWidth <= 800 ? 1.5 : 2, slowN = 0, fastN = 0;
+let prCap = 2, slowN = 0, fastN = 0;
 ['wheel', 'pointerdown', 'pointermove', 'keydown', 'touchstart', 'scroll'].forEach((ev) => addEventListener(ev, () => { window.__act = performance.now(); }, { passive: true, capture: true }));
 /* keep it smooth: if frames run long, render at a slightly lower resolution; nobody sees the difference in motion, everybody feels the stutter */
-function pace(raw) { if (snap || document.hidden || raw > 0.25) return; if (raw > 1 / 45) { slowN++; fastN = 0; } else { fastN++; if (fastN > 20) slowN = 0; } if (slowN > 24 && prCap > 1) { prCap = Math.max(1, prCap - 0.25); slowN = 0; W = -1; } }
+function pace(raw) { if (mobileViewport.matches || snap || document.hidden || raw > 0.25) return; if (raw > 1 / 45) { slowN++; fastN = 0; } else { fastN++; if (fastN > 20) slowN = 0; } if (slowN > 24 && prCap > 1) { prCap = Math.max(1, prCap - 0.25); slowN = 0; W = -1; } }
 let sizeH = 0, sizeAt = 0;
-function size() { const w = stage.clientWidth, h = stage.clientHeight; if (w === W && h === H) return;
+function size() { const w = stage.clientWidth, h = stage.clientHeight;
+  const ratio = w <= 800 ? mobilePixelRatio(w, h, devicePixelRatio) : Math.min(devicePixelRatio || 1, prCap);
+  if (w === W && h === H && ratio === renderer.getPixelRatio()) return;
   if (w === W && w <= 800 && H > 0 && Math.abs(h - H) < 140) { const now = performance.now(); if (h !== sizeH) { sizeH = h; sizeAt = now; } if (now - sizeAt < 140) return; }   /* a phone's toolbar sliding away changes the height a little on every frame: wait for it to stop, then resize once */
-  W = w; H = h; mobL.n = 0; renderer.setPixelRatio(Math.min(devicePixelRatio || 1, prCap)); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
-let dialOff = false, first = true, bodyBg = ''; const spot = $('spot');
+  W = w; H = h; mobL.n = 0; renderer.setPixelRatio(ratio); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+let dialOff = false, first = true, bodyBg = '', mobileMovementHidden = false, shadowAt = -Infinity;
+const mobileView = new THREE.Vector3(); const spot = $('spot');
 /* phones: the text is a sheet at the bottom, as tall as its words, and the watch takes the room that is left above it. Where each chapter's sheet
    begins is read from the page (it changes with the screen, the fonts and what is open), and the watch eases between them as the chapters turn */
 const mobL = { t: new Array(N).fill(-1), top: 48, pt: -1, n: 0, more: false }, moreEl = $('more'), topEl = $('top');
@@ -3548,7 +3554,7 @@ async function frame(now) {
   if (strapDrawer.dialog.open && (act !== 1 || jump || intro.on)) strapDrawerClose(null, true);
   if (strapDrawer.mobile) strapDrawer.trigger.disabled = swapT >= 0;
   tickGain = 0.35 + 0.65 * clamp(1 - Math.abs(pe - CB) / 0.8, 0, 1);
-  if (typeof caseFX === 'function') caseFX(now / 1000, dt, (selInt === 'music' && !needle) || (selInt === 'cooking' && !(PAN.flare > 0.55)) ? null : selInt); snowTick(now / 1000, dt); panTick(dt);
+  if ((!mobileViewport.matches || !mobileMovementHidden) && typeof caseFX === 'function') caseFX(now / 1000, dt, (selInt === 'music' && !needle) || (selInt === 'cooking' && !(PAN.flare > 0.55)) ? null : selInt); snowTick(now / 1000, dt); panTick(dt);
   if (armDrag && armDrag.t != null) armOff += (armDrag.t - armOff) * Math.min(1, dt * 18); else armOff += ((zoomK === 'music' && !needle ? 1 : 0) - armOff) * Math.min(1, dt * 3.5);
   gTone.rotation.z = TONE0 + ARMSWING * armOff; armAt(anchors['i-arm'], armOff);   // off the record, the arm swings out to its rest   // the flame flickers, the record turns   // a faint tick out front; you hear it properly at the back, with the movement in view
   let sk, fe, tf = 1;
@@ -3583,6 +3589,9 @@ async function frame(now) {
   const lit = gDial.position.z > 1.5; if (lit !== dialOff) { dialOff = lit; [gDial, gHands].forEach((G) => G.traverse((m) => { if (m.isMesh && m.material && !m.material.transparent) m.castShadow = !lit; })); }   // a lifted dial should not black out the works below it
   gMov.position.z = P.z[3]; gBack.position.z = P.z[4];
   ORDER.forEach((n, k) => setOpacity(n, k ? P.o[k] : Math.pow(P.o[0], 4)));
+  mobileView.copy(camera.position).sub(root.position).applyQuaternion(qi.copy(root.quaternion).invert());
+  mobileMovementHidden = movementIsCovered(mob, mobileView.z / mobileView.length(), gDial.position.z, gMov.position.z, LAY.dial.o, LAY.case.o);
+  gMov.visible = LAY.mov.o > 0.01 && !mobileMovementHidden;
   rotorPhysics(dt);
   let so = 0; natoP = 1;
   if (swapT >= 0 && RAIL) { const was = swapT; if (!swapHold) swapT += dt; so = railStep(was, swapT, P.sy); }
@@ -3605,7 +3614,7 @@ async function frame(now) {
   if (first) {
     await bootYield('Winding the movement…');
     const hidden = [], textures = new Set();
-    [gBin, gBox, boxShadow, snow, gBuckle].forEach((object) => { if (object && !object.visible) { object.visible = true; hidden.push(object); } });
+    [gMov, gBin, gBox, boxShadow, snow, gBuckle].forEach((object) => { if (object && !object.visible) { object.visible = true; hidden.push(object); } });
     try {
       await renderer.compileAsync(scene, camera);
       scene.traverse((object) => { const materials = object.material ? (Array.isArray(object.material) ? object.material : [object.material]) : [];
@@ -3615,6 +3624,8 @@ async function frame(now) {
     } finally { hidden.forEach((object) => { object.visible = false; }); }
     last = performance.now();
   }
+  renderer.shadowMap.autoUpdate = !mob;
+  if (shadowUpdateDue(mob, now, shadowAt, first)) { renderer.shadowMap.needsUpdate = true; shadowAt = now; }
   renderer.render(scene, camera); if (RAIL) railOverlay(mob);
   panels.forEach((p) => { const k = +p.dataset.ch; let o, ty2 = 0; if (jump) o = k === jump.i ? clamp(je * 3 - 2, 0, 1) : clamp(1 - je * 3, 0, 1) * (parseFloat(p.style.opacity) > 0.01 ? 1 : 0); else { o = clamp(1 - Math.abs(pe - k) * 2.4, 0, 1); ty2 = (k - pe) * 40; }
     o *= (k === CD ? 1 - fe : 1); p.style.opacity = o; p.style.transform = 'translateY(' + ty2 + 'px)'; p.classList.toggle('live', k === act && !jump && !(k === CD && focus)); p.style.visibility = o < 0.01 ? 'hidden' : 'visible'; });

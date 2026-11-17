@@ -54,7 +54,7 @@ window.CONTENT = {
       years: "2022 to now",
       chip: "Consulting",
       place: "Analysis Group, San Francisco",
-      title: "Economic consulting",
+      title: "Economic Consulting",
       text: "Antitrust, pricing and market strategy for Fortune 100 clients across AI, consumer tech, adtech and energy. I turn messy data into the evidence a case or a launch decision rests on.",
       linkText: "My Analysis Group profile",
       link: "https://www.analysisgroup.com/careers/why-analysis-group/our-people/nikhil/",
@@ -63,7 +63,7 @@ window.CONTENT = {
       years: "2021",
       chip: "Quant Researcher",
       place: "Arch Capital, Remote",
-      title: "Quant research",
+      title: "Quant Research",
       text: "[ONE LINE ON WHAT YOU MODELED]",
       linkText: "",
       link: "",
@@ -72,7 +72,7 @@ window.CONTENT = {
       years: "2020",
       chip: "Software Engineer",
       place: "Automation Anywhere, Remote",
-      title: "Software engineering",
+      title: "Software Engineering",
       text: "[ONE LINE ON WHAT YOU BUILT]",
       linkText: "",
       link: "",
@@ -88,7 +88,7 @@ window.CONTENT = {
     },
     writing: {
       years: "2018",
-      chip: "Journalism",
+      chip: "Writing",
       place: "Wrist Review",
       title: "Independent Watch Blogger",
       text: "My own blog and a Wrist Review byline, plus a lot of ghostwriting.",
@@ -111,19 +111,19 @@ window.CONTENT = {
   projects: [
     {
       title: "Notch-y",
-      text: "A Mac notch app with agents built in. Drop in a resume or an article and get a summary.",
+      text: "Notch-y turns the MacBook notch into a native macOS workspace, with a clipboard history, calendar and meeting alerts, a focus timer, scenic live weather, and music controls that live in the notch itself. Behind it works a staff of AI agents, led by a Planner that shapes your day, with a Reader that summarises whatever you’re looking at and more specialists for the rest of your work.",
       linkText: "See it",
       link: "",
     },
     {
       title: "Whisper",
-      text: "[ONE OR TWO LINES ON WHAT IT DOES]",
+      text: "Whisper is a native macOS dictation app I built in Swift. It uses Deepgram’s Nova-3 for real-time speech recognition, cleans the transcript with Claude Sonnet, and reads on-screen context through the Accessibility API to spell names correctly. It learns from my corrections, runs fully offline with WhisperKit, and replaced a commercial tool for my daily typing since I didn't want to pay for another subscription. ",
       linkText: "See it",
       link: "",
     },
     {
       title: "The Council",
-      text: "Open source models running locally, on my own data.",
+      text: "Can’t make up your mind? Hand it to The Council: five randomly drawn philosophers, refereed by Socrates, argue your question, scheme, flirt, brawl and then vote on a verdict. The AI writes the trash talk, and my code runs the rules (casting, persuasion, alliances, the vote count), so every debate is fair, unpredictable and never the same twice.",
       linkText: "See it",
       link: "",
     },
@@ -176,35 +176,27 @@ window.CONTENT = {
   interests: {
     soccer: {
       title: "Soccer",
-      text: "Pickup football on Fridays, pickup volleyball on Thursdays. A Liverpool fan since I was eight, with the old Warrior kit to prove it.",
-      listTitle: "On the pitch",
-      list: ["[Your league or team]", "[A favorite Liverpool memory]"],
+      text: "Pickup football on Fridays, VOLO league on Thursdays. The first sport I truly fell in love with. A Liverpool fan since I was eight, with the 2012/13 Warrior kit to prove it.",
       photos: [],
     },
     cooking: {
       title: "Cooking and baking",
-      text: "Always experimenting with something new, on the stove, in the oven and in the ice cream maker. Tonight: tofu stir fry noodles. Take the pan by the handle and give it a shake.",
+      text: "Always experimenting with something new, on the stove, in the oven and with my beloved Ninja Creami. Tonight: tofu stir fry noodles. Take the pan by the handle and give it a shake.",
       listTitle: "Lately",
-      list: ["[Something you cooked]", "[Something you baked]", "[An ice cream flavor]"],
+      list: ["Experimenting with textured vegetable protein!", "Concocting random sorbet combinations"],
       photos: [],
     },
     snow: {
       title: "Snowboarding",
-      text: "An escapement lets the energy out one controlled turn at a time. On a board, that is the whole idea.",
-      listTitle: "Where I have ridden",
-      list: ["[Mountain 1]", "[Mountain 2]", "[Mountain 3]"],
+      text: "An escapement lets the energy out one controlled turn at a time. On a board, that is the whole idea. I really want to learn to hit the jumps this seasons",
       photos: [],
     },
     music: {
       title: "Music",
-      text: "Electronic, mostly, and festivals like Outside Lands.",
+      text: "I like most beeps and boops.",
       listTitle: "Top five artists this year",
-      list: ["[Artist 1]", "[Artist 2]", "[Artist 3]", "[Artist 4]", "[Artist 5]"],
+      list: ["Oasis", "Empire Of The Sun", "Loyle Carner", "Noah Kahan", "Baby Keem"],
       photos: [],
-      /* a Spotify playlist shown as a small player under the record. Paste the
-         playlist's share link (Share, then Copy link to playlist). The playlist
-         must be public. Leave it empty "" to hide the player. */
-      spotify: "",
       /* the songs the record player plays when the needle drops, in order.
          Put the MP3 files and their cover images in the music folder, then add
          one line per song, for example:

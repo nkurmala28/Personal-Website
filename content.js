@@ -118,7 +118,7 @@ window.CONTENT = {
     },
     {
       title: "Whisper",
-      text: "Whisper is a native macOS dictation app I built in Swift. It uses Deepgram’s Nova-3 for real-time speech recognition, cleans the transcript with Claude Sonnet, and reads on-screen context through the Accessibility API to spell names correctly. It learns from my corrections, runs fully offline with WhisperKit, and replaced a commercial tool for my daily typing since I didn't want to pay for another subscription. ",
+      text: "Whisper is a native macOS dictation app I built in Swift. It uses Deepgram’s Nova-3 for real-time speech recognition, cleans the transcript with Claude Sonnet, and reads on-screen context through the Accessibility API to spell names correctly. It learns from my corrections, runs fully offline with WhisperKit.\n\nMainly also built this since I didn't want to pay for another subscription.",
       linkText: "See it",
       link: "",
     },

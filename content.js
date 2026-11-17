@@ -80,7 +80,7 @@ window.CONTENT = {
     banking: {
       years: "2018",
       chip: "Investment Banking",
-      place: "[RiverBridge Investment Advisors]",
+      place: "RiverBridge Investment Advisors",
       title: "Investment banking",
       text: "Interned during senior year of high school, analyzing financials for 300+ SMEs to identify prospective IPO clients and supporting valuations for a fashion label and an EdTech company. Also helped identify and coordinate with potential buyers for a manufacturing facility in South India.",
       linkText: "",

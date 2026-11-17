@@ -88,7 +88,7 @@ window.CONTENT = {
     },
     writing: {
       years: "2019",
-      chip: "Writing",
+      chip: "Journalist",
       place: "WristReview & other publications",
       title: "Independent Watch Blogger",
       text: "Wrote 50+ articles across watch publications, including bylined work for WristReview and ghostwritten pieces for other blogs, specializing in the mechanics behind modern watch movements.",

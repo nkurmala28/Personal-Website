@@ -151,12 +151,6 @@ window.CONTENT = {
       linkText: "Read it",
       link: "https://wristreview.com/introducing-the-oris-aquis-date-relief-watch/",
     },
-    {
-      title: "Everything on Wrist Review",
-      text: "The rest of my pieces for them, in one list.",
-      linkText: "See them all",
-      link: "https://wristreview.com/?s=NIKHIL+KURMALA",
-    },
   ],
 
   /* ---- Film (date window). Put each photo in the photos folder and list it

@@ -229,7 +229,7 @@ body.focused #focus>*{pointer-events:auto}
 #f-count{font:500 13px 'JetBrains Mono',monospace;color:var(--mut);min-width:4.5em;text-align:center}
 #f-close{margin-left:auto}
 #rail{position:absolute;z-index:5;left:28px;bottom:22px;display:flex;flex-direction:column}
-#rail button{background:none;border:0;padding:5px 0;min-height:28px;display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--mut);font:500 12px 'JetBrains Mono',monospace}
+#rail button{background:none;border:0;padding:8px 0;min-height:36px;display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--mut);font:500 12px 'JetBrains Mono',monospace}
 #rail button::before{content:"";width:18px;height:1px;background:currentColor;transition:width .3s}
 #rail button.cur{color:var(--brass)}
 #rail button.cur::before{width:38px}
@@ -238,9 +238,9 @@ body.focused #focus>*{pointer-events:auto}
 #rail button.sub.cur::before{width:26px}
 @media (min-width:801px){
   #rail{padding-left:2px}
-  #rail::before,#rail::after{content:"";position:absolute;left:6px;top:14px;width:1px;border-radius:1px}
-  #rail::before{bottom:14px;background:rgba(238,241,244,.16)}
-  #rail::after{height:calc((100% - 28px) * var(--p,0));background:linear-gradient(180deg,rgba(220,184,114,.55),var(--brass));transition:height .25s linear}
+  #rail::before,#rail::after{content:"";position:absolute;left:6px;top:4px;width:1px;border-radius:1px}
+  #rail::before{bottom:4px;background:rgba(238,241,244,.16)}
+  #rail::after{height:calc((100% - 8px) * var(--p,0));background:linear-gradient(180deg,rgba(220,184,114,.55),var(--brass));transition:height .25s linear}
   #rail button{position:relative;padding-left:22px}
   #rail button::before{position:absolute;left:2px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:#0d1117;border:1px solid rgba(238,241,244,.35);box-sizing:border-box;transition:background .3s,border-color .3s,transform .3s}
   #rail button.sub{padding-left:32px}
@@ -262,11 +262,7 @@ body.focused #focus>*{pointer-events:auto}
 /* ---------- the editorial layer: section eyebrows, the experience unit's caption and worn mark, the selected work list, the about grid, the next section cue ---------- */
 .part.eyebrow{font:500 11px/1.5 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
 #f-kicker{letter-spacing:.14em;text-transform:uppercase;font-size:11px}
-.hcap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font:400 11px/1.5 'JetBrains Mono',monospace;color:var(--mut);letter-spacing:.02em}
-.hcap span:last-child{color:var(--brass);font-size:10px}
 .rail3d button{position:relative}
-.rail3d .wl{font:400 9.5px/1.4 'JetBrains Mono',monospace;color:var(--brass);opacity:0;transition:opacity .25s;white-space:nowrap;order:-1}
-.rail3d button[aria-pressed=true] .wl{opacity:1}
 .hub h2{font-size:clamp(44px,4.9vw,76px);line-height:1;letter-spacing:-.015em}
 .hub .sub2{color:var(--mut);font-size:17px;line-height:1.6}
 .wlist{display:flex;flex-direction:column;max-width:34em;margin-top:8px}
@@ -303,7 +299,11 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 .wip svg{width:58px;height:58px}
 .wip b{font:500 10px 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
 .wip span{font:400 18px 'Instrument Serif',serif;color:var(--ink)}
-@media (prefers-reduced-motion:reduce){.warr,.rail3d .wl{transition:none}}
+.stops button.new{border-color:rgba(220,184,114,.6);color:var(--ink);animation:pillglow 2.8s ease-in-out infinite}
+@keyframes pillglow{0%,100%{box-shadow:0 0 0 0 rgba(220,184,114,.0),0 0 8px 0 rgba(220,184,114,.18)}50%{box-shadow:0 0 0 3px rgba(220,184,114,.16),0 0 14px 2px rgba(220,184,114,.32)}}
+#cue:not(.off) svg{animation:cuebob 2.1s ease-in-out infinite}
+@keyframes cuebob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@media (prefers-reduced-motion:reduce){.warr{transition:none}.stops button.new{animation:none;box-shadow:0 0 0 2px rgba(220,184,114,.22)}#cue svg{animation:none!important}}
 /* the strap display (RAIL in main.js): an empty block the 3D display is drawn into, one button per strap over it, each strap's job and years set small at its foot.
    The strap on the watch is marked by a short brass rule over its name. Without RAIL none of this applies */
 .panel.railed{gap:12px}
@@ -324,6 +324,7 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 /* the job, set like a catalogue plate: the title, the material in italic under it, the place and the years over a hairline, a paragraph, and a plain link */
 .plate{border:0;padding:0;gap:0;min-height:0;max-width:none}
 .plate .pl1{display:flex;flex-direction:column}
+.panel.railed #s-name{display:none}   /* the job stands on its own; the strap shows the material */
 #s-title{font:400 54px/1 'Instrument Serif',serif;letter-spacing:-.005em;color:var(--ink)}
 #s-name{font:italic 400 24px/1.15 'Instrument Serif',serif;color:var(--mut);margin-top:4px}
 #s-meta{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:20px;padding-bottom:11px;border-bottom:1px solid rgba(238,241,244,.14)}
@@ -337,12 +338,12 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 @media (min-width:801px){
   .panel.railed{justify-content:center;gap:0;left:-3vw;padding:54px 3.5vw 64px 0}
   .panel.railed>.part{margin-bottom:18px;order:0}
-  .panel.railed .plate{order:1}.panel.railed .hcap{order:2;margin:26px 0 10px}.panel.railed .rail3d{order:3}
-  .panel.railed .rail3d{margin:0;padding:0 5%;height:clamp(240px,38vh,370px);max-width:none;grid-auto-columns:minmax(85px,1fr)}   /* the names inset a little, so the end straps hang clear of the board's edges */
+  .panel.railed .plate{order:1}.panel.railed .rail3d{order:2;margin-top:22px!important}
+  .panel.railed .rail3d{margin:0;padding:0 5%;height:clamp(258px,41vh,398px);max-width:none;grid-auto-columns:minmax(85px,1fr)}   /* the names inset a little, so the end straps hang clear of the board's edges */
   .panel.railed .rail3d .rj{font-size:17px}
 }
 /* shorter screens: the type steps down; below about 660 the column scrolls */
-@media (min-width:801px) and (max-height:740px){#s-title{font-size:44px}#s-body{font-size:16px}.panel.railed .hcap{margin-top:16px}}
+@media (min-width:801px) and (max-height:740px){#s-title{font-size:44px}#s-body{font-size:16px}.panel.railed .rail3d{margin-top:14px!important}}
 @media (min-width:801px) and (max-height:659px){.panel.railed{overflow-y:auto;scrollbar-width:none;justify-content:flex-start}}
 @media (prefers-reduced-motion:reduce){.rail3d button::before,.rail3d .rj,.rail3d .ry{transition:none}}
 /* ---------- phones ----------
@@ -405,8 +406,7 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
   /* strap rail: the sheet keeps a clear window where the rail hangs (main.js sets --rh0 and --rh1, its top and bottom in the sheet) */
   .panel.railed{top:calc(28vh - 34px);max-height:none;padding-top:46px;gap:0;background:linear-gradient(180deg,rgba(12,16,22,0),rgba(12,16,22,.92) 34px,rgba(12,16,22,.96) calc(var(--rh0,100%) - 22px),rgba(12,16,22,0) var(--rh0,100%),rgba(12,16,22,0) var(--rh1,100%),rgba(12,16,22,.96) calc(var(--rh1,100%) + 16px))}
   .panel.railed .partrow{height:14px;align-items:center}
-  .panel.railed>.part{order:0}.panel.railed .hcap{order:1;margin-top:10px;font-size:10px}.panel.railed .hcap span:last-child{font-size:9px}.panel.railed .rail3d{order:2}.panel.railed .plate{order:3}
-  .rail3d .wl{font-size:8px}
+  .panel.railed>.part{order:0}.panel.railed .rail3d{order:2}.panel.railed .plate{order:3}
   .hub h2{font-size:34px}.hub .sub2{font-size:14.5px}.wlist>button{padding:13px 0;gap:13px}.wcopy b{font-size:26px}.wcopy>span{font-size:13px}.wth{width:48px;height:48px}.wth svg{width:48px;height:48px}.wfilm img{width:27px;height:35px;left:10px;top:6px}
   .igrid{gap:0 16px}.igrid button{font-size:21px;min-height:52px;padding:10px 0;gap:8px}.prov{font-size:10.5px!important}
   #cue{left:auto;right:12px;bottom:calc(var(--rail) + 4px);height:44px}#cue svg{height:28px}
@@ -520,7 +520,6 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
         <button data-strap="consulting">Consulting</button><button data-strap="engineering">Engineering</button><button data-strap="quant">Quant</button><button data-strap="banking">Banking</button><button data-strap="writing">Journalism</button>
       </div>
       <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3><div id="s-name"></div></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
-      <div class="hcap" aria-hidden="true"><span>Choose a strap. Change the story.</span><span>Recent → Earlier</span></div>
     </section>
     <section class="panel hub" data-ch="2">
       <div class="part eyebrow">02 / Selected work</div>
@@ -563,7 +562,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <p class="small" id="f-note"></p>
       <div class="fbar"><button class="btn" id="f-prev" aria-label="Previous">Back</button><span id="f-count"></span><button class="btn" id="f-next" aria-label="Next">Next</button></div>
       <div class="stops" aria-label="Complications"><button data-stop="moon">Projects</button><button data-stop="sec">Articles</button><button data-stop="date">Film</button></div>
-      <p class="small" id="f-hint"></p>
+      <p class="small" id="f-hint" hidden></p>
     </section>
   </div>
 
@@ -611,6 +610,6 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script src="./content.js"></script>
-<script src="./bundle.0dd177bb.js"></script>
+<script src="./bundle.d2c9996d.js"></script>
 </body>
 </html>

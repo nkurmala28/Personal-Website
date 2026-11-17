@@ -108,8 +108,7 @@ const DATA = {
     { t: "A Rare Vintage Panerai Radiomir 'Type A' ref.6152 Watch Auctioned For 226.000€", d: "Wrist Review, February 2019. A 1953 Radiomir that belonged to an Italian rear admiral sold for nearly twice its top estimate, and its case and movement came from Rolex.", link: 'Read it', url: 'https://wristreview.com/a-rare-vintage-panerai-radiomir-type-a-ref-6152-watch-auctioned-for-226-000e/' },
     { t: 'Ulysse Nardin Freak X Silicium Marquetry Watch', d: "Wrist Review, February 2019. Dials set from about 120 hand-fitted silicon pieces, on a watch with no hands: the movement itself turns once an hour and points to the minutes.", link: 'Read it', url: 'https://wristreview.com/ulysse-nardin-freak-x-silicium-marquetry-watch/' },
     { t: 'SIHH 2019: Piaget Polo S Green Dial Limited Edition Watch (Live Pics)', d: "Wrist Review, January 2019. The green dial Polo S from SIHH, limited to 500 pieces, on Piaget's thin in-house automatic.", link: 'Read it', url: 'https://wristreview.com/sihh-2019-piaget-polo-s-green-dial-limited-edition-watch-live-pics/' },
-    { t: 'Introducing The Oris Aquis Date Relief Watch', d: "Wrist Review, February 2019. A diver made to back a swimmer's planned 800 km crossing of Lake Baikal, for water conservation.", link: 'Read it', url: 'https://wristreview.com/introducing-the-oris-aquis-date-relief-watch/' },
-    { t: 'Everything on Wrist Review', d: 'The rest of my pieces for them, in one list.', link: 'See them all', url: 'https://wristreview.com/?s=NIKHIL+KURMALA' }] }
+    { t: 'Introducing The Oris Aquis Date Relief Watch', d: "Wrist Review, February 2019. A diver made to back a swimmer's planned 800 km crossing of Lake Baikal, for water conservation.", link: 'Read it', url: 'https://wristreview.com/introducing-the-oris-aquis-date-relief-watch/' }] }
 };
 /* content.js, loaded before this script, holds everything the owner edits. Whatever it sets replaces the built-in text above; whatever it leaves out, or a file that fails to load, falls back to it */
 const CT = (typeof window !== 'undefined' && window.CONTENT) || {};
@@ -1596,7 +1595,7 @@ const steel2 = (geo, mats, parent) => { const m = new THREE.Mesh(geo, mats); m.c
 /* ----- the bracelet, whole: an end link and rows of three piece links on each side, and between them a compact folding clasp, a short cover with a flip lock and two thin blades that fold away inside it.
    It is one chain of pins from the end link at twelve to the end link at six: end link, the twelve side's rows, blade 2, the middle hinge, blade 1, the cover, the six side's rows, end link.
    Closed round the wrist the two blades lie folded under the cover; opened they straighten out, and the bracelet becomes a strip. Every way it can lie is the same pins with the joints turned ----- */
-const BRC = { p: 4.4, e: 1.2, nA: 12, nB: 12, Lc: 20.5, Lb1: 18.5, Lb2: 16.5, d1: 0.9, d2: 1.5 };   // link pitch, end link pin, rows each side, cover and blade lengths, how deep the blades lie under the cover
+const BRC = { p: 4.4, e: 1.2, nA: 12, nB: 12, Lc: 20.5, Lb: 17, lap: 0.3, up: 0.35, dn: 0.25 };   // link pitch, end link pin, rows each side, cover and blade lengths; how far the cover's end laps over the last row, and how far the two sit proud of and under the line of the links
 BRC.m = BRC.nA + 2; BRC.S = BRC.nA + BRC.nB + 5;   // the middle hinge's pin, and the number of pieces between pins
 const brWrap = (x) => x - TAU * Math.round(x / TAU);
 /* closed on the wrist: the pins on an oval that leaves each lug in the end link's own line and wraps the wrist; the oval is sized until the six side's end link lands exactly on its lug */
@@ -1607,8 +1606,10 @@ const BRSH = (() => { const P0 = [LH[0] - 0.6, LH[1] + 0.2], tn = Math.tan(-TH0)
     const next = (q, u0, L, d = 0) => { let lo = u0, hi = u0 + L + 4; for (let it = 0; it < 40; it++) { const md = (lo + hi) / 2, p = at(md, d); if (Math.hypot(p[0] - q[0], p[1] - q[1]) < L) lo = md; else hi = md; } return hi; };
     const pts = [P0.slice()]; let u = next(P0, 0, BRC.e); pts.push(at(u));
     for (let r = 1; r < BRC.nA; r++) { u = next(pts[pts.length - 1], u, BRC.p); pts.push(at(u)); }
-    const uH = next(pts[pts.length - 1], u, BRC.p, BRC.d2), u1 = uH - (BRC.Lb1 - BRC.Lb2); pts.push(at(uH, BRC.d2));   /* the last row dips under the cover to the end of blade 2 */
-    pts.push(at(u1 + BRC.Lb1, (BRC.d1 + BRC.d2) / 2)); pts.push(at(u1, BRC.d1 / 2)); u = u1 + BRC.Lc; pts.push(at(u));
+    /* the clasp shut: the last row runs on at its full pitch and tucks a hair under the cover's end, which laps over it, so the two meet with no air between; the two blades, equal in
+       length, fold flat inside the cover from there; the cover's far end takes the first row of the other side straight on its pin */
+    const uE = next(pts[pts.length - 1], u, BRC.p, BRC.dn), u1 = uE - BRC.lap; pts.push(at(uE, BRC.dn));
+    pts.push(at(u1 + BRC.Lb, (BRC.dn - BRC.up) / 2)); pts.push(at(u1, -BRC.up)); u = u1 + BRC.Lc; pts.push(at(u));
     for (let r = 0; r < BRC.nB; r++) { u = next(pts[pts.length - 1], u, BRC.p); pts.push(at(u)); }
     pts.push([-P0[0], P0[1]]); const m0 = at(u1 + BRC.Lc / 2), c0 = at(u1), c1 = at(u1 + BRC.Lc), cl = Math.hypot(c1[0] - c0[0], c1[1] - c0[1]), sag = Math.abs((c1[0] - c0[0]) * (m0[1] - c0[1]) - (c1[1] - c0[1]) * (m0[0] - c0[0])) / cl;
     return { pts, res: U[M] - u - BRC.e, a, b, zc, k, sag }; };
@@ -1690,36 +1691,32 @@ function makeStrap(st, sy) {
     const L = BRSH.L, S = BRC.S, m = BRC.m, parts = [], twin = (x) => Array.isArray(x) ? x.map((y) => GHT.get(y) || y) : GHT.get(x) || x;
     const put = (geo, mats, par) => { const x = steel2(geo, mats, par); if (!geo.boundingSphere) geo.computeBoundingSphere(); parts.push({ m: x, sol: mats, gho: twin(mats), g: false, c: geo.boundingSphere.center, rad: geo.boundingSphere.radius }); return x; };   /* each piece's own middle and reach, for deciding which may cover the back */
     /* the end links, each with its spring bar, cut to the case: they ride rigidly on the first and the last piece of the chain */
-    const ends = [0, 1].map((k) => { const e = new THREE.Group(); g.add(e); const end = put(endGeo, [mLinkB, mLinkP], e), b = add(e, barGeo, mBar), t = add(e, tipGeo, mBar); if (k) end.rotation.z = Math.PI; b.position.set(0, (k ? -1 : 1) * LH[0], LH[1]); t.position.copy(b.position); return { e, t }; });
+    const gm = new THREE.Group(); gm.scale.y = -1; g.add(gm);   /* drawn mirrored from twelve to six, so the clasp's cover lies next to the twelve side's rows and its blades toward six */
+    const ends = [0, 1].map((k) => { const e = new THREE.Group(); gm.add(e); const end = put(endGeo, [mLinkB, mLinkP], e), b = add(e, barGeo, mBar), t = add(e, tipGeo, mBar); if (k) end.rotation.z = Math.PI; b.position.set(0, (k ? -1 : 1) * LH[0], LH[1]); t.position.copy(b.position); return { e, t }; });
     /* the rows: two outer links on each pitch, a centre link over each joint between them, tapering from the lugs to the clasp */
     const tA = (r, n) => lerp(1, 0.82, r / (n - 1)), rows = [], cens = [];
     for (let j = 1; j <= BRC.nA; j++) rows.push({ j, k: tA(j - 1, BRC.nA) });
     for (let j = m + 2; j <= S - 2; j++) rows.push({ j, k: tA(S - 2 - j, BRC.nB) });
     for (let p = 2; p <= BRC.nA; p++) cens.push({ p, k: (tA(p - 2, BRC.nA) + tA(p - 1, BRC.nA)) / 2 });
     for (let p = m + 3; p <= S - 2; p++) cens.push({ p, k: (tA(S - 2 - p, BRC.nB) + tA(S - 1 - p, BRC.nB)) / 2 });
-    rows.forEach((R) => { R.o = [-1, 1].map((sx) => { const x = put(linkGeo[0], [mLinkP, mLinkB], g); x.scale.x = R.k; return { x, sx }; }); });
-    cens.forEach((C) => { C.o = put(linkGeo[1], [mLinkP, mLinkB], g); C.o.scale.x = C.k; });
+    rows.forEach((R) => { R.o = [-1, 1].map((sx) => { const x = put(linkGeo[0], [mLinkP, mLinkB], gm); x.scale.x = R.k; return { x, sx }; }); });
+    cens.forEach((C) => { C.o = put(linkGeo[1], [mLinkP, mLinkB], gm); C.o.scale.x = C.k; });
     /* the clasp, after the Oyster pattern: a short cover no longer than four or five links and no thicker than they are, its top flush with them, polished down the middle and satin on the
        shoulders, with shallow skirts down its sides. The two thin blades fold away inside it (blade 1 hinged to the cover, blade 2 to blade 1 and to the twelve side's last row), and a small
        polished flip lock lies on its end */
-    const cover = new THREE.Group(), b1 = new THREE.Group(), b2 = new THREE.Group(), flap = new THREE.Group(); [cover, b1, b2].forEach((x) => g.add(x));
+    const cover = new THREE.Group(), b1 = new THREE.Group(), b2 = new THREE.Group(); [cover, b1, b2].forEach((x) => gm.add(x));
     const CL = L[m + 1], sg = BRSH.sag, cw = 16.4, mid = 7.9, sk = 0.7, sh = (cw - mid) / 2 - sk + 0.28;   /* the shoulders stop short of the skirts, so no two faces ever lie in one place */
     put(brPlate(mid, CL, 1.0, sg, 0.18), [mLinkP, mLinkP], cover).position.z = 1.0;
     [-1, 1].forEach((sx) => { put(brPlate(sh, CL, 1.0, sg, 0.18), [mLinkB, mLinkP], cover).position.set(sx * (mid / 2 - 0.3 + sh / 2), 0, 0.96);   /* tucked a hair under the polished centre, its top a hair lower */ put(brPlate(sk, CL - 0.6, 2.9, sg, 0.2), [mLinkP, mLinkP], cover).position.set(sx * (cw / 2 - sk / 2), 0, -0.35); });   /* the skirts are polished all over: a brushed grain has nothing to run along on a face this narrow */
     put(brPlate(9, L[m], 0.55, 0, 0.2), [mLinkB, mLinkP], b1); put(brPlate(9, L[m - 1], 0.55, 0, 0.2), [mLinkB, mLinkP], b2);
     [[0.5, 9.4, b1, L[m]], [0.55, 14.6, cover, CL], [0.5, 9.4, b2, L[m - 1]]].forEach(([r, w, par, l]) => { put(new THREE.CylinderGeometry(r, r, w, 14).rotateZ(Math.PI / 2), mLinkP, par).position.y = -l / 2; });   // the hinge pins
-    /* the flip lock: hinged on top of the cover at the six side end, its long side running back toward the clasp's middle. Shut, it lies along the line that touches the cover's bowed top
-       halfway along it (a tangent clears a curve that bows up), a hair above; open, it swings up and over its hinge, so no part of it ever goes below that line or into the links */
-    const FL = 4.2, ft = 0.7, cTop = 1.5, bowAt = (u) => sg * (4 * u / CL - 4 * u * u / (CL * CL)), slope = sg * (4 / CL - 4 * FL / (CL * CL)), z0 = cTop + bowAt(FL / 2) - slope * FL / 2 + 0.07;
-    flap.userData.th0 = Math.atan(slope); flap.position.set(0, CL / 2 - 0.25, z0 + ft / 2 / Math.cos(flap.userData.th0)); cover.add(flap);
-    put(brPlate(mid + 0.5, FL, ft, 0, 0.25), [mLinkP, mLinkP], flap).position.set(0, -FL / 2, 0); put(new THREE.CylinderGeometry(0.4, 0.4, mid + 0.5, 12).rotateZ(Math.PI / 2), mLinkP, flap);
     const ang = (c, j) => Math.atan2(c[j + 1][1] - c[j][1], c[j + 1][0] - c[j][0]), seg = (o, c, j) => { o.position.set(0, (c[j][0] + c[j + 1][0]) / 2, (c[j][1] + c[j + 1][1]) / 2); o.rotation.x = ang(c, j); };
     const P0 = BRSH.pts[0], PS = BRSH.pts[S];
     return { sy, obj: g, parts, ends, fl: 1, onW: false, update(c, lift) {
       [[0, 0, TH0, c[0], P0], [1, S - 1, -TH0, c[S], PS]].forEach(([k, j, a0, P, Q]) => { const E = ends[k].e, d = ang(c, j) - a0, cs = Math.cos(d), sn = Math.sin(d); E.rotation.x = d; E.position.set(0, P[0] - (Q[0] * cs - Q[1] * sn), P[1] - (Q[0] * sn + Q[1] * cs)); ends[k].t.visible = this.onW && lift < 0.05; });
       rows.forEach((R) => { const j = R.j, y = (c[j][0] + c[j + 1][0]) / 2, z = (c[j][1] + c[j + 1][1]) / 2, a = ang(c, j); R.o.forEach((o) => { o.x.position.set(o.sx * 7.35 * R.k, y, z); o.x.rotation.x = a; }); });
       cens.forEach((C) => { const a1 = ang(c, C.p - 1), a = a1 + brWrap(ang(c, C.p) - a1) / 2; C.o.position.set(0, c[C.p][0], c[C.p][1]); C.o.rotation.x = a; });
-      seg(b2, c, m - 1); seg(b1, c, m); seg(cover, c, m + 1); flap.rotation.x = -(flap.userData.th0 + 1.55 * (1 - this.fl)); } }; }   /* open, the flip lock stands up off the cover */
+      seg(b2, c, m - 1); seg(b1, c, m); seg(cover, c, m + 1); } }; }
   if (!st.mat) { const cloth = st.sheen ? { sheen: st.sheen, sheenRoughness: st.sheenR || 0.5, sheenColor: new THREE.Color(st.sheenC ?? 0xffffff) } : {}, lp = { color: st.back, map: null, normalMap: null, metalness: 0, roughness: 0.9, side: THREE.DoubleSide, envMapIntensity: 0.4 };
     st.mat = M('strap', Object.assign({ map: null, normalMap: null, roughnessMap: null, metalness: 0, roughness: 1, side: THREE.DoubleSide, envMapIntensity: 0.6 }, cloth), !!st.sheen);
     st.matEnd = M('strap', Object.assign({ color: st.base, metalness: 0, roughness: st.under ? 0.9 : st.edgeRo || 0.5, side: THREE.DoubleSide, envMapIntensity: 0.5 }, st.under ? {} : { map: edgeTint }));
@@ -2299,7 +2296,7 @@ function railArrive(k) { const R = RS[k], st = R.st; if (st.links) { BCL.cl = 0;
 function railDom() { const p = panels.find((q) => q.dataset.ch === '1'); if (!p) return; p.classList.add('railed');
   const box = document.createElement('div'); box.className = 'rail3d'; box.id = 's-rail'; box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Straps on their board, newest first. Choose one to wear it');
   RJ.order.forEach((k) => { const b = document.createElement('button'), j = CT.jobs && CT.jobs[k], chip = (j && j.chip) || { consulting: 'Consulting', engineering: 'Engineering', quant: 'Quant', banking: 'Banking', writing: 'Journalism' }[k];
-    b.dataset.strap = k; b.dataset.rail = k; b.innerHTML = '<span class="wl" aria-hidden="true">On the watch</span><span class="rj"></span><span class="ry"></span>'; b.children[1].textContent = chip; b.children[2].textContent = RJ.years[k]; b.setAttribute('aria-label', chip + ', ' + RJ.years[k] + ', ' + STRAPS[k].name.toLowerCase());
+    b.dataset.strap = k; b.dataset.rail = k; b.innerHTML = '<span class="rj"></span><span class="ry"></span>'; b.children[0].textContent = chip; b.children[1].textContent = RJ.years[k]; b.setAttribute('aria-label', chip + ', ' + RJ.years[k] + ', ' + STRAPS[k].name.toLowerCase());
     b.addEventListener('pointerenter', (e) => railNudge(k, e.movementX || 1, 1)); b.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') railNudge(k, e.movementX, 0.25); }); b.addEventListener('pointerdown', () => railNudge(k, 1, 1.4)); box.appendChild(b); rl.btns.push(b); });
   box.addEventListener('keydown', (e) => { const i = rl.btns.indexOf(document.activeElement); if (i < 0) return; let n = -1; if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = Math.min(rl.btns.length - 1, i + 1); if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = Math.max(0, i - 1); if (e.key === 'Home') n = 0; if (e.key === 'End') n = rl.btns.length - 1; if (n >= 0) { e.preventDefault(); e.stopPropagation(); rl.btns[n].focus(); } });
   const ch = p.querySelector('.chips'); ch.parentNode.insertBefore(box, ch.nextSibling); rl.el = box;
@@ -2307,8 +2304,8 @@ function railDom() { const p = panels.find((q) => q.dataset.ch === '1'); if (!p)
 function railNudge(k, dx, g) { if (reduce || !rl.vis) return; const S = rl.slots[RJ.order.indexOf(k)]; if (!S) return; S.phV += clamp(dx * 0.02, -0.09, 0.09) * g * (S.drape ? 0.4 : 1); }
 /* where the display is on the page and how big, in the scene: from the block's box, at the plane of the watch. Its size only changes when the block does */
 function railLayout(visW, visH, slide) { const el = rl.el, r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect(), w = r.width, h = r.height;
-  if (Math.abs(w - rl.cw) > 0.5 || Math.abs(h - rl.ch) > 0.5) { rl.cw = w; rl.ch = h; const n = rl.btns.length, pitch = w / n, b0 = rl.btns[0], lab = b0 ? b0.children[0].offsetHeight + b0.children[1].offsetHeight + b0.children[2].offsetHeight + 18 : 60;
-    { rl.ppm = Math.max(0.3, Math.min((h - lab - 6) / (RB.top + RB.drop + 2), pitch * 0.62 / 19.7)); rl.top = (RB.top + 1) * rl.ppm + 2; rl.rodL = W > 800 ? 0.93 * w / rl.ppm : w / rl.ppm + 10; rFurn(rl.rodL, rl.btns.map((b) => (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm)); }   /* on a desktop the board is drawn at about 93% of the column; on a phone it runs edge to edge */
+  if (Math.abs(w - rl.cw) > 0.5 || Math.abs(h - rl.ch) > 0.5) { rl.cw = w; rl.ch = h; const n = rl.btns.length, pitch = w / n, b0 = rl.btns[0], lab = b0 ? b0.children[0].offsetHeight + b0.children[1].offsetHeight + 18 : 46;
+    { rl.ppm = Math.max(0.3, Math.min((h - lab - 6) / (RB.top + RB.drop + 2), pitch * 0.62 / 19.7)); rl.top = (RB.top + 1) * rl.ppm + 2; rl.rodL = W > 800 ? w / rl.ppm : w / rl.ppm + 10; rFurn(rl.rodL, rl.btns.map((b) => (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm)); }   /* on a desktop the board is drawn at about 93% of the column; on a phone it runs edge to edge */
     rl.slots.forEach((S, i) => { const b = rl.btns[i]; S.h.position.x = (b.offsetLeft + b.offsetWidth / 2 - w / 2) / rl.ppm; }); }
   const wpp = visH / H, px = r.left - sr.left + w / 2, py = r.top - sr.top + rl.top + slide; rl.s = rl.ppm * wpp;
   railG.position.set((px / W - 0.5) * visW, (0.5 - py / H) * visH, 0); railG.scale.setScalar(rl.s); }
@@ -2543,7 +2540,7 @@ if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (
 const NAV = [['Home', 0], ['Experience', 1], ['Side Projects', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
 NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
 /* the arrow at the foot: on to the next chapter, as a key press would be (into the three works through goWork, so their order holds) */
-const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
+let cueY0 = null, cueGone = false; const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
 const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
 function workOrder(list) { STOP.splice(0, 3, ...list); stopsPaint(); }
 /* every way into the three works (the chips, the journey bar, the dial dots and rows, the links on the spec sheet) comes through here */
@@ -2558,15 +2555,15 @@ let focus = null, idx = { date: 0, moon: 0, sec: 0 }, wDate = 0, wMoon = 0, slid
 const fEl = $('focus'), nextOf = (k) => { const j = STOP.indexOf(k); return j < 2 ? WNAME[STOP[j + 1]].toLowerCase() : 'the caseback'; };
 const wCount = (k) => DATA[k].items.length;   // the same number the Back and Next counter shows
 /* the switch between the three works, under each one: in this visit's order, with how many are in each and a mark on the ones already seen */
-function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); }); }
+function stopsPaint() { const box = document.querySelector('#focus .stops'); if (!box) return; STOP.forEach((k) => { const b = box.querySelector('[data-stop="' + k + '"]'); if (!b) return; box.appendChild(b); b.classList.toggle('cur', k === focus); b.classList.toggle('seen', seenW.has(k) && k !== focus); b.classList.toggle('new', !seenW.has(k)); }); }   /* a work not yet visited glows softly until it is */
 { const wd = $('w-date'), n = DATA.date.items.length, W = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve']; if (wd && n) wd.textContent = (W[n] || n) + (n === 1 ? ' frame' : ' frames') + '. Shot on 35 mm.'; }
-document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.innerHTML = WNAME[k] + ' <i>' + wCount(k) + '</i>'; b.setAttribute('aria-label', WNAME[k] + ', ' + wCount(k)); });
+document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.textContent = WNAME[k]; b.setAttribute('aria-label', WNAME[k]); });
 function paint() {
   const D = DATA[focus], n = D.items.length, it = D.items[idx[focus]];
   $('f-kicker').textContent = '02 / Selected work / ' + WNAME[focus]; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
   { const fm = $('f-media'), src = focus === 'moon' && (it.video || it.image); fm.hidden = !src; if (src && fm.dataset.src !== src) { fm.dataset.src = src; fm.replaceChildren(); const m = document.createElement(it.video ? 'video' : 'img'); m.src = src; if (it.video) { m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = true; m.controls = true; } else m.alt = it.t; fm.appendChild(m); } }
   const l = $('f-link'); l.style.display = it.link && it.url ? 'inline-block' : 'none'; if (it.url) { l.textContent = it.link; l.href = it.url; l.target = '_blank'; l.rel = 'noopener'; }   // no button until there is somewhere to go
-  $('f-note').textContent = D.note || ''; $('f-count').textContent = (idx[focus] + 1) + ' of ' + n; $('f-hint').textContent = D.hint + ' Keep scrolling for ' + nextOf(focus) + '.';
+  $('f-note').textContent = D.note || ''; $('f-count').textContent = (idx[focus] + 1) + ' of ' + n; $('f-hint').textContent = '';
   stopsPaint();
 }
 function stepFocus(dir) {
@@ -2577,7 +2574,7 @@ function stepFocus(dir) {
   paint();
 }
 function enterStop(k) {
-  focus = k; seenW.add(k); document.body.classList.add('focused');
+  focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
   if (k === 'date') { loadPhotos(); photoA.material.map = photos[idx.date]; }
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();
@@ -2796,6 +2793,8 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
     hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end); } }
 window.__pit = PIT;
 /* one way back out of any close-up: from a piece of work to the dial, from a caseback part to the caseback */
+/* the way back out says where it goes: from a work's close up to all the work, from a caseback part back out of the movement */
+function zbLabel(t) { const zb = $('zback'); if (!zb) return; zb.querySelector('span').textContent = t; zb.setAttribute('aria-label', t === 'All work' ? 'Back to all work' : 'Zoom back out'); }
 { const zb = $('zback'); if (zb) zb.addEventListener('click', () => { audioOn(); if (zoomK) zoomOut(); else if (focus) jumpTo(CD); }); }
 /* a first time hint on the pitch: a ghost fingertip settles on the ball, draws back along a dotted line, and lets go, and a small chevron flicks off toward goal.
    It plays only in the shootout, never while the ball is held or in flight, and once a shot has been taken it is gone for this visit and the next.
@@ -2856,7 +2855,7 @@ function snowTick(t, dt) { snowA += ((zoomK === 'snow' ? 1 : 0) - snowA) * Math.
 const intPins = [...document.querySelectorAll('.hot[data-int]')], cbPanel = document.querySelector('.panel[data-ch="6"]'); let selInt = null, zoomK = null;
 /* tapping a dot goes in close on that part and opens its notes */
 function footFix(on) { const t = $('int-t'); t.style.paddingTop = on ? '1.45em' : ''; if (!on) return; t.innerHTML = '<span class="sr">Football</span><span aria-hidden="true" class="fix" id="fixf"><span class="was">Soccer</span><svg class="strike" viewBox="0 0 100 20" preserveAspectRatio="none"><path pathLength="1" vector-effect="non-scaling-stroke" d="M1 12.5C18 11 36 14 54 11S84 8.5 99 9.5"/></svg><span class="now">Football</span></span>'; const f = $('fixf'); if (reduce || footFix.done) { f.classList.add('on'); return; } setTimeout(() => { f.classList.add('on'); if (!footFix.done) { footFix.done = true; snd.scribble(); } }, 900); }
-function pickInt(k) { document.body.classList.add('dotted'); selInt = zoomK = k; const r = INTS[k]; cbPanel.classList.add('zoomed'); document.body.classList.add('zoomed'); $('int-d').hidden = false; $('int-k').textContent = r[0]; $('int-t').textContent = r[1]; footFix(k === 'soccer'); $('int-b').textContent = r[2]; $('int-l').textContent = r[3];
+function pickInt(k) { zbLabel('Zoom out'); document.body.classList.add('dotted'); selInt = zoomK = k; const r = INTS[k]; cbPanel.classList.add('zoomed'); document.body.classList.add('zoomed'); $('int-d').hidden = false; $('int-k').textContent = r[0]; $('int-t').textContent = r[1]; footFix(k === 'soccer'); $('int-b').textContent = r[2]; $('int-l').textContent = r[3];
   const ol = $('int-list'); ol.className = r[6] ? 'num' : ''; ol.replaceChildren(...r[4].map((t) => { const li = document.createElement('li'); li.textContent = t; return li; }));
   $('int-ph').replaceChildren(...r[5].map((p) => { const im = document.createElement('img'); im.src = p.src; im.alt = p.alt || ''; im.loading = 'lazy'; return im; }));
   intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; setNeedle(false); }
@@ -3109,7 +3108,7 @@ const RP = { home: new THREE.Vector2(), bin: new THREE.Vector3(), mouth: new THR
 function restPoses(visW, visH, mob) { const z = RP.z, f = (camera.position.z - z) / camera.position.z, hw = visW / 2 * f, hh = visH / 2 * f; RP.hw = hw; RP.hh = hh;
   const bw = mob ? 0.115 * 2 * hw : 0.05 * 2 * hh, bs = bw / BW, yF = mob ? 0.07 * hh : -0.94 * hh; RP.bs = bs; RP.yF = yF;
   RP.a = 0.5 * BW * (Math.cos(rad(32)) + Math.sin(rad(32))) * bs; RP.b = 0.5 * (BH + BL) * bs; RP.R = BINR * bs;
-  RP.home.set(mob ? 0.66 * hw : -0.14 * hw, yF + RP.b); RP.bin.set((mob ? -0.66 : -0.6) * hw, yF, z - 4); RP.mouth.copy(RP.bin).y += BINH * bs; }
+  RP.home.set(mob ? 0.66 * hw : -0.14 * hw, yF + RP.b); RP.bin.set((mob ? -0.66 : -0.68) * hw, yF, z - 4); RP.mouth.copy(RP.bin).y += BINH * bs; }
 /* the box is a 2D rigid body in that back plane: a centre, a velocity, a spin about the line of sight. Its corners decide where it touches */
 const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rad(-32)), qZr = new THREE.Quaternion(), vZ = new THREE.Vector3(0, 0, 1), cOff = new THREE.Vector3();
 function boxPose(cx, cy, th, s, z, outP, outQ) { qZr.setFromAxisAngle(vZ, th); outQ.copy(qZr).multiply(qYaw); cOff.set(0, -19 * s, 0).applyQuaternion(outQ); outP.set(cx - cOff.x, cy - cOff.y, z - cOff.z); }
@@ -3480,7 +3479,7 @@ function frame(now) {
   fixTick(dt);
   fEl.style.opacity = fe * tf; fEl.style.visibility = fe * tf < 0.01 ? 'hidden' : 'visible';
   { const na = navOf(act); [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === na); bt.classList.toggle('past', k < na); }); }
-  cueEl.classList.toggle('off', act >= N - 1 || !!jump); rail.style.setProperty('--p', clamp(pe / (N - 1), 0, 1).toFixed(4));
+  if (!intro.on && cueY0 == null) cueY0 = scrollY; if (!cueGone && cueY0 != null && (Math.abs(scrollY - cueY0) > 8 || jump)) cueGone = true; cueEl.classList.toggle('off', cueGone || act >= N - 1);   /* the arrow is only an invitation: the first scroll or move puts it away for the visit */ rail.style.setProperty('--p', clamp(pe / (N - 1), 0, 1).toFixed(4));
   const near = !jump && Math.abs(pe - act) < 0.15 && !focus && fe < 0.2;
   hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });
   pullTick(W, H);

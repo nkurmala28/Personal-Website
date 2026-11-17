@@ -343,7 +343,7 @@ const WAYS = {
   silver: { name: 'Opaline silver', pair: 'consulting', kind: 'sun', idx: 'facet', dot: ['#f1eee6', '#bdb9ae'], c0: '#ece9e1', c1: '#d2cec4', ring: '#e2dfd6', print: '#16181d', date: ['#e9e7e0', '#16181d'], sub: '#dcd9d0', hands: 'breguet', hcol: BLUED },
   snow: { name: 'Snowdrift', pair: 'quant', kind: 'own', dot: ['#ffffff', '#c9d3e2'], date: ['#f4f5f7', '#16181d'], hands: 'blade', hcol: RHOD, hmet: 0.95, hr: 0.05, sec: BLUED, strap: 0x3a4250 },
   orge: { name: "Grain d'orge", pair: 'engineering', kind: 'own', dot: ['#727985', '#262a31'], date: ['#2c3037', '#f2f3f4'], hands: 'spear', hcol: RHOD, hmet: 0.72, hr: 0.07, strap: 0x2c3037 },
-  sky: { name: 'Day and night', pair: 'consulting', kind: 'own', dot: ['#c9dcee', '#18224f'], date: ['#e6e9ee', '#1b2748'], hands: 'dauphine', hcol: RHOD, hmet: 0.72, hr: 0.07, sec: BLUED, strap: 0x7186ad },
+  sky: { name: 'Astronomic', pair: 'consulting', kind: 'own', dot: ['#c9dcee', '#18224f'], date: ['#e6e9ee', '#1b2748'], hands: 'dauphine', hcol: RHOD, hmet: 0.72, hr: 0.07, sec: BLUED, strap: 0x7186ad },
   ecru: { name: 'Sector, \u00e9cru', pair: 'writing', kind: 'own', dot: ['#f1ead9', '#b9ad92'], date: ['#e9e1ce', '#1c2647'], hands: 'feuille', hcol: BLUED, hmet: 0.85, hr: 0.14, sec: 0xb02a2e, secmet: 0.1, secr: 0.45, strap: 0x1d2c52 }
 };
 const mDial = M('dial', { metalness: 0.28, roughness: 0.42, anisotropy: 0.85, clearcoat: 0.4, clearcoatRoughness: 0.08, alphaTest: 0.5 });

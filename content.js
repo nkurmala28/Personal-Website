@@ -204,7 +204,7 @@ window.CONTENT = {
       /* a Spotify playlist shown as a small player under the record. Paste the
          playlist's share link (Share, then Copy link to playlist). The playlist
          must be public. Leave it empty "" to hide the player. */
-      spotify: "https://open.spotify.com/playlist/5Ke943duOiS4zGLe7CLwE1",
+      spotify: "",
       /* the songs the record player plays when the needle drops, in order.
          Put the MP3 files and their cover images in the music folder, then add
          one line per song, for example:

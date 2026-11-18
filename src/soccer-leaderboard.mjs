@@ -2,7 +2,7 @@ import { validName } from './leaderboard-policy.mjs';
 export function createSoccerBoard(endpoint, parent) {
   if (!endpoint || !/^https:\/\//.test(endpoint)) return {show() {}, finish() {}, newRound() {}};
   const panel = document.createElement('section'); panel.className = 'soccer-leaderboard'; panel.hidden = true;
-  panel.innerHTML = '<h3>Penalty leaderboard</h3><p>Public names · best of five</p><form><label>Your name <input name="player" maxlength="20" minlength="2" autocomplete="off" required></label><button>Save name</button></form><p class="board-status" role="status"></p><ol></ol><button type="button" class="board-submit" hidden>Submit score</button>';
+  panel.innerHTML = '<h3>Penalty leaderboard (best of five)</h3><form><label>Your name <input name="player" maxlength="20" minlength="2" autocomplete="off" required></label><button>Save name</button></form><p class="board-status" role="status"></p><ol></ol><button type="button" class="board-submit" hidden>Submit score</button>';
   parent.after(panel);
   const status = panel.querySelector('.board-status'), input = panel.querySelector('input'), submit = panel.querySelector('.board-submit');
   let player, game, score, busy = false, starting;

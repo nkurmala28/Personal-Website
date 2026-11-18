@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { laneAngle, advanceLaneBall, ballSubsteps, keeperDifficulty, predictGoalOffset, reboundGoal } from './penalty-physics.mjs';
 import { createSoccerBoard } from './soccer-leaderboard.mjs';
 import { mobilePixelRatio, movementIsCovered, ribbonNeedsUpdate, shadowUpdateDue } from './mobile-render-policy.mjs';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
@@ -421,10 +422,36 @@ const dateFrame = (() => { const f = new THREE.Shape(); f.moveTo(DX - 1.55, -1.5
 add(gClassic, dateFrame, mApplied, 0, 0, ZD + 0.02);
 add(gClassic, lathe([[AR + AP, ZD + 0.004], [AR, ZD - 0.2]], 96), mApplied, 0, MC, 0);   // moonphase aperture: polished chamfer down to the disc
 /* film frames live inside the date window itself. The window never changes; the camera goes right up to it. */
-function photoTex(n) { const S = 1024, c = cnv(S), g = c.getContext('2d'), t = cTex(c), m = 12; g.fillStyle = '#0a0b0e'; g.fillRect(0, 0, S, S);
-  t.userData.load = () => { const img = new Image(); img.onload = () => { const r = img.naturalWidth / img.naturalHeight; let w = S - 2 * m, h = w / r; if (h > S - 2 * m) { h = S - 2 * m; w = h * r; } g.drawImage(img, (S - w) / 2, (S - h) / 2, w, h); t.needsUpdate = true; }; img.src = 'photos/' + ((DATA.date.items[n - 1] || {}).file || String(n).padStart(2, '0') + '.jpg'); }; return t; }
+function photoTex(n) {
+  // On phones a film frame occupies one pixel until it is actually requested.
+  // Twelve dormant 1024² canvases would otherwise reserve 48 MiB of RGBA pixels.
+  const S = 1024, c = cnv(mobileViewport.matches ? 1 : S), g = c.getContext('2d'), t = cTex(c), m = 12;
+  g.fillStyle = '#0a0b0e'; g.fillRect(0, 0, c.width, c.height); let asked = false;
+  t.userData.load = () => {
+    if (asked) return; asked = true;
+    const img = new Image(); img.decoding = 'async';
+    img.onload = () => {
+      if (c.width !== S) { c.width = c.height = S; }
+      g.fillStyle = '#0a0b0e'; g.fillRect(0, 0, S, S);
+      const r = img.naturalWidth / img.naturalHeight; let w = S - 2 * m, h = w / r;
+      if (h > S - 2 * m) { h = S - 2 * m; w = h * r; }
+      g.drawImage(img, (S - w) / 2, (S - h) / 2, w, h); t.needsUpdate = true;
+    };
+    img.onerror = () => { asked = false; };
+    img.src = 'photos/' + ((DATA.date.items[n - 1] || {}).file || String(n).padStart(2, '0') + '.jpg');
+  }; return t;
+}
 const photos = DATA.date.items.map((it, i) => photoTex(i + 1));
-let photosAsked = false; function loadPhotos() { if (photosAsked) return; photosAsked = true; photos.forEach((t) => t.userData.load()); }
+let photosAsked = false;
+function loadPhotos(index = 0) {
+  if (!photos.length) return;
+  if (mobileViewport.matches) {
+    // Current frame and its neighbours only; browsing requests the next neighbours.
+    [0, 1, -1].forEach(delta => photos[(index + delta + photos.length) % photos.length].userData.load());
+    return;
+  }
+  if (photosAsked) return; photosAsked = true; photos.forEach(t => t.userData.load());
+}
 const photoMat = () => new THREE.MeshBasicMaterial({ map: photos[0], transparent: true, toneMapped: false });
 const photoA = new THREE.Mesh(new THREE.PlaneGeometry(2.64, 2.64), photoMat()), photoB = new THREE.Mesh(photoA.geometry, photoMat());
 [photoA, photoB].forEach((p) => { p.position.set(DX, 0, ZD - 0.4); gDial.add(p); }); photoB.visible = false;
@@ -2674,14 +2701,14 @@ function paint() {
 }
 function stepFocus(dir) {
   if (!focus || slide) return; const n = DATA[focus].items.length; idx[focus] = (idx[focus] + dir + n) % n;
-  if (focus === 'date') { photoB.material.map = photos[idx.date]; photoB.visible = true; slide = { t: 0, dir }; snd.date(); }
+  if (focus === 'date') { loadPhotos(idx.date); photoB.material.map = photos[idx.date]; photoB.visible = true; slide = { t: 0, dir }; snd.date(); }
   if (focus === 'moon') { moonTarget += -dir * TAU / NPROJ; snd.moon(); }
   if (focus === 'sec') { secSteps += dir; snd.sec(); }
   paint();
 }
 function enterStop(k) {
   focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
-  if (k === 'date') { loadPhotos(); photoA.material.map = photos[idx.date]; }
+  if (k === 'date') { loadPhotos(idx.date); photoA.material.map = photos[idx.date]; }
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();
 }
@@ -2727,8 +2754,8 @@ const chips = [...document.querySelectorAll('[data-strap]')];
 if (!RAIL) {
   const names = {consulting:'Consulting', engineering:'Engineering', quant:'Quant research', banking:'Investment banking', writing:'Journalism'};
   chips.forEach(button => {
-    const key = button.dataset.strap, preview = document.createElement('span'), label = document.createElement('span');
-    preview.className = 'strap-thumbnail strap-' + key; preview.setAttribute('aria-hidden', 'true');
+    const key = button.dataset.strap, preview = document.createElement('img'), label = document.createElement('span');
+    preview.className = 'strap-thumbnail'; preview.src = 'photos/straps/' + key + '.webp'; preview.alt = ''; preview.width = 64; preview.height = 96; preview.loading = 'lazy'; preview.decoding = 'async'; preview.setAttribute('aria-hidden', 'true');
     label.textContent = ((CT.jobs || {})[key] || {}).chip || names[key];
     button.replaceChildren(preview, label);
   });
@@ -2826,9 +2853,9 @@ const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THR
   const tt = new THREE.CanvasTexture(cv); tt.colorSpace = THREE.SRGBColorSpace; tt.anisotropy = 8;
   const turf = new THREE.Mesh(new THREE.RingGeometry(ri, ro, 80, 1, a0, a1 - a0), new THREE.MeshStandardMaterial({ map: tt, roughness: 0.92, metalness: 0 })); turf.position.z = z; turf.receiveShadow = true; gPit.add(turf);
   const gold = new THREE.MeshStandardMaterial({ color: 0xf2c765, metalness: 1, roughness: 0.2, side: THREE.DoubleSide }), wall = (r, zb, zt) => { const c = new THREE.Mesh(new THREE.CylinderGeometry(r, r, zt - zb, 80, 1, true, a0 + Math.PI / 2, a1 - a0).rotateX(Math.PI / 2), gold); c.position.z = (zb + zt) / 2; gPit.add(c); };
-  wall(ro, ZR - 0.36, z + 0.13); wall(ri, ZR - 0.1, z + 0.13); wall(ro + 0.05, ZR - 0.36, z + 0.13); wall(ri - 0.05, ZR - 0.1, z + 0.13);
-  [ro + 0.025, ri - 0.025].forEach((r) => { const t = new THREE.Mesh(new THREE.RingGeometry(r - 0.03, r + 0.03, 80, 1, a0, a1 - a0), gold); t.position.z = z + 0.13; gPit.add(t); });
-  [a0, a1].forEach((a) => { const e = new THREE.Mesh(new THREE.BoxGeometry(ro - ri + 0.1, 0.05, z + 0.13 - (ZR - 0.36)), gold); e.position.set(rm * Math.cos(a), rm * Math.sin(a), (z + 0.13 + ZR - 0.36) / 2); e.rotation.z = a; gPit.add(e); });
+  wall(ro, ZR - 0.36, z + 0.24); wall(ri, ZR - 0.1, z + 0.24); wall(ro + 0.05, ZR - 0.36, z + 0.24); wall(ri - 0.05, ZR - 0.1, z + 0.24);
+  [ro + 0.025, ri - 0.025].forEach((r) => { const t = new THREE.Mesh(new THREE.RingGeometry(r - 0.045, r + 0.045, 80, 1, a0, a1 - a0), gold); t.position.z = z + 0.24; gPit.add(t); });
+  [a0, a1].forEach((a) => { const e = new THREE.Mesh(new THREE.BoxGeometry(ro - ri + 0.1, 0.05, z + 0.24 - (ZR - 0.36)), gold); e.position.set(rm * Math.cos(a), rm * Math.sin(a), (z + 0.24 + ZR - 0.36) / 2); e.rotation.z = a; gPit.add(e); });
   /* the match ball */
   { const c2 = document.createElement('canvas'); c2.width = 128; c2.height = 64; const q = c2.getContext('2d'); q.fillStyle = '#f6f6f2'; q.fillRect(0, 0, 128, 64); q.fillStyle = '#16171a'; [[16, 14], [58, 8], [100, 16], [36, 36], [80, 38], [120, 44], [12, 54], [60, 60]].forEach((p) => { q.beginPath(); q.arc(p[0], p[1], 8, 0, TAU); q.fill(); }); const bt = new THREE.CanvasTexture(c2); bt.colorSpace = THREE.SRGBColorSpace; pitBall.material.map = bt; }
   pitBall.castShadow = true; gPit.add(pitBall); pitAim.visible = false; gPit.add(pitAim);
@@ -2855,7 +2882,7 @@ const pitBall = new THREE.Mesh(new THREE.SphereGeometry(PIT.rb, 18, 12), new THR
   anchor('i-kick', gPit, 0, 0, z + PIT.rb); }
 function pitSet() { const P = PIT, rm = (P.ri + P.ro) / 2, s = P.flip ? -1 : 1, ag = P.flip ? P.a1 - 0.2 : P.a0 + 0.2, as = P.flip ? P.a0 + 0.3 : P.a1 - 0.3; P.ag = ag; P.as = as; P.s = s;
   gGoal.position.set(rm * Math.cos(ag), rm * Math.sin(ag), P.z); gGoal.rotation.z = ag; gGoal.scale.y = s; gShoot.position.set(rm * Math.cos(as + s * 0.085), rm * Math.sin(as + s * 0.085), P.z); pitReset(); }
-function pitReset() { const P = PIT, rm = (P.ri + P.ro) / 2; P.p.set(rm * Math.cos(P.as), rm * Math.sin(P.as)); P.v.set(0, 0); P.bz = 0; P.vz = 0; P.mode = 'ready'; P.res = ''; pitAim.visible = false; P.nb = P.nv = 0; P.nc = false; P.nt = -1; if (P.netN) P.netN.dirty = true; pitScore(); }
+function pitReset() { const P = PIT, rm = (P.ri + P.ro) / 2; P.p.set(rm * Math.cos(P.as), rm * Math.sin(P.as)); P.v.set(0, 0); P.bz = 0; P.vz = 0; P.mode = 'ready'; P.res = ''; P.shotTime = 0; P.predictAt = 0; P.keeperTarget = P.kr; pitAim.visible = false; P.nb = P.nv = 0; P.nc = false; P.nt = -1; if (P.netN) P.netN.dirty = true; pitScore(); }
 function pitScore() { const el = $('int-score'); if (!el) return; const P = PIT;
   el.setAttribute('role', 'img'); el.setAttribute('aria-label', 'Penalty shootout: ' + P.goals + ' goals, ' + (P.shots - P.goals) + ' misses, ' + Math.max(0, 5 - P.shots) + ' shots remaining.');
   el.replaceChildren(...Array.from({ length: 5 }, (_, i) => { const result = P.results[i], slot = document.createElement('span'); slot.className = 'shot ' + (result === 'goal' ? 'goal' : result ? 'miss' : 'pending'); slot.setAttribute('aria-hidden', 'true');
@@ -2889,20 +2916,37 @@ function netTick(dt) { const P = PIT, N = P.netN; if (!N) return;
 function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P.a; P.a += (want - P.a) * Math.min(1, dt * 4); gPit.visible = P.a > 0.02; if (!gPit.visible) { if (was > 0.02) { P.shots = P.goals = 0; P.results = []; } return; }
   gPit.position.z = (sSmooth(P.a) - 1) * 0.95;
   if (was <= 0.02 || P.ag === undefined) { /* the taker stands on whichever end is to the right on screen */ gPit.updateWorldMatrix(true, false); const rm = (P.ri + P.ro) / 2, sx = (a) => new THREE.Vector3(rm * Math.cos(a), rm * Math.sin(a), P.z).applyMatrix4(gPit.matrixWorld).project(camera).x; P.flip = sx(P.a0) > sx(P.a1); P.shots = P.goals = 0; P.results = []; pitSet(); }
-  const rm = (P.ri + P.ro) / 2, lane = (P.ro - P.ri) / 2 - P.rb; P.kt += dt;
-  /* the keeper patrols his line, and steps toward a shot once it is close */
-  { let tgt = Math.sin(P.kt * 1.7) * (P.GW / 2 - 0.16); if (P.mode === 'fly' && !P.res) { const r = P.p.length(), th = Math.atan2(P.p.y, P.p.x), da = Math.abs(((th < 0 ? th + TAU : th) - P.ag)); if (da < 0.22) tgt = clamp(r - rm, -P.GW / 2 + 0.1, P.GW / 2 - 0.1); } P.kr += clamp(tgt - P.kr, -0.55 * dt, 0.55 * dt); gKeep.position.set(P.kr, 0.03, 0); gKeep.rotation.y = P.res === 'goal' ? Math.min(1.3, P.t * 5) * (P.kr > 0 ? 1 : -1) : 0; }
-  if (P.mode === 'fly') { const n = 5, hh = dt / n; for (let i = 0; i < n && P.mode === 'fly'; i++) { P.p.addScaledVector(P.v, hh); P.v.multiplyScalar(Math.exp(-0.6 * hh)); if (P.bz > 0 || P.vz > 0) { P.vz -= 30 * hh; P.bz = Math.max(0, P.bz + P.vz * hh); }
-      let r = P.p.length(), th = Math.atan2(P.p.y, P.p.x); if (th < 0) th += TAU; const ux = P.p.x / r, uy = P.p.y / r, vr = P.v.x * ux + P.v.y * uy, vt = -P.v.x * uy + P.v.y * ux;
-      if (P.out) { if (r > P.ro + 1.2 || P.bz <= 0) { P.mode = 'dead'; } continue; }
-      if (r < P.ri + P.rb && vr < 0) { P.v.x -= 1.85 * vr * ux; P.v.y -= 1.85 * vr * uy; P.p.setLength(P.ri + P.rb); ping({ f: 1100, q: 3, dur: 0.03, vol: 0.1, sharp: 5 }); }
-      else if (r > P.ro - P.rb && vr > 0) { if (vr > 13) { P.out = true; P.vz = 5.5; P.bz = 0.02; ping({ f: 1500, q: 5, dur: 0.05, vol: 0.14, sharp: 4 }); pitEnd('out'); } else { P.v.x -= 1.85 * vr * ux; P.v.y -= 1.85 * vr * uy; P.p.setLength(P.ro - P.rb); ping({ f: 1300, q: 4, dur: 0.03, vol: 0.1, sharp: 5 }); } }
-      /* the taker's end is boarded; the goal end is the goal line */
-      const back = P.s > 0 ? th > P.a1 - 0.05 : th < P.a0 + 0.05; if (back && vt * P.s > 0) { P.v.x += 1.4 * vt * uy; P.v.y -= 1.4 * vt * ux; }
-      const over = P.s > 0 ? th < P.ag : th > P.ag; if (over && !P.res) { const rr = r - rm; if (Math.abs(rr - P.kr) < 0.19) { P.v.multiplyScalar(-0.45); P.p.set(r * Math.cos(P.ag + P.s * 0.03), r * Math.sin(P.ag + P.s * 0.03)); ping({ f: 220, q: 1, dur: 0.07, vol: 0.25, sharp: 3, thump: 80 }); pitEnd('save'); }
+  const rm = (P.ri + P.ro) / 2; P.kt += dt;
+  // Prediction is bounded and refreshed at 10 Hz, never once per rendered mesh.
+  { const difficulty=keeperDifficulty(P.goals), span=P.GW/2-.12;
+    let target=Math.sin(P.kt*1.7)*span;
+    if(P.mode==='fly' && !P.res) {
+      P.shotTime+=dt;
+      target=P.keeperTarget;
+      if(P.shotTime>=difficulty.reaction && P.kt>=P.predictAt) {
+        const predicted=predictGoalOffset(P.p,P.v,P,difficulty.horizon);
+        if(predicted!==null) P.keeperTarget=clamp(predicted,-span,span);
+        target=P.keeperTarget;P.predictAt=P.kt+.1;
+      }
+    }
+    P.kr+=clamp(target-P.kr,-difficulty.speed*dt,difficulty.speed*dt);
+    gKeep.position.set(P.kr,.03,0);
+    gKeep.rotation.y=P.res==='goal'?Math.min(1.3,P.t*5)*(P.kr>0?1:-1):clamp((target-P.kr)*2,-.45,.45);
+  }
+  if (P.mode === 'fly') { const n = ballSubsteps(P.v.length(),dt,P.rb), hh = dt / n;
+    for (let i = 0; i < n && P.mode === 'fly'; i++) {
+      if(P.res==='goal') {
+        P.p.addScaledVector(P.v,hh);
+        if(P.bz>0 || P.vz>0){P.vz-=30*hh;P.bz=Math.max(0,P.bz+P.vz*hh);}
+      } else {
+        P.bz=P.vz=0;
+        if(advanceLaneBall(P.p,P.v,hh,P) && P.kt-(P.wallSoundAt ?? -1)>.08) { P.wallSoundAt=P.kt; ping({f:1200,q:3,dur:.025,vol:.08,sharp:5}); }
+      }
+      const r=P.p.length(), th=laneAngle(P.p,P);
+      const over = P.s > 0 ? th < P.ag : th > P.ag; if (over && !P.res) { const rr = r - rm; if (Math.abs(rr - P.kr) < keeperDifficulty(P.goals).reach) { reboundGoal(P.p,P.v,P,.55); ping({ f: 220, q: 1, dur: 0.07, vol: 0.25, sharp: 3, thump: 80 }); pitEnd('save'); }
         else if (Math.abs(rr) < P.GW / 2 - P.rb * 0.6) { pitEnd('goal'); const sp = P.v.length() || 1, ns = Math.min(sp * 0.55, 4.5); P.v.multiplyScalar(ns / sp); if (P.bz <= 0) { P.vz = Math.min(3.2, ns * 0.8); P.bz = 0.001; } }
-        else if (Math.abs(rr) < P.GW / 2 + P.rb) { P.v.multiplyScalar(-0.6); P.p.set(r * Math.cos(P.ag + P.s * 0.03), r * Math.sin(P.ag + P.s * 0.03)); ping({ f: 1250, q: 16, dur: 0.5, vol: 0.3, sharp: 3 }); ping({ f: 2610, q: 14, dur: 0.35, vol: 0.14, sharp: 3 }); pitEnd('post'); }
-        else { P.v.x += 1.4 * vt * uy; P.v.y -= 1.4 * vt * ux; P.v.multiplyScalar(0.8); P.p.set(r * Math.cos(P.ag + P.s * 0.02), r * Math.sin(P.ag + P.s * 0.02)); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); } }
+        else if (Math.abs(rr) < P.GW / 2 + P.rb) { reboundGoal(P.p,P.v,P,.8); ping({ f: 1250, q: 16, dur: 0.5, vol: 0.3, sharp: 3 }); ping({ f: 2610, q: 14, dur: 0.35, vol: 0.14, sharp: 3 }); pitEnd('post'); }
+        else { reboundGoal(P.p,P.v,P); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); } }
       if (P.res === 'goal') pitNet(hh);
       if (P.v.length() < 0.45 && P.bz <= 0) { if (!P.res) pitEnd('short'); P.mode = 'dead'; } } }
   if (P.res) { P.t += dt; if (P.t > (P.res === 'goal' ? 1.9 : 1.4) && P.mode !== 'ready') { P.out = false; if (P.shots >= 5) { pitReset(); pitScore(); P.over = true; } else pitReset(); } }
@@ -3576,14 +3620,14 @@ if (document.fonts) document.fonts.ready.then(() => { mobL.n = 0; });
 moreEl.addEventListener('click', () => { const lp = focus ? fEl : panels.find((q) => q.classList.contains('live')); if (lp) lp.scrollBy({ top: lp.clientHeight * 0.7, behavior: reduce ? 'auto' : 'smooth' }); });
 async function frame(now) {
   if (document.hidden) { last = now; requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); }); return; }
-  pace((now - last) / 1000); const dt = clamp((now - last) / 1000, 0, 0.05); last = now; size();   // clamped: the first frame's timestamp can be earlier than the moment the script finished
+  pace((now - last) / 1000); const dt = clamp((now - last) / 1000, 0, 0.05), motionDt = mobileViewport.matches ? clamp((now - last) / 1000, 0, 0.25) : dt; last = now; size();   // clamped: the first frame's timestamp can be earlier than the moment the script finished
   if (intro.on) { if (scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' }); cur = 0; sPrev = 0; }
   brakeCheck(); const target = settle(clamp(scrollY / total(), 0, 1) * (N - 1));
   if (!jump) { if (intro.on) cur = 0; else if (reduce) cur = target; else if (!SNAP) cur += (target - cur) * 0.12;
-    else { const d = target - cur, cap = dt * Math.max(1 / 0.6, Math.abs(d) / 0.9); cur += clamp(d * (1 - Math.exp(-dt * 6)), -cap, cap); if (Math.abs(target - cur) < 0.0005) cur = target; } }   /* the camera follows the scroll at its own pace: never faster than a chapter in about 0.6 s, so a quick snap still reads as a flight */
+    else { const d = target - cur, cap = motionDt * Math.max(1 / 0.6, Math.abs(d) / 0.9); cur += clamp(d * (1 - Math.exp(-motionDt * 6)), -cap, cap); if (Math.abs(target - cur) < 0.0005) cur = target; } }   /* the camera follows the scroll at its own pace: never faster than a chapter in about 0.6 s, so a quick snap still reads as a flight */
   if (!jump && !intro.on && cur <= S0 - 0.9 && STOP.join() !== WORK0.join()) workOrder(WORK0);   // back at the dial or before it: the three works return to their usual order
   let P = poseAt(cur), cv = cur, je = 1;
-  if (jump) { if (jump.hold != null) jump.t = jump.hold; else jump.t += dt / lerp(0.9, 1.5, clamp(jump.far / 5, 0, 1)); const x = clamp(jump.t, 0, 1); je = x * x * x * (x * (x * 6 - 15) + 10); const A = jump.from, B = jump.to;
+  if (jump) { if (jump.hold != null) jump.t = jump.hold; else jump.t += motionDt / lerp(0.9, 1.5, clamp(jump.far / 5, 0, 1)); const x = clamp(jump.t, 0, 1); je = x * x * x * (x * (x * 6 - 15) + 10); const A = jump.from, B = jump.to;
     P = { rx: lerp(A.rx, B.rx, je), ry: lerp(A.ry, B.ry, je), rz: lerp(A.rz, B.rz, je), sc: lerp(A.sc, B.sc, je) * (1 - 0.1 * Math.sin(Math.PI * je) * clamp(jump.far / 3, 0, 1)), sy: lerp(A.sy, B.sy, je), f: mix(A.f, B.f, je), z: mix(A.z, B.z, je), o: mix(A.o, B.o, je), bg: mix(A.bg, B.bg, je), pe: jump.i };
     cv = lerp(jump.c0, jump.i, je); if (x >= 1) { const th = jump.then; jump = null; cur = Math.round(cv); if (th) th(); } }
   lastPose = P; const pe = P.pe, act = Math.round(pe);
@@ -3679,7 +3723,7 @@ async function frame(now) {
     first = false;
     // A real rendered frame, followed by a paint opportunity, is the only success signal.
     requestAnimationFrame(() => setTimeout(() => { if (window.__watchBoot) window.__watchBoot.ready(); else document.body.classList.add('ready'); }, 0));
-    const lp = () => { if (intro.on) setTimeout(lp, 400); else setTimeout(loadPhotos, 1500); }; setTimeout(lp, 2500);
+    if (!mobileViewport.matches) { const lp = () => { if (intro.on) setTimeout(lp, 400); else setTimeout(loadPhotos, 1500); }; setTimeout(lp, 2500); }
   }
   requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); });
 }

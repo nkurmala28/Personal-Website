@@ -33,3 +33,30 @@ test('an untextured strap does not request images',async()=>{
   const loader=createStrapMapLoader({}, {baseUrl:'https://example.com/',timeoutMs:5,fetch:async()=>({ok:true,json:async()=>metadata}),loadTexture:()=>{calls++;return calls===1?new Promise(()=>{}):Promise.resolve(texture());}});
   await assert.rejects(loader.prepare('consulting'),/too long/);await loader.prepare('consulting');assert.equal(calls,2);
  });
+
+test('front and back textures start together and preparation waits for both', async () => {
+  const started = [], complete = new Map();
+  const index = {
+    images: {front:{src:'front.webp'}, back:{src:'back.webp'}},
+    straps: {consulting:{front:[{map:{image:'front'}}],back:[{map:{image:'back'}}]}}
+  };
+  const loader = createStrapMapLoader({}, {
+    baseUrl:'https://example.com/',
+    fetch:async()=>({ok:true,json:async()=>index}),
+    loadTexture:url=>{
+      started.push(url);
+      return new Promise(resolve=>complete.set(url,resolve));
+    }
+  });
+  let ready = false;
+  const pending = loader.prepare('consulting').then(()=>{ready=true;});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(started,['https://example.com/front.webp','https://example.com/back.webp']);
+  complete.get(started[0])(texture());
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(ready,false);
+  assert.equal(loader.isPrepared('consulting'),false);
+  complete.get(started[1])(texture());
+  await pending;
+  assert.equal(loader.isPrepared('consulting'),true);
+});

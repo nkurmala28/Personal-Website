@@ -46,8 +46,12 @@ export function createStrapMapLoader(THREE, options = {}) {
       const index = await manifest(), entry = index.straps[key];
       if (!entry) return false; // the metal bracelet has no baked leather maps
       const loaded = {};
-      for (const role of ['front','back']) if (entry[role]) loaded[role] = await Promise.all(entry[role].map(m => material(m,index)));
-      if (entry.single) loaded.single = await material(entry.single,index);
+      await Promise.all(['front','back','single'].map(async role => {
+        if (!entry[role]) return;
+        loaded[role] = role === 'single'
+          ? await material(entry[role], index)
+          : await Promise.all(entry[role].map(description => material(description, index)));
+      }));
       prepared.set(key, loaded);
       return true;
     })().finally(() => pending.delete(key)));

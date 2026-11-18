@@ -30,7 +30,8 @@ function fixture() {
     marks: Array.from({ length: 8 }, () => ({ style: {} })), N: 8,
     cur: 5, jump: null, caught: [], sPrev: 0, lockOff: false,
     STOP: ['moon', 'sec', 'date'], WORK0: ['moon', 'sec', 'date'],
-    focus: null, CD: 2, reduce: true,
+    focus: null, CD: 2, reduce: true, SLAST: 4, workHold: null,
+    stopOf: c => c <= 2 ? c : c < 6 ? 2 : c - 6 + 3,
     document: { documentElement: { classList: {
       contains: name => classes.has(name),
       toggle(name, on) { if (on) classes.add(name); else classes.delete(name); }
@@ -77,7 +78,8 @@ test('resizing across phone and desktop widths preserves the section in both dir
   s.innerWidth = 844; s.innerHeight = 390; s.mobileViewport.matches = false;
   s.pitchSet();
   assert.equal(classes.has('snap'), true);
-  assert.equal(s.scrollY, 3 * s.PITCH); assert.equal(s.cur, 3);
+  // a piece of work has no scroll stop of its own: the page waits on the Work stop while it is open
+  assert.equal(s.scrollY, 2 * s.PITCH); assert.equal(s.cur, 3); assert.equal(s.workHold, 3);
   s.innerWidth = 390; s.innerHeight = 844; s.mobileViewport.matches = true;
   s.pitchSet();
   assert.equal(s.cur, 3); assert.equal(s.mobileChapter, 3);

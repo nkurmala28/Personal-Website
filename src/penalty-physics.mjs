@@ -30,7 +30,8 @@ export function advanceLaneBall(p,v,h,lane) {
 }
 export function keeperDifficulty(goals) {
  const g=Math.max(0,Math.min(4,goals));
- return {speed:.7+g*.24,reach:.20+g*.02,reaction:.30-g*.045,horizon:.35+g*.15};
+ // a gentle ladder: the first shot meets a slow keeper, and each goal makes the next a little harder; the fifth is hard, never impossible
+ return {speed:.42+g*.15,reach:.15+g*.016,reaction:.46-g*.05,horizon:.22+g*.1};
 }
 export function predictGoalOffset(position,velocity,lane,horizon) {
  const p={x:position.x,y:position.y},v={x:velocity.x,y:velocity.y},rm=(lane.ri+lane.ro)/2;

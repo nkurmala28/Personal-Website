@@ -2647,7 +2647,11 @@ const track = $('track'), rail = $('rail'), panels = [...document.querySelectorA
    false brings back free scrolling with the old detents. The stops sit one pitch apart; the pitch is set once from the screen height and only
    changes when the width does (or a desktop window's height), so a phone's toolbar sliding in and out never moves them */
 const SNAP = true; let PITCH = 0, pitchW = 0, mobileChapter = 0, navigationReady = false;
-const marks = SNAP ? NAMES.map((n, k) => { const m = document.createElement('div'); m.className = 'snapm'; m.setAttribute('aria-hidden', 'true'); track.appendChild(m); return m; }) : [];
+/* the scroll rests only on the main chapters: Home, Experience, Work, About Me, Contact. The three pieces of work (projects, articles, film)
+   are opened by choice, from the Work chapter, and scrolling never passes through them. SCH lists the chapter at each scroll stop */
+const SCH = [0, 1, 2, N - 2, N - 1], SLAST = SCH.length - 1, stopOf = (c) => c <= 2 ? c : c < N - 2 ? 2 : c - (N - 2) + 3;
+let workHold = null;   // the piece of work being looked at while the scroll waits on the Work stop
+const marks = SNAP ? SCH.map((n, k) => { const m = document.createElement('div'); m.className = 'snapm'; m.setAttribute('aria-hidden', 'true'); track.appendChild(m); return m; }) : [];
 function pitchSet() { const w = innerWidth, h = innerHeight, phone = mobileViewport.matches, wasPhone = document.documentElement.classList.contains('mobile-tabs');
   if (PITCH && w === pitchW && phone === wasPhone && (phone || Math.abs(h * 1.05 - PITCH) < 2)) return;
   let chapter = navigationReady ? Math.round(jump ? jump.i : cur) : 0;
@@ -2658,9 +2662,9 @@ function pitchSet() { const w = innerWidth, h = innerHeight, phone = mobileViewp
     if (navigationReady) { mobileChapter = chapter; cur = chapter; jump = null; syncSectionLabels(); }
     window.scrollTo({ top: 0, behavior: 'instant' }); return; }
   const was = PITCH ? scrollY / PITCH : 0; pitchW = w; PITCH = Math.max(320, Math.round(h * 1.05));
-  if (SNAP) { track.style.height = 'calc(' + PITCH * (N - 1) + 'px + 100vh)'; marks.forEach((m, k) => { m.style.top = k * PITCH + 'px'; }); } else track.style.height = (1 + (N - 1) * 1.05) * 100 + 'vh';
+  if (SNAP) { track.style.height = 'calc(' + PITCH * SLAST + 'px + 100vh)'; marks.forEach((m, k) => { m.style.top = k * PITCH + 'px'; }); } else track.style.height = (1 + (N - 1) * 1.05) * 100 + 'vh';
   if (navigationReady) syncSectionLabels();
-  if (wasPhone || was) window.scrollTo({ top: (wasPhone ? chapter : Math.round(was)) * PITCH, behavior: 'instant' }); }
+  if (wasPhone || was) window.scrollTo({ top: (wasPhone ? stopOf(chapter) : Math.round(was)) * PITCH, behavior: 'instant' }); }
 pitchSet(); addEventListener('resize', pitchSet); window.__N = N - 1;
 mobileViewport.addEventListener('change', pitchSet);
 /* a mouse wheel or trackpad under SNAP: the browser alone would snap a single wheel notch straight back to where it was, so each gesture moves
@@ -2668,7 +2672,7 @@ mobileViewport.addEventListener('change', pitchSet);
    gliding tail belongs to the flick that started it, but a fresh, harder flick during that tail counts as new. Panels that scroll on their own
    (the sheet on a phone) keep the wheel until they reach their end */
 const WG = { t: 0, t0: 0, sign: 0, abs: 0, acc: 0, done: false, to: -1, at: 0 };
-function wheelStep(dir) { const now = performance.now(), base = now - WG.at < 900 && WG.to >= 0 ? WG.to : Math.round(scrollY / PITCH), k = clamp(base + dir, 0, N - 1);
+function wheelStep(dir) { const now = performance.now(), base = now - WG.at < 900 && WG.to >= 0 ? WG.to : Math.round(scrollY / PITCH), k = clamp(base + dir, 0, SLAST);
   WG.at = now; if (k === base) return; WG.to = k; window.scrollTo({ top: k * PITCH, behavior: reduce ? 'instant' : 'smooth' }); }
 if (SNAP) addEventListener('wheel', (e) => {
   if (mobileViewport.matches || intro.on || jump || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
@@ -2678,7 +2682,7 @@ if (SNAP) addEventListener('wheel', (e) => {
   if (gap > 180 || sign !== WG.sign || (a > WG.abs * 1.6 && a > 12 && now - WG.at > 280) || (now - WG.t0 > 1800 && a >= 4)) { WG.t0 = now; WG.acc = 0; WG.done = false; }
   WG.t = now; WG.sign = sign; WG.abs = a; WG.acc += d;
   if (!WG.done && Math.abs(WG.acc) >= 24) { WG.done = true; wheelStep(sign); } }, { passive: false });
-const total = () => SNAP ? PITCH * (N - 1) : track.offsetHeight - innerHeight;
+const total = () => SNAP ? PITCH * SLAST : track.offsetHeight - innerHeight;
 /* the catch: someone skimming without touching anything gets a short pause the first time they reach each chapter, so they land on it once.
    Anyone who has used something on the page scrolls freely */
 const caught = new Array(N).fill(false); caught[0] = true; let brakeUntil = 0, brakeAt = 0, brakeY = 0, sPrev = 0, wheelLast = 0; const BRW = 0.13, DWELL = 650, braking = () => { if (SNAP) return false; const now = performance.now(); if (now < brakeUntil) return true; if (brakeAt && now - wheelLast < 160 && now - brakeAt < 2600) { brakeUntil = now + 60; return true; } return false; };   /* a detent holds for DWELL ms, and for as long as a flick's momentum is still arriving */
@@ -2706,7 +2710,7 @@ function poseAt(c) { const i = Math.min(N - 2, Math.floor(c)), t = ease(c - i), 
    That includes the zoom: a jump that crosses the three complications does not dive into them on the way past */
 let cur = 0, jump = null, lastPose = poseAt(0), zNow = { fe: 0, c: [0, MC], s: 6.2, r: 3.1, k: null };
 function zsnap(c) { focusPath(c); return { fe: focusAmount(c), c: FZ.c.slice(), s: FZ.s, r: FZ.r, k: stopKey(c) }; }
-function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = true;   // a jump is not a skim: the catch leaves it alone
+function jumpTo(i, then) { caught[i] = true; sPrev = i; workHold = i > 2 && i < N - 2 ? i : null; if (i > 1) lockOff = true;   // a jump is not a skim: the catch leaves it alone
   // Phone sections are explicit destinations. Reading within a section never changes the scene.
   const phone = mobileViewport.matches;
   if (phone) {
@@ -2714,7 +2718,7 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
     const sheet = sheetOf(i); if (sheet) sheet.scrollTop = 0;
     if (reduce) { cur = i; jump = null; if (then) then(); return; }
   }
-  const top = total() * i / (N - 1);
+  const top = SNAP ? PITCH * stopOf(i) : total() * i / (N - 1);
   if (reduce) { window.scrollTo(0, top); cur = i; if (then) then(); return; }
   const to = Object.assign({}, K[i], { bg: BG[i] }); to.ry = to.ry + 360 * Math.round((lastPose.ry - to.ry) / 360);
   jump = { from: lastPose, to, i, c0: cur, t: 0, then, far: Math.abs(i - cur), duration: phone ? 0.65 : null, zA: { fe: zNow.fe, c: zNow.c.slice(), s: zNow.s, r: zNow.r, k: zNow.k }, zB: zsnap(i) };
@@ -2722,7 +2726,7 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 }
 /* the strap display's test pages (window.STRAPSKIP): no unboxing, and the page opens on the Strap chapter. Without the flag nothing here changes */
 const SKIP = !!window.STRAPSKIP;
-if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; mobileChapter = 1; if (!mobileViewport.matches) window.scrollTo(0, total() / (N - 1)); }
+if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; mobileChapter = 1; if (!mobileViewport.matches) window.scrollTo(0, SNAP ? PITCH : total() / (N - 1)); }
 const NAV = [['Home', 0], ['Experience', 1], ['Projects', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
 const MOBILE_LABELS = ['Home', 'Experience', 'Projects', 'Interests', 'Contact'];
 NAV.forEach(([n, i], k) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
@@ -2734,7 +2738,7 @@ let cueY0 = null, cueGone = false; const cueEl = $('cue'); cueEl.addEventListene
 const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
 function workOrder(list) { STOP.splice(0, 3, ...list); stopsPaint(); }
 /* every way into the three works (the chips, the journey bar, the dial dots and rows, the links on the spec sheet) comes through here */
-function goWork(k) { audioOn(); if (!mobileViewport.matches && !inWork() && STOP[0] !== k) workOrder([k, ...WORK0.filter((x) => x !== k)]); jumpTo(stopCh(k)); }
+function goWork(k) { audioOn(); jumpTo(stopCh(k)); }   // the three keep their usual places now that scrolling no longer runs through them
 const JUMPS = { career: [1], resume: [N - 1], contact: [N - 1], top: [0] };
 $('home').addEventListener('click', () => jumpTo(0));
 document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); const w = { projects: 'moon', writing: 'sec', film: 'date' }[b.dataset.jump]; if (w) { goWork(w); return; } const j = JUMPS[b.dataset.jump]; jumpTo(j[0], j[1]); }));
@@ -3723,7 +3727,14 @@ async function frame(now) {
   })) { requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); }); return; }
   pace((now - last) / 1000); const dt = clamp((now - last) / 1000, 0, 0.05), motionDt = mobileViewport.matches ? clamp((now - last) / 1000, 0, 0.25) : dt; last = now; size();   // clamped: the first frame's timestamp can be earlier than the moment the script finished
   if (intro.on) { if (scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' }); cur = 0; sPrev = 0; }
-  brakeCheck(); const target = mobileViewport.matches ? mobileChapter : settle(clamp(scrollY / total(), 0, 1) * (N - 1));
+  brakeCheck(); let target = mobileViewport.matches ? mobileChapter : cur;
+  if (!mobileViewport.matches && !SNAP) target = settle(clamp(scrollY / total(), 0, 1) * (N - 1));
+  else if (!mobileViewport.matches && !jump && !intro.on) { const u = clamp(scrollY / PITCH, 0, SLAST), AB = N - 2, go = (c) => { jumpTo(c); target = cur; };
+    /* inside a piece of work the page waits on the Work stop: scrolling on goes straight to About Me, scrolling back returns to Work */
+    if (workHold != null) { if (u > 2.5) go(AB); else if (u < 1.97) go(2); else target = workHold; }
+    else if (u <= 2) { if (cur > 2.5) go(2); else target = settle(u); }
+    else if (u >= 3) { if (cur < AB - 0.5) go(AB); else target = AB + settle(u - 3); }
+    else if (u > 2.5 && cur < AB - 0.5) go(AB); else if (u <= 2.5 && cur > 2.5) go(2); else target = cur < 2.5 ? 2 : AB; }
   if (!jump) { if (intro.on) cur = 0; else if (reduce) cur = target; else if (!SNAP) cur += (target - cur) * 0.12;
     else { const d = target - cur, cap = motionDt * Math.max(1 / 0.6, Math.abs(d) / 0.9); cur += clamp(d * (1 - Math.exp(-motionDt * 6)), -cap, cap); if (Math.abs(target - cur) < 0.0005) cur = target; } }   /* the camera follows the scroll at its own pace: never faster than a chapter in about 0.6 s, so a quick snap still reads as a flight */
   if (!jump && !intro.on && cur <= S0 - 0.9 && STOP.join() !== WORK0.join()) workOrder(WORK0);   // back at the dial or before it: the three works return to their usual order

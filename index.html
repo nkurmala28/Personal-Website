@@ -112,8 +112,10 @@ body.zoomed .hot[data-int].sel,body.zoomed #rail,body.zoomed #top .ways{opacity:
 #int-ph{display:flex;gap:8px;flex-wrap:wrap}
 #int-ph:empty{display:none}
 #int-ph img{width:112px;height:112px;object-fit:cover;border-radius:8px}
-#int-back{align-self:flex-start;margin-top:32px;margin-left:18px}
-#int-d[hidden] + #int-back{display:none}   /* the way back sits below the story, clear of its pink rule */
+#int-nav{display:flex;align-items:center;gap:20px;flex-wrap:wrap;align-self:flex-start;margin-top:32px;margin-left:18px}
+#int-back{background:none;border:0;padding:8px 0;cursor:pointer;color:var(--mut);font:inherit;font-size:14px;text-decoration:underline;text-decoration-color:rgba(163,174,185,.4);text-underline-offset:4px}
+#int-back:hover{color:var(--brass)}
+#int-d[hidden] + #int-nav{display:none}   /* the way back sits below the story, clear of its pink rule */
 #arm,#pan,#kick{touch-action:none;cursor:grab}#arm.grab,#pan.grab,#kick.grab{cursor:grabbing}
 body:not(.pitch) #kick{display:none}
 #kick.busy{opacity:0;pointer-events:none}
@@ -449,7 +451,7 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
   /* caseback, in close: the notes take the sheet; the way back comes first so it is never below the fold */
   .panel.zoomed>.part:first-child,.panel.zoomed>h2{display:none}
   .panel.zoomed{max-height:calc(100% - var(--rail) - var(--tb) - max(210px,36%))}
-  #int-back{order:-1;margin:0 0 4px}
+  #int-nav{order:-1;margin:0 0 4px}
   #int-ph img{width:96px;height:96px}
   /* dial: the three rows say it all, so the paragraph above them goes. Full set: the row of links back to the complications goes (the bar below does that) */
   .panel[data-ch="2"]>p,.spec div.nav{display:none}
@@ -501,7 +503,7 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 #int-spot[hidden]{display:none}
 #int-now{display:flex;align-items:center;gap:10px}
 #int-now .npc{width:40px;height:40px;object-fit:cover;border-radius:4px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-@media (max-width:800px){#int-back{margin-left:16px}}
+@media (max-width:800px){#int-nav{margin-left:16px;gap:14px}}
 /* type sizes brought up to match the Codex section-composition study (desktop only; phones keep their own sizes) */
 @media (min-width:801px){
   #f-title{font-size:clamp(32px,3.5vw,54px);line-height:1.05}
@@ -739,7 +741,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <p class="prov">Singapore <span>→</span> UCLA <span>→</span> San Francisco</p>
       <div class="igrid"><button data-interest="music"><span>01</span>Music<i aria-hidden="true">↗</i></button><button data-interest="soccer" aria-label="Soccer"><span>02</span>Soccer<i aria-hidden="true">↗</i></button><button data-interest="cooking"><span>03</span>Cooking<i aria-hidden="true">↗</i></button><button data-interest="snow"><span>04</span>Snowboarding<i aria-hidden="true">↗</i></button></div>
       <p id="int-hint">Explore the parts of the movement!</p>
-      <div class="detail" id="int-d" style="min-height:0" hidden><div class="part" id="int-k"></div><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><div id="int-score" aria-live="polite" aria-atomic="true" hidden></div><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><div id="int-deck-controls"><button class="btn sm" id="int-needle">Drop the needle</button><label class="music-scope" title="Keep the music playing while exploring the website"><input type="checkbox" role="switch" id="int-music-global" aria-label="Keep music playing throughout the website"><span>Keep playing</span></label></div></div></div><button class="btn sm" id="int-back">Back to the movement</button>
+      <div class="detail" id="int-d" style="min-height:0" hidden><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><div id="int-score" aria-live="polite" aria-atomic="true" hidden></div><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><div id="int-deck-controls"><button class="btn sm" id="int-needle">Drop the needle</button><label class="music-scope" title="Keep the music playing while exploring the website"><input type="checkbox" role="switch" id="int-music-global" aria-label="Keep music playing throughout the website"><span>Keep playing</span></label></div></div></div><div id="int-nav"><button class="btn sm" id="int-next">Next</button><button id="int-back">Back to the movement</button></div>
     </section>
     <section class="panel" data-ch="7">
       <div class="part eyebrow">04 / Contact</div>

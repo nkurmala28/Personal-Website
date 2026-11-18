@@ -448,11 +448,17 @@ function photoTex(n) {
     if (asked) return; asked = true;
     const img = new Image(); img.decoding = 'async';
     img.onload = () => {
-      if (c.width !== S) { c.width = c.height = S; }
+      if (c.width !== S) {
+        // WebGL texture storage keeps its original dimensions until disposed.
+        // Reallocate the one-pixel placeholder before uploading the decoded photo.
+        t.dispose();
+        c.width = c.height = S;
+      }
       g.fillStyle = '#0a0b0e'; g.fillRect(0, 0, S, S);
       const r = img.naturalWidth / img.naturalHeight; let w = S - 2 * m, h = w / r;
       if (h > S - 2 * m) { h = S - 2 * m; w = h * r; }
       g.drawImage(img, (S - w) / 2, (S - h) / 2, w, h); t.needsUpdate = true;
+      wakeMobileFrames();
     };
     img.onerror = () => { asked = false; };
     img.src = 'photos/' + ((DATA.date.items[n - 1] || {}).file || String(n).padStart(2, '0') + '.jpg');

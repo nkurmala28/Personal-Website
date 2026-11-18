@@ -8,7 +8,8 @@ function fixture(mobile) {
   const canvases = [], images = [], files = Array.from({length:12}, (_,i) => ({file:`frame-${i}.jpg`}));
   const sandbox = {mobileViewport:{matches:mobile}, DATA:{date:{items:files}},
     cnv(size) { const c = {width:size,height:size,getContext(){return {fillRect(){},drawImage(){}};}}; canvases.push(c); return c; },
-    cTex(c) {return {image:c,userData:{}};},
+    cTex(c) {return {image:c,userData:{},disposals:0,dispose(){this.disposals++; this.disposedAtSize=c.width;}};},
+    wakes:0, wakeMobileFrames() {sandbox.wakes++;},
     Image:class { constructor(){images.push(this);} naturalWidth=1200;naturalHeight=800; }
   };
   vm.createContext(sandbox); vm.runInContext(block + '\nthis.load = loadPhotos; this.frames = photos;', sandbox);
@@ -29,4 +30,25 @@ test('desktop keeps its existing eager placeholders and one-shot prefetch', () =
 });
 test('failed film downloads can retry without duplicate requests during loading', () => {
   const {sandbox:s,images} = fixture(true); s.load(0); images[0].onerror(); s.load(0); assert.equal(images.length,4); assert.equal(images[3].src,'photos/frame-0.jpg');
+});
+
+test('decoded mobile photos release the one-pixel GPU allocation and wake rendering', () => {
+  const {sandbox:s,images} = fixture(true);
+  s.load(0);
+  assert.equal(s.frames[0].image.width, 1);
+  assert.equal(s.frames[0].disposals, 0);
+  images[0].onload();
+  assert.equal(s.frames[0].disposals, 1);
+  assert.equal(s.frames[0].disposedAtSize, 1);
+  assert.equal(s.frames[0].image.width, 1024);
+  assert.equal(s.frames[0].needsUpdate, true);
+  assert.equal(s.wakes, 1);
+});
+test('desktop photo loads retain their existing texture allocation', () => {
+  const {sandbox:s,images} = fixture(false);
+  s.load();
+  images[0].onload();
+  assert.equal(s.frames[0].disposals, 0);
+  assert.equal(s.frames[0].image.width, 1024);
+  assert.equal(s.frames[0].needsUpdate, true);
 });

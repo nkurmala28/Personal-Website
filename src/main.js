@@ -2679,16 +2679,20 @@ mobileViewport.addEventListener('change', pitchSet);
    exactly one chapter, in its direction, the moment it starts. A gesture is a run of wheel events with no pause longer than 180 ms; a trackpad's
    gliding tail belongs to the flick that started it, but a fresh, harder flick during that tail counts as new. Panels that scroll on their own
    (the sheet on a phone) keep the wheel until they reach their end */
-const WG = { t: 0, t0: 0, sign: 0, abs: 0, acc: 0, done: false, to: -1, at: 0 };
+const WG = { t: 0, t0: 0, sign: 0, v: 0, acc: 0, done: false, to: -1, at: 0, lock: 0 };
 function wheelStep(dir) { const now = performance.now(), base = now - WG.at < 900 && WG.to >= 0 ? WG.to : Math.round(scrollY / PITCH), k = clamp(base + dir, 0, SLAST);
-  WG.at = now; if (k === base) return; WG.to = k; window.scrollTo({ top: k * PITCH, behavior: reduce ? 'instant' : 'smooth' }); }
+  WG.at = now; WG.lock = now + 650; if (k === base) return; WG.to = k; window.scrollTo({ top: k * PITCH, behavior: reduce ? 'instant' : 'smooth' }); }
 if (SNAP) addEventListener('wheel', (e) => {
-  if (mobileViewport.matches || intro.on || jump || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  if (mobileViewport.matches || intro.on || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
   const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1); if (!d) return;
-  const sc = e.target.closest && e.target.closest('.panel, #focus'); if (sc && sc.scrollHeight > sc.clientHeight + 2 && (d > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0)) return;
-  e.preventDefault(); const now = e.timeStamp, sign = Math.sign(d), a = Math.abs(d), gap = now - WG.t;
-  if (gap > 180 || sign !== WG.sign || (a > WG.abs * 1.6 && a > 12 && now - WG.at > 280) || (now - WG.t0 > 1800 && a >= 4)) { WG.t0 = now; WG.acc = 0; WG.done = false; }
-  WG.t = now; WG.sign = sign; WG.abs = a; WG.acc += d;
+  const sc = e.target.closest && e.target.closest('.panel, #focus'); if (!jump && sc && sc.scrollHeight > sc.clientHeight + 2 && (d > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0)) return;
+  e.preventDefault(); const now = e.timeStamp, sign = Math.sign(d), a = Math.abs(d), gap = now - WG.t, v = a / Math.max(16, gap);
+  /* while the watch flies to a chapter, and a moment after, the rest of the flick is swallowed, or its glide would carry the page on to the next chapter */
+  if (jump || now < WG.lock) { if (jump) WG.lock = now + 350; WG.t = now; WG.sign = sign; WG.v = v; WG.done = true; return; }
+  /* a new gesture: a pause, a change of direction, or a clear speed up. Speed is measured per millisecond, so a slow frame that bunches
+     a glide's events together does not read as a fresh flick */
+  if (gap > 300 || sign !== WG.sign || (v > (WG.v || 0) * 2.5 && v > 0.6 && now - WG.at > 450)) { WG.t0 = now; WG.acc = 0; WG.done = false; }
+  WG.t = now; WG.sign = sign; WG.v = v; WG.acc += d;
   if (!WG.done && Math.abs(WG.acc) >= 24) { WG.done = true; wheelStep(sign); } }, { passive: false });
 const total = () => SNAP ? PITCH * SLAST : track.offsetHeight - innerHeight;
 /* the catch: someone skimming without touching anything gets a short pause the first time they reach each chapter, so they land on it once.

@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="./bundle.20261118-main-stops.js?v=1" fetchpriority="high" media="(max-width:800px)">
+<link rel="preload" as="script" href="./bundle.20261118-main-stops.js?v=5" fetchpriority="high" media="(max-width:800px)">
 <link rel="preload" as="fetch" href="./textures/straps/manifest.json" crossorigin media="(max-width:800px)">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@600&display=swap">
 <style>
@@ -679,11 +679,12 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
 </head>
 <body>
 <script>
-/* Visitors arrive directly at the watch. #intro remains available for design previews. */
+/* On a desktop the visit opens with the box. Phones arrive directly at the watch (the unboxing was too heavy there); #intro still plays it anywhere, #nointro skips it. */
 try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0); addEventListener('pageshow', function () { if (document.body.classList.contains('intro')) scrollTo(0, 0); }); } catch (e) {}   // a reload starts at the top, where the box is: never back on the section you left
 (function () { var b = document.body, h = location.hash;
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (!window.STRAPSKIP && /^#intro(?:$|[/?=&])/.test(h)) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
+  var phone = window.matchMedia && matchMedia('(max-width:800px)').matches;
+  if (!window.STRAPSKIP && h.indexOf('nointro') < 0 && (/^#intro(?:$|[/?=&])/.test(h) || (!phone && !reduce && h.indexOf('#snap') !== 0))) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
 </script>
 <div id="track">
 <div id="stage">
@@ -815,7 +816,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261118-main-stops.js?v=1"></script>
+<script defer src="./bundle.20261118-main-stops.js?v=5"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

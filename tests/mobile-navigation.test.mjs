@@ -113,3 +113,28 @@ test('phone reading bypasses desktop scroll detents entirely', () => {
   // Desktop-only dependencies are deliberately absent. A phone must return first.
   assert.doesNotThrow(() => s.brakeCheck()); assert.deepEqual(scrolls, []);
 });
+
+test('phone section changes animate from the current pose without scrolling the document', () => {
+  const {state:s, sheets, scrolls} = fixture();
+  s.reduce = false;
+  s.cur = 1;
+  s.K = Array.from({length:8}, (_,i)=>({ry:i===6?180:0,sy:i>=2?16:0}));
+  s.BG = Array.from({length:8},()=>[13,17,23]);
+  s.lastPose = {ry:0,sy:0};
+  s.zNow = {fe:0,c:[0,0],s:1,r:1,k:null};
+  s.zsnap = ()=>({fe:0,c:[0,0],s:1,r:1,k:null});
+  s.jumpTo(2);
+  assert.equal(s.mobileChapter,2);
+  assert.equal(s.jump.duration,.65);
+  assert.equal(s.jump.from,s.lastPose);
+  assert.equal(s.jump.to.sy,16);
+  assert.equal(sheets[2].scrollTop,0);
+  assert.deepEqual(scrolls,[]);
+  // A new destination replaces an in-progress transition from the last rendered pose.
+  s.lastPose = {ry:40,sy:8};
+  s.jumpTo(6);
+  assert.equal(s.mobileChapter,6);
+  assert.equal(s.jump.from.ry,40);
+  assert.equal(s.jump.to.ry,180);
+  assert.deepEqual(scrolls,[]);
+});

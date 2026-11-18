@@ -2708,20 +2708,23 @@ let cur = 0, jump = null, lastPose = poseAt(0), zNow = { fe: 0, c: [0, MC], s: 6
 function zsnap(c) { focusPath(c); return { fe: focusAmount(c), c: FZ.c.slice(), s: FZ.s, r: FZ.r, k: stopKey(c) }; }
 function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = true;   // a jump is not a skim: the catch leaves it alone
   // Phone sections are explicit destinations. Reading within a section never changes the scene.
-  if (mobileViewport.matches) { mobileChapter = i; cur = i; jump = null;
+  const phone = mobileViewport.matches;
+  if (phone) {
+    mobileChapter = i;
     const sheet = sheetOf(i); if (sheet) sheet.scrollTop = 0;
-    if (then) then(); return; }
+    if (reduce) { cur = i; jump = null; if (then) then(); return; }
+  }
   const top = total() * i / (N - 1);
   if (reduce) { window.scrollTo(0, top); cur = i; if (then) then(); return; }
   const to = Object.assign({}, K[i], { bg: BG[i] }); to.ry = to.ry + 360 * Math.round((lastPose.ry - to.ry) / 360);
-  jump = { from: lastPose, to, i, c0: cur, t: 0, then, far: Math.abs(i - cur), zA: { fe: zNow.fe, c: zNow.c.slice(), s: zNow.s, r: zNow.r, k: zNow.k }, zB: zsnap(i) };
-  window.scrollTo({ top, behavior: 'instant' }); cur = i;
+  jump = { from: lastPose, to, i, c0: cur, t: 0, then, far: Math.abs(i - cur), duration: phone ? 0.65 : null, zA: { fe: zNow.fe, c: zNow.c.slice(), s: zNow.s, r: zNow.r, k: zNow.k }, zB: zsnap(i) };
+  if (!phone) window.scrollTo({ top, behavior: 'instant' }); cur = i;
 }
 /* the strap display's test pages (window.STRAPSKIP): no unboxing, and the page opens on the Strap chapter. Without the flag nothing here changes */
 const SKIP = !!window.STRAPSKIP;
 if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; mobileChapter = 1; if (!mobileViewport.matches) window.scrollTo(0, total() / (N - 1)); }
-const NAV = [['Home', 0], ['Experience', 1], ['Selected work', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
-const MOBILE_LABELS = ['Home', 'Experience', 'Work', 'Interests', 'Contact'];
+const NAV = [['Home', 0], ['Experience', 1], ['Projects', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
+const MOBILE_LABELS = ['Home', 'Experience', 'Projects', 'Interests', 'Contact'];
 NAV.forEach(([n, i], k) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
 function syncSectionLabels() { [...rail.children].forEach((b, k) => { const label = mobileViewport.matches ? MOBILE_LABELS[k] : NAV[k][0]; b.textContent = label; b.setAttribute('aria-label', 'Go to ' + label); });
   canvas.setAttribute('aria-label', mobileViewport.matches ? 'Interactive mechanical watch. Use the section buttons below to explore.' : 'A 3D mechanical watch that comes apart as you scroll'); }
@@ -2762,7 +2765,7 @@ function stepFocus(dir) {
   paint();
 }
 function enterStop(k) {
-  focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('All work');
+  focus = k; seenW.add(k); document.body.classList.add('focused'); zbLabel('Zoom out');
   if (k === 'date') { loadPhotos(idx.date); photoA.material.map = photos[idx.date]; }
   if (k === 'sec') { idx.sec = 0; secSteps = 0; secDisp = secDisp % TAU - TAU; snd.sec(); }   // sweeps round to twelve and stops
   paint();
@@ -3033,7 +3036,7 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
 window.__pit = PIT;
 /* one way back out of any close-up: from a piece of work to the dial, from a caseback part to the caseback */
 /* the way back out says where it goes: from a work's close up to all the work, from a caseback part back out of the movement */
-function zbLabel(t) { const zb = $('zback'); if (!zb) return; zb.querySelector('span').textContent = t; zb.setAttribute('aria-label', t === 'All work' ? 'Back to all work' : 'Zoom back out'); }
+function zbLabel(t) { const zb = $('zback'); if (!zb) return; zb.querySelector('span').textContent = t; zb.setAttribute('aria-label', 'Zoom out'); }
 { const zb = $('zback'); if (zb) zb.addEventListener('click', () => { audioOn(); if (zoomK) zoomOut(); else if (focus) jumpTo(CD); }); }
 /* a first time hint on the pitch: a ghost fingertip settles on the ball, draws back along a dotted line, and lets go, and a small chevron flicks off toward goal.
    It plays only in the shootout, never while the ball is held or in flight, and once a shot has been taken it is gone for this visit and the next.
@@ -3161,7 +3164,7 @@ const BOXC = 0x26304a, mBoxOut = new THREE.MeshPhysicalMaterial({ color: BOXC, r
 const mBoxIn = new THREE.MeshStandardMaterial({ color: 0x12151b, roughness: 1, metalness: 0, bumpMap: boxGrain, bumpScale: 0.3 });
 /* the pillow's cloth is a short napped microfibre. One tile of it, 20 mm square: every fibre is laid as a little ramp that rises from root to tip along the local nap,
    and the nap swirls slowly, so patches of it are brushed different ways. The relief becomes a normal map; the colour is lighter on the fibre tips and darker between them */
-const pilTex = (() => { const S = 512, r = prng(909), h = new Float32Array(S * S), tn = new Float32Array(S * S), hb = new Float32Array(S * S), k = TAU / S;
+function makePillowTextures() { const S = 512, r = prng(909), h = new Float32Array(S * S), tn = new Float32Array(S * S), hb = new Float32Array(S * S), k = TAU / S;
   const ang = (x, y) => 0.6 + 0.75 * Math.sin(k * x + 1.8 * Math.sin(2 * k * y + 1)) + 0.5 * Math.sin(3 * k * y + 2 + 1.4 * Math.sin(2 * k * x));
   for (let n = 0; n < 16000; n++) { const x0 = r() * S, y0 = r() * S, a = ang(x0, y0) + (r() - 0.5) * 1.15, ca = Math.cos(a), sa = Math.sin(a), len = 7 + r() * 17, amp = 0.3 + 0.7 * r(), tint = r();
     for (let q = 0; q <= len; q++) { const w = amp * (0.3 + 0.7 * q / len) * Math.min(1, (len - q + 0.6) / 2.5), px = x0 + ca * q, py = y0 + sa * q;
@@ -3173,8 +3176,8 @@ const pilTex = (() => { const S = 512, r = prng(909), h = new Float32Array(S * S
       dn[j] = 128 - 127 * gx * il; dn[j + 1] = 128 - 127 * gy * il; dn[j + 2] = 128 + 127 * il; dn[j + 3] = 255;
       const v = clamp(0.84 + 0.16 * hb[o] + (tn[o] - 0.5) * 0.05 , 0, 1); dc[j] = 255 * v; dc[j + 1] = 251 * v; dc[j + 2] = 243 * v; dc[j + 3] = 255; } }
   const mk = (d, srgb) => { const t = new THREE.DataTexture(d, S, S, THREE.RGBAFormat); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; return t; };
-  return { tc: mk(dc, true), tn: mk(dn, false) }; })();
-const mPillow = new THREE.MeshPhysicalMaterial({ color: 0xdcd4c4, map: pilTex.tc, normalMap: pilTex.tn, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.94, metalness: 0, sheen: 0.6, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xfff6ea), vertexColors: true, envMapIntensity: 0.85 });
+  return { tc: mk(dc, true), tn: mk(dn, false) }; }
+const mPillow = new THREE.MeshPhysicalMaterial({ color: 0xdcd4c4, map: null, normalMap: null, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.94, metalness: 0, sheen: 0.6, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xfff6ea), vertexColors: true, envMapIntensity: 0.85 });
 const mThread = new THREE.MeshPhysicalMaterial({ color: 0xc4b596, roughness: 0.8, sheen: 0.5, sheenRoughness: 0.4, sheenColor: new THREE.Color(0xfff4e0) });
 const mSatin = new THREE.MeshPhysicalMaterial({ color: 0xe8e0cf, roughness: 0.45, sheen: 0.6, sheenRoughness: 0.3, sheenColor: new THREE.Color(0xfff6e4) });
 const bxm = (geo, mat, parent, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.receiveShadow = true; parent.add(m); return m; };
@@ -3209,12 +3212,14 @@ function pilSeam(e, f) { const s = PSEAM[e]; return [lerp(s.F[0], s.R[0], f), le
 const pilCorner = (f) => Math.sqrt(Math.max(0, 1 - Math.pow(Math.abs(2 * f - 1), 10)));
 /* the underside of the watch as the pillow meets it (x along the pillow, y toward twelve, heights from the top plane of the core): the back, the bowl of the case, four lugs and the crown */
 const pilCase = (r) => r < 15.6 ? -2 : r < 16.05 ? lerp(-2, -0.6, (r - 15.6) / 0.45) : r < 16.5 ? -0.45 : r < 19.5 ? 0.6 + 2.1 * Math.pow((r - 16.5) / 3, 1.25) : PBIG;
-const PBR = 0.05, pilCaseT = new Float32Array(260); for (let k = 0; k < 260; k++) { const r = k * 0.1; let m = PBIG; for (let q = Math.max(0, r - 6); q <= r + 6; q += 0.04) { const z = pilCase(q) + PBR * (q - r) * (q - r); if (z < m) m = z; } pilCaseT[k] = m; }
+const PBR = 0.05, pilCaseT = new Float32Array(260);
+function preparePillowCase() { for (let k = 0; k < 260; k++) { const r = k * 0.1; let m = PBIG; for (let q = Math.max(0, r - 6); q <= r + 6; q += 0.04) { const z = pilCase(q) + PBR * (q - r) * (q - r); if (z < m) m = z; } pilCaseT[k] = m; }
+}
 function pilHead(x, y) { const ax = Math.abs(x), ay = Math.abs(y); let z = PBIG;
   if (ax > 9.7 && ax < 13.3 && ay > 13.5 && ay < 22.7) { const zl = ay < 16.5 ? lerp(1.4, 0.8, (ay - 13.5) / 3) : ay < 18.8 ? lerp(0.8, -0.3, (ay - 16.5) / 2.3) : ay < 21.1 ? lerp(-0.3, -1.3, (ay - 18.8) / 2.3) : ay < 21.9 ? -1.4 : lerp(-1.4, -0.9, (ay - 21.9) / 0.8); if (zl < z) z = zl; }
   if (x > 19.2 && x < 23.7 && ay < 3.65) { const zk = 4.1 - Math.sqrt(3.65 * 3.65 - y * y); if (zk < z) z = zk; }
   return z; }
-{ const r = prng(4242), uF = 72 + PL1 + 8.5 * (1.5 * Math.PI - PA1), uR = 36 + 9 * Math.PI, LT = PPER - uF + uR, LB = uF - uR, du = PPER / PNU, Pu = new Float32Array(PNU), tmp = new Float32Array(PNU);
+function preparePillowShape() { const r = prng(4242), uF = 72 + PL1 + 8.5 * (1.5 * Math.PI - PA1), uR = 36 + 9 * Math.PI, LT = PPER - uF + uR, LB = uF - uR, du = PPER / PNU, Pu = new Float32Array(PNU), tmp = new Float32Array(PNU);
   const blur = (a, rad, n) => { for (let q = 0; q < n; q++) { for (let i = 0; i < PNU; i++) { let s = 0; for (let k = -rad; k <= rad; k++) s += a[(i + k + PNU) % PNU]; tmp[i] = s / (2 * rad + 1); } a.set(tmp); } };
   for (let i = 0; i < PNU; i++) { const u = i * du, B = pilAt(u); plB.set(B, i * 4); const top = u >= uF || u < uR, f = top ? ((u - uF + PPER) % PPER) / LT : 1 - (u - uR) / LB; plSf[i] = f; plSw[i] = (top ? 1 : -1) * pilCorner(f);
     for (let e = 0; e < 2; e++) { const p = pilSeam(e, f); plSm[e][i * 2] = p[0]; plSm[e][i * 2 + 1] = p[1]; }
@@ -3296,14 +3301,14 @@ function pilDeform(all) { let jA = 0, jB = PNX; if (!all) { while (Math.abs(plX[
   pilNormals(all ? 0 : Math.max(0, jA - 1), all ? PNX : Math.min(PNX, jB + 1));
   pilGeo.attributes.position.needsUpdate = true; pilGeo.attributes.normal.needsUpdate = true; pilGeo.attributes.color.needsUpdate = true; }
 /* each frame of the unboxing: live, the springs take one step; held at a time (for stills), the whole history up to that time is replayed first so the pillow is where it would have been */
-function pilShape(dt, hold, u, sep) { let ch = false; const cal = strapNow === 'consulting';
+function pilShape(dt, hold, u, sep) { ensurePillow(); let ch = false; const cal = strapNow === 'consulting';
   if (hold) { if (u !== pilKey) { pilKey = u; const on0 = ubk.on, u0 = ubk.u, l0 = ubk.lift, hN = 1 / 60;
       ubk.u = Math.min(u, 0); ubk.lift = 0; ubk.on = cal; if (cal) cIntro(SIDES); pilCeil(); pilStep(0, 0, true);
       for (let k = 1, n = Math.ceil(Math.max(0, u) / hN); k <= n; k++) { const uk = u * k / n; ubk.u = uk; ubk.lift = pilSep(uk); ubk.on = cal && uk < 3.3; if (ubk.on) cIntro(SIDES); pilCeil(); pilStep(u / n, ubk.lift, false); }
       ubk.on = on0; ubk.u = u0; ubk.lift = l0; if (on0) cIntro(SIDES); ch = true; } }
   else { pilKey = -99; pilCeil(); ch = pilStep(Math.min(dt, 0.05), sep, u <= 0); }
   if (ch || pilDirty) { pilDeform(pilDirty); pilDirty = false; } }
-{ const uv = new Float32Array(PNC * PNR * 2), idx = [];
+function buildPillowMesh() { const uv = new Float32Array(PNC * PNR * 2), idx = [];
   for (let j = 0; j < PNX; j++) for (let i = 0; i < PNU; i++) { const a = j * PNC + i, b = a + 1, c = a + PNC, d = b + PNC; idx.push(a, c, b, b, c, d); }
   pilGeo.setAttribute('position', new THREE.BufferAttribute(pilPos, 3)); pilGeo.setAttribute('normal', new THREE.BufferAttribute(pilNor, 3)); pilGeo.setAttribute('color', new THREE.BufferAttribute(pilCol, 3)); pilGeo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); pilGeo.setIndex(idx);
   pilCeil(); pilStep(0, 0, true); pilDeform(true); pilDirty = true;
@@ -3318,6 +3323,19 @@ function pilShape(dt, hold, u, sep) { let ch = false; const cal = strapNow === '
 /* rocking back on the bolster: the pillow turns about the bolster's centre and rolls back a little on its heel, which lifts the nose and shows the buckle under it */
 function pilPlace(rock) { const c = Math.cos(rock), sn = Math.sin(rock); gPil.rotation.x = -rock; gPil.position.set(0, PIL0[0] - 18 - (-18 * c - 18 * sn), PIL0[1] - 18 - (18 * sn - 18 * c) - 22.5 * rock); }
 pilPlace(0);
+let pillowReady = false;
+function ensurePillow() {
+  if (pillowReady) return;
+  const textures = makePillowTextures();
+  mPillow.map = textures.tc;
+  mPillow.normalMap = textures.tn;
+  mPillow.needsUpdate = true;
+  preparePillowCase();
+  preparePillowShape();
+  buildPillowMesh();
+  pillowReady = true;
+}
+if (!mobileViewport.matches || intro.on) ensurePillow();
 /* the lid is two leaves, each on a piano hinge along its outer edge, like the doors of a fine watch box: they rise together on soft stays, the left a breath ahead, and stop just past upright */
 const doorAxis = new THREE.Vector3(0, 0, 1), DOOR = rad(106), mHinge = new THREE.MeshStandardMaterial({ color: 0xc9a45c, metalness: 1, roughness: 0.28 });
 const lidHalves = [];
@@ -3710,10 +3728,14 @@ async function frame(now) {
     else { const d = target - cur, cap = motionDt * Math.max(1 / 0.6, Math.abs(d) / 0.9); cur += clamp(d * (1 - Math.exp(-motionDt * 6)), -cap, cap); if (Math.abs(target - cur) < 0.0005) cur = target; } }   /* the camera follows the scroll at its own pace: never faster than a chapter in about 0.6 s, so a quick snap still reads as a flight */
   if (!jump && !intro.on && cur <= S0 - 0.9 && STOP.join() !== WORK0.join()) workOrder(WORK0);   // back at the dial or before it: the three works return to their usual order
   let P = poseAt(cur), cv = cur, je = 1;
-  if (jump) { if (jump.hold != null) jump.t = jump.hold; else jump.t += motionDt / lerp(0.9, 1.5, clamp(jump.far / 5, 0, 1)); const x = clamp(jump.t, 0, 1); je = x * x * x * (x * (x * 6 - 15) + 10); const A = jump.from, B = jump.to;
+  if (jump) { if (jump.hold != null) jump.t = jump.hold; else jump.t += motionDt / (jump.duration || lerp(0.9, 1.5, clamp(jump.far / 5, 0, 1))); const x = clamp(jump.t, 0, 1); je = x * x * x * (x * (x * 6 - 15) + 10); const A = jump.from, B = jump.to;
     P = { rx: lerp(A.rx, B.rx, je), ry: lerp(A.ry, B.ry, je), rz: lerp(A.rz, B.rz, je), sc: lerp(A.sc, B.sc, je) * (1 - 0.1 * Math.sin(Math.PI * je) * clamp(jump.far / 3, 0, 1)), sy: lerp(A.sy, B.sy, je), f: mix(A.f, B.f, je), z: mix(A.z, B.z, je), o: mix(A.o, B.o, je), bg: mix(A.bg, B.bg, je), pe: jump.i };
     cv = lerp(jump.c0, jump.i, je); if (x >= 1) { const th = jump.then; jump = null; cur = Math.round(cv); if (th) th(); } }
   lastPose = P; const pe = P.pe, act = Math.round(pe);
+  if (act === CD) document.querySelectorAll('.wfilm img[data-src]').forEach(image => {
+    image.src = image.dataset.src;
+    image.removeAttribute('data-src');
+  });
   if (strapDrawer.dialog?.open && (act !== 1 || jump || intro.on)) strapDrawerClose(null, true);
   if (strapDrawer.mobile) strapDrawer.trigger.disabled = swapT >= 0;
   tickGain = 0.35 + 0.65 * clamp(1 - Math.abs(pe - CB) / 0.8, 0, 1);
@@ -3732,6 +3754,7 @@ async function frame(now) {
   if (!down) { tx *= 0.93; ty *= 0.93; if (freeW < 0.02 && !jump) { heroYaw = ((heroYaw + 180) % 360 + 360) % 360 - 180; } }
   dragX += (tx - dragX) * 0.2; dragY += (ty - dragY) * 0.2; hy += (heroYaw - hy) * 0.18; hp += (heroPitch - hp) * 0.18;
   const s = now / 1000, sway = snap || mobileViewport.matches ? 0 : (act === 0 || act === N - 1) ? 1 : (act === CB || act === 1 ? 1 : 0.3) * (1 - fe) * (1 - 0.8 * cz);
+  if (W > 800 && !pillowReady) ensurePillow();
   const mob = W <= 800, visH = 2 * camera.position.z * Math.tan(rad(camera.fov / 2)), visW = visH * camera.aspect;
   let mH = 0, mobileCenter = 0;
   if (mob) {
@@ -3768,7 +3791,11 @@ async function frame(now) {
   gHands.position.z = P.z[1] * (1 - fe); gDial.position.z = P.z[2] * (1 - fe);
   const lit = gDial.position.z > 1.5; if (lit !== dialOff) { dialOff = lit; [gDial, gHands].forEach((G) => G.traverse((m) => { if (m.isMesh && m.material && !m.material.transparent) m.castShadow = !lit; })); }   // a lifted dial should not black out the works below it
   gMov.position.z = P.z[3]; gBack.position.z = P.z[4];
-  ORDER.forEach((n, k) => setOpacity(n, k ? P.o[k] : Math.pow(P.o[0], 4)));
+  ORDER.forEach((n, k) => {
+    let opacity = k ? P.o[k] : Math.pow(P.o[0], 4);
+    if (mob && n === 'strap') opacity *= 1 - clamp(P.sy / 12, 0, 1);
+    setOpacity(n, opacity);
+  });
   mobileView.copy(camera.position).sub(root.position).applyQuaternion(qi.copy(root.quaternion).invert());
   mobileMovementHidden = movementIsCovered(mob, mobileView.z / mobileView.length(), gDial.position.z, gMov.position.z, LAY.dial.o, LAY.case.o);
   gMov.visible = LAY.mov.o > 0.01 && !mobileMovementHidden;

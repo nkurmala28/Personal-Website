@@ -637,14 +637,14 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
     top:var(--reader-top);bottom:var(--rail);max-height:none;height:auto;
     padding-top:22px;padding-bottom:24px;overflow-y:auto;overscroll-behavior-y:contain;
     -webkit-mask-image:none;mask-image:none;scrollbar-width:thin;touch-action:auto;
-    background:linear-gradient(180deg,rgba(12,16,22,.9),rgba(12,16,22,.98) 28px);
+    background:linear-gradient(180deg,rgba(12,16,22,0),rgba(12,16,22,.5) 80px,rgba(12,16,22,.72));
     will-change:auto
   }
   html.mobile-tabs body .panel>*,html.mobile-tabs body #focus>*{flex-shrink:0}
   html.mobile-tabs body .panel::-webkit-scrollbar,html.mobile-tabs body #focus::-webkit-scrollbar{display:block;width:3px}
   html.mobile-tabs body .panel::-webkit-scrollbar-thumb,html.mobile-tabs body #focus::-webkit-scrollbar-thumb{background:rgba(238,241,244,.35);border-radius:3px}
   html.mobile-tabs #more,html.mobile-tabs #cue,html.mobile-tabs #hint{display:none}
-  html.mobile-tabs #rail{z-index:12;height:var(--rail);align-items:stretch;padding:0 calc(5px + var(--sar)) var(--sab) calc(5px + var(--sal));gap:0;border-top:1px solid var(--line)}
+  html.mobile-tabs #rail{z-index:12;height:var(--rail);align-items:stretch;padding:0 calc(5px + var(--sar)) var(--sab) calc(5px + var(--sal));gap:0;border-top:1px solid var(--line);background:rgba(12,16,22,.82)}
   html.mobile-tabs body.zoomed #rail{opacity:1!important;pointer-events:auto}
   html.mobile-tabs #rail button,html.mobile-tabs #rail button.cur{height:58px;min-height:44px;justify-content:center;align-items:center;gap:8px;padding:10px 2px 7px;font:500 10px/1.2 'JetBrains Mono',monospace;letter-spacing:0;text-align:center;color:var(--mut)}
   html.mobile-tabs #rail button::before{order:0;flex:none;width:20px;height:2px;background:transparent;transition:none}

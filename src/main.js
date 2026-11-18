@@ -3735,6 +3735,8 @@ async function frame(now) {
     mobileCenter = top + mH / 2;
     // Short readers can sit near the rail without dragging the dial into the copy.
     if (act === 0) mobileCenter = Math.min(mobileCenter, H * 0.43);
+    // Keep the top buckle below the dial selector in the full-watch views.
+    mobileCenter += Math.min(36, H * 0.05) * (1 - fe) * (1 - cz);
   }
   const fit = mob ? Math.min(visW * 0.96, visH * mH / H * 1.25) : Math.min(visH * 0.7, visW * 0.5), unit = fit / 50;
   let sc = P.sc * unit * (mob ? 0.9 : 1);

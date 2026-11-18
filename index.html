@@ -323,7 +323,9 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 .rail3d button::before{content:"";flex:none;width:0;height:1px;margin:0 0 8px;background:var(--brass);transition:width .45s ease}
 .rail3d button:focus-visible{outline:1.5px solid var(--brass);outline-offset:0;border-radius:0}   /* the whole column, strap and name, is the button */
 .rail3d .rj{font:400 19px/1.1 'Instrument Serif',Georgia,serif;color:var(--mut);letter-spacing:.005em;white-space:normal;text-wrap:balance;max-width:min(100%,10ch);min-height:2.2em;display:flex;align-items:center;justify-content:center;transition:color .3s}
-.rail3d .ry{font:400 10px/1.4 'JetBrains Mono',monospace;color:var(--mut);opacity:.6;letter-spacing:.03em;white-space:nowrap;transition:color .3s,opacity .3s}
+.rail3d .ry{position:relative;align-self:stretch;padding-top:8px;margin-top:3px;font:400 10px/1.4 'JetBrains Mono',monospace;color:var(--mut);opacity:.6;letter-spacing:.03em;white-space:nowrap;transition:color .3s,opacity .3s}
+.rail3d .ry::before{content:"";position:absolute;left:-2px;right:-2px;top:0;height:1px;background:var(--line)}
+.rail3d .ry::after{content:"";position:absolute;left:calc(50% - 1.5px);top:-1px;width:3px;height:3px;border-radius:50%;background:currentColor}
 .rail3d button:hover .rj{color:var(--ink)}
 .rail3d button:not([aria-pressed=true]):hover::before{width:10px;background:rgba(238,241,244,.45)}
 .rail3d button[aria-pressed=true]::before{width:20px}
@@ -610,19 +612,58 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
  body.mobile-selector .panel[data-ch="1"] .chips button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;flex:0 0 104px;border:1px solid transparent;border-radius:8px;padding:8px 5px;min-height:132px;background:none;white-space:normal;line-height:1.2;font-size:13px;scroll-snap-align:start}
  body.mobile-selector .panel[data-ch="1"] .chips button[aria-pressed="true"]{border-color:var(--brass);background:#dcb87212;color:var(--brass)}
  body.mobile-selector .panel[data-ch="1"] .chips button::after{display:none}
+ .strap-label{min-height:2.4em;display:flex;align-items:center;justify-content:center}
+ .strap-year{position:relative;align-self:stretch;margin:4px -12px -2px;padding-top:8px;font:400 9px/1.4 "JetBrains Mono",monospace;color:var(--mut);white-space:nowrap}
+ .strap-year::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--line)}
+ .strap-year::after{content:"";position:absolute;left:calc(50% - 1.5px);top:-1px;width:3px;height:3px;border-radius:50%;background:currentColor}
+ button[aria-pressed="true"] .strap-year{color:var(--brass)}
+ button[aria-busy="true"] .strap-thumbnail{opacity:.45}
  .strap-thumbnail{display:block;width:64px;height:96px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px #0006)}
 }
 .soccer-leaderboard h3{font:500 clamp(13px,3.6vw,17px)/1.4 "Inter Tight",sans-serif;white-space:nowrap;margin:0 0 12px}.soccer-leaderboard .board-status:empty{display:none}
 @media(max-width:800px){#load::after{content:"Best experienced on desktop";font:400 12px/1.4 "Inter Tight",sans-serif;color:var(--mut);text-align:center;padding:0 16px}}
+/* Phone navigation has one reader at a time. Section changes happen only through
+   visible buttons; a vertical gesture always belongs to the current reader. */
+@media(max-width:800px){
+  html.mobile-tabs,html.mobile-tabs body{height:100%;overflow:hidden;overscroll-behavior:none}
+  html.mobile-tabs{scroll-snap-type:none}
+  html.mobile-tabs body{--rail:calc(58px + var(--sab));--reader-top:clamp(208px,40dvh,360px)}
+  html.mobile-tabs #track{height:100dvh!important}
+  html.mobile-tabs #stage{position:relative;height:100%;overflow:clip}
+  html.mobile-tabs #copy{overflow:clip}
+  html.mobile-tabs .snapm{display:none}
+  html.mobile-tabs body .panel,html.mobile-tabs body #focus,
+  html.mobile-tabs body .panel.zoomed,html.mobile-tabs body.mobile-selector .panel[data-ch="1"]{
+    top:var(--reader-top);bottom:var(--rail);max-height:none;height:auto;
+    padding-top:22px;padding-bottom:24px;overflow-y:auto;overscroll-behavior-y:contain;
+    -webkit-mask-image:none;mask-image:none;scrollbar-width:thin;touch-action:auto;
+    background:linear-gradient(180deg,rgba(12,16,22,.9),rgba(12,16,22,.98) 28px);
+    will-change:auto
+  }
+  html.mobile-tabs body .panel>*,html.mobile-tabs body #focus>*{flex-shrink:0}
+  html.mobile-tabs body .panel::-webkit-scrollbar,html.mobile-tabs body #focus::-webkit-scrollbar{display:block;width:3px}
+  html.mobile-tabs body .panel::-webkit-scrollbar-thumb,html.mobile-tabs body #focus::-webkit-scrollbar-thumb{background:rgba(238,241,244,.35);border-radius:3px}
+  html.mobile-tabs #more,html.mobile-tabs #cue,html.mobile-tabs #hint{display:none}
+  html.mobile-tabs #rail{z-index:12;height:var(--rail);align-items:stretch;padding:0 calc(5px + var(--sar)) var(--sab) calc(5px + var(--sal));gap:0;border-top:1px solid var(--line)}
+  html.mobile-tabs body.zoomed #rail{opacity:1!important;pointer-events:auto}
+  html.mobile-tabs #rail button,html.mobile-tabs #rail button.cur{height:58px;min-height:44px;justify-content:center;align-items:center;gap:8px;padding:10px 2px 7px;font:500 10px/1.2 'JetBrains Mono',monospace;letter-spacing:0;text-align:center;color:var(--mut)}
+  html.mobile-tabs #rail button::before{order:0;flex:none;width:20px;height:2px;background:transparent;transition:none}
+  html.mobile-tabs #rail button.cur{color:var(--brass)}
+  html.mobile-tabs #rail button.cur::before{width:20px;background:var(--brass)}
+  html.mobile-tabs #rail button:has(~ button.cur)::before{background:transparent}
+  html.mobile-tabs #focus .stops{display:flex;flex-wrap:wrap;gap:7px}
+  html.mobile-tabs #zback{top:calc(var(--tb) + 8px);min-height:40px;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media(max-width:800px) and (max-height:540px){html.mobile-tabs body{--reader-top:calc(var(--tb) + 110px)}}
 </style>
 </head>
 <body>
 <script>
-/* decide before anything paints: the unboxing plays once per visit, never for reduced motion, never in the test snapshots */
+/* Visitors arrive directly at the watch. #intro remains available for design previews. */
 try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0); addEventListener('pageshow', function () { if (document.body.classList.contains('intro')) scrollTo(0, 0); }); } catch (e) {}   // a reload starts at the top, where the box is: never back on the section you left
 (function () { var b = document.body, h = location.hash;
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (!window.STRAPSKIP && h.indexOf('nointro') < 0 && (h.indexOf('intro') > -1 || (!reduce && h.indexOf('#snap') !== 0))) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
+  if (!window.STRAPSKIP && /^#intro(?:$|[/?=&])/.test(h)) { b.classList.add('intro'); document.documentElement.style.overflow = 'hidden'; } })();
 </script>
 <div id="track">
 <div id="stage">
@@ -658,7 +699,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <h2 class="sr">Experience</h2>
       <p class="worn"><span class="sr">I’ve worn many straps over the years.</span><span aria-hidden="true">I’ve worn many <span class="fix" id="fix"><span class="was">hats</span><svg class="strike" viewBox="0 0 100 20" preserveAspectRatio="none"><path pathLength="1" vector-effect="non-scaling-stroke" d="M1 13.5C16 12 34 14.5 52 11.5S84 8.5 99 9"/></svg><span class="now">straps</span></span> over the years.</span></p>
       <div class="chips">
-        <button data-strap="consulting">Consulting</button><button data-strap="engineering">Engineering</button><button data-strap="quant">Quant</button><button data-strap="banking">Banking</button><button data-strap="writing">Journalism</button>
+        <button data-strap="consulting">Consulting</button><button data-strap="quant">Quant</button><button data-strap="engineering">Engineering</button><button data-strap="writing">Journalism</button><button data-strap="banking">Banking</button>
       </div>
       <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3><div id="s-name"></div></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
     </section>
@@ -751,7 +792,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261118-penalty-mobile.js"></script>
+<script defer src="./bundle.20261118-mobile-tabs.js"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

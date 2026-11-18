@@ -102,8 +102,8 @@ window.CONTENT = {
   },
 
   /* ---- the order the straps hang on the board, left to right: newest job first.
-          Use the names above (consulting, engineering, quant, banking, writing). */
-  jobOrder: ["consulting", "quant", "engineering","writing", "banking"],
+          Use the names above (consulting, quant, engineering, writing, banking). */
+  jobOrder: ["consulting", "quant", "engineering", "writing", "banking"],
 
   /* ---- Projects (moonphase). Add, remove or reorder the blocks freely.
           The button only shows when link has an address in it.

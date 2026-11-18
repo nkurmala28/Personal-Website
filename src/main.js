@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { laneAngle, advanceLaneBall, ballSubsteps, keeperDifficulty, predictGoalOffset, reboundGoal } from './penalty-physics.mjs';
 import { createSoccerBoard } from './soccer-leaderboard.mjs';
+import { createMobileFramePolicy } from './mobile-frame-policy.mjs';
+import { createStrapMapLoader } from './strap-map-loader.mjs';
 import { mobilePixelRatio, movementIsCovered, ribbonNeedsUpdate, shadowUpdateDue } from './mobile-render-policy.mjs';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
@@ -21,6 +23,21 @@ const lerp = (a, b, t) => a + (b - a) * t, clamp = (x, a, b) => Math.min(b, Math
 const $ = (id) => document.getElementById(id);
 const stage = $('stage'), canvas = $('gl');
 const mobileViewport = matchMedia('(max-width:800px)');
+const mobileFrames = createMobileFramePolicy();
+const wakeMobileFrames = (event) => {
+  if (!mobileViewport.matches) return;
+  // Reading a text sheet uses native scrolling and must not restart expensive watch draws.
+  // Canvas gestures and active games already carry their own interaction state.
+  if (event && /^(pointer|touch)/.test(event.type) && event.target !== canvas) return;
+  mobileFrames.wake(performance.now());
+};
+['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'touchstart', 'touchmove', 'touchend', 'keydown', 'click', 'input', 'change', 'resize', 'orientationchange'].forEach((event) => addEventListener(event, wakeMobileFrames, { passive: true, capture: true }));
+document.addEventListener('watch-surface-ready', wakeMobileFrames);
+document.addEventListener('visibilitychange', wakeMobileFrames);
+mobileViewport.addEventListener('change', wakeMobileFrames);
+const bakedStraps = createStrapMapLoader({TextureLoader: THREE.TextureLoader});
+// Fetch the first surface while the case and movement are being built.
+const firstStrapMaps = mobileViewport.matches ? bakedStraps.prepare('consulting').catch(() => false) : Promise.resolve(false);
 
 let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
@@ -1736,7 +1753,13 @@ const edgeTint = tex(4, (g, S) => { g.fillStyle = '#b6b6b6'; g.fillRect(0, 0, S,
 const napSheen = (out, c) => { const m = Math.max(c.r, c.g, c.b, 0.02), k = 0.75 / m; out.setRGB(lerp(c.r * k, 0.75, 0.35), lerp(c.g * k, 0.75, 0.35), lerp(c.b * k, 0.75, 0.35)); };
 let liningTex = null; const sFlip = (t) => { const c = t.clone(); c.repeat.x = -1; c.offset.x = 1; c.needsUpdate = true; return c; };
 /* baking a strap's surface takes a moment, so a strap is dressed when it is first shown; the rest are done in idle time after the page is up */
-function dress(st) { if (st.dressed || !st.maps) return; st.dressed = true;
+function dress(st) { if (st.dressed || !st.maps) return;
+  if (mobileViewport.matches) {
+    const key = Object.keys(STRAPS).find(k => STRAPS[k] === st);
+    if (!bakedStraps.apply(key, st)) bakedStraps.prepare(key).then(ready => { if (ready) { bakedStraps.apply(key, st); document.dispatchEvent(new Event('watch-surface-ready')); } }).catch(() => {});
+    return; // No synchronous per-pixel leather baking on a phone.
+  }
+  st.dressed = true;
   if (st.len) { st.mats.forEach((m, i) => { Object.assign(m, st.maps(i)); if (st.nap) m.sheenColorMap = m.map; m.needsUpdate = true; });   /* the bloom follows the colour map, so it is lost in the holes and thins where the nap is pressed down */ st.backs.forEach((m, i) => { const t = liningMaps(Math.ceil(CALF.L[i] * SPX), i ? CALF.holes : null, i ? null : [CALF.L[0] - 4.6]); if (i) [t.map, t.normalMap].forEach((x) => { x.repeat.x = -1; x.offset.x = 1; }); m.map = t.map; m.normalMap = t.normalMap; m.needsUpdate = true; }); return; }
   Object.assign(st.mat, st.maps()); st.mat.needsUpdate = true;
   if (st.back) { liningTex = liningTex || liningMaps(); [st.matBack, st.matBackM].forEach((m, i) => { m.map = i ? sFlip(liningTex.map) : liningTex.map; m.normalMap = i ? sFlip(liningTex.normalMap) : liningTex.normalMap; m.needsUpdate = true; }); } }
@@ -1836,6 +1859,9 @@ function braceTick(dt) { const o = STRAPS.engineering.objs[0], U = GHU.uGhP.valu
   const mesh = sn.natoMesh; if (backN !== !!sn.gOn) { sn.gOn = backN; mesh.material = backN ? [sn.matG[0], sn.matG[0], sn.matG[1]] : [sn.mat, sn.mat, sn.matEnd]; sn.hw.fold.material = backN ? sn.matG[1] : sn.matEnd; }
   if (backN) sn.matG.forEach((g) => { const x = g.userData.src; g.opacity = LAY.strap.o; g.depthWrite = true; if (g.map !== x.map) { g.map = x.map; g.normalMap = x.normalMap; g.roughnessMap = x.roughnessMap; g.needsUpdate = true; } g.color.copy(x.color); }); }
 seed = 77;   // leave the shared random sequence where the dial expects it
+// A slow texture connection must not hold the watch behind the loader.
+// dress() applies the shared request asynchronously when it arrives.
+await Promise.race([firstStrapMaps, new Promise(resolve => setTimeout(resolve, 800))]);
 dress(STRAPS.consulting); { const rest = Object.values(STRAPS), idle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f, { timeout: 2000 }) : (f) => setTimeout(f, 250), next = () => { if (mobileViewport.matches) return; if (intro.on || jump || performance.now() - (window.__act || 0) < 3000) { setTimeout(next, 700); return; } const st = rest.find((q) => q.maps && !q.dressed); if (st) { dress(st); idle(next); } }; afterInit.push(() => setTimeout(() => idle(next), 1200)); }
 let pendTint = null, tintHold = false, strapNow = 'consulting', strapNext = null, swapT = -1, swapHold = false; STRAPS[strapNow].objs.forEach((o) => { o.obj.visible = true; });
 /* the leather takes a new colour only when the strap tool has it off the watch: a dial that brings its own leather asks for it here, and the swap fits it */
@@ -2063,7 +2089,7 @@ await bootYield('Setting the display…');
    through the buckle half's keepers so the pair stays together; the NATO by its buckle, full length; the bracelet, clasp open, folded once over a small printed cradle. A strap is only
    ever in one place: on the watch, in the air, or on its hook. Everything here is in mm, in the display's own frame (x along the board, y up, z toward the visitor, the hooks' prongs
    at y = 0); the group is scaled to the page. RAIL, at the top of the straps section, switches it all off ---------- */
-const RJ = (() => { const def = ['consulting', 'engineering', 'quant', 'banking', 'writing'], o = Array.isArray(CT.jobOrder) ? CT.jobOrder.filter((k, i, a) => def.includes(k) && a.indexOf(k) === i) : [];
+const RJ = (() => { const def = ['consulting', 'quant', 'engineering', 'writing', 'banking'], o = Array.isArray(CT.jobOrder) ? CT.jobOrder.filter((k, i, a) => def.includes(k) && a.indexOf(k) === i) : [];
   def.forEach((k) => { if (!o.includes(k)) o.push(k); });
   const yrs = { consulting: '2023 to now', engineering: '[years]', quant: '[years]', banking: '[years]', writing: '2019' }; if (CT.jobs) def.forEach((k) => { const y = CT.jobs[k] && CT.jobs[k].years; if (typeof y === 'string' && y.trim()) yrs[k] = y.trim(); });
   return { order: o, years: yrs }; })();
@@ -2541,7 +2567,7 @@ function rotorPhysics(dt) {
 }
 
 /* ---------- sound: synthesised watch noises. Nothing plays until the visitor has touched the page. ---------- */
-let actx = null, muted = false, master = null, vol = 0.5;
+let actx = null, muted = mobileViewport.matches, master = null, vol = mobileViewport.matches ? 0 : 0.5;
 function audioOn() { if (muted) return; if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = vol * 0.7; master.connect(actx.destination); } catch (e) {} } else if (actx.state === 'suspended') actx.resume(); }
 function ping(o) { if (!actx || muted || actx.state !== 'running') return; try { const t = actx.currentTime + (o.when || 0), len = Math.max(64, Math.floor(actx.sampleRate * (o.dur || 0.02))), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, o.sharp || 5);
   const n = actx.createBufferSource(); n.buffer = buf; const f = actx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = o.f; f.Q.value = o.q || 3; const g = actx.createGain(); g.gain.value = o.vol; n.connect(f).connect(g).connect(master); n.start(t);
@@ -2581,6 +2607,8 @@ const snd = {
 };
 addEventListener('pointerdown', audioOn, { passive: true });
 const sndBtn = $('snd'), volEl = $('vol'); let lastVol = 50;
+// Leave AudioContext unopened until a visitor explicitly enables phone audio.
+if (muted) { volEl.value = 0; sndBtn.dataset.lv = 0; sndBtn.setAttribute('aria-label', 'Sound off'); sndBtn.setAttribute('aria-pressed', 'false'); }
 const setVol = () => { vol = volEl.value / 100; muted = vol < 0.005; if (master) master.gain.value = vol * 0.7; sndBtn.dataset.lv = muted ? 0 : vol < 0.5 ? 1 : 2; sndBtn.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on'); sndBtn.setAttribute('aria-pressed', !muted); if (!muted) audioOn(); };
 sndBtn.onclick = () => { if (muted) volEl.value = lastVol || 50; else { lastVol = +volEl.value; volEl.value = 0; } setVol(); };
 volEl.oninput = setVol;
@@ -2609,14 +2637,23 @@ const track = $('track'), rail = $('rail'), panels = [...document.querySelectorA
 /* SNAP: each chapter is a stop the browser itself settles on (CSS scroll snap, one stop per flick, wheel notch or key), so nothing ever holds the page back.
    false brings back free scrolling with the old detents. The stops sit one pitch apart; the pitch is set once from the screen height and only
    changes when the width does (or a desktop window's height), so a phone's toolbar sliding in and out never moves them */
-const SNAP = true; let PITCH = 0, pitchW = 0;
+const SNAP = true; let PITCH = 0, pitchW = 0, mobileChapter = 0, navigationReady = false;
 const marks = SNAP ? NAMES.map((n, k) => { const m = document.createElement('div'); m.className = 'snapm'; m.setAttribute('aria-hidden', 'true'); track.appendChild(m); return m; }) : [];
-function pitchSet() { const w = innerWidth, h = innerHeight; if (PITCH && w === pitchW && (w <= 800 || Math.abs(h * 1.05 - PITCH) < 2)) return;
+function pitchSet() { const w = innerWidth, h = innerHeight, phone = mobileViewport.matches, wasPhone = document.documentElement.classList.contains('mobile-tabs');
+  if (PITCH && w === pitchW && phone === wasPhone && (phone || Math.abs(h * 1.05 - PITCH) < 2)) return;
+  let chapter = navigationReady ? Math.round(jump ? jump.i : cur) : 0;
+  if (phone && !wasPhone && navigationReady && STOP.join() !== WORK0.join()) { const work = stopKey(chapter); workOrder(WORK0); if (work) chapter = stopCh(work); }
+  document.documentElement.classList.toggle('mobile-tabs', phone);
+  document.documentElement.classList.toggle('snap', SNAP && !phone);
+  if (phone) { pitchW = w; PITCH = Math.max(320, Math.round(h * 1.05)); track.style.height = '100dvh';
+    if (navigationReady) { mobileChapter = chapter; cur = chapter; jump = null; syncSectionLabels(); }
+    window.scrollTo({ top: 0, behavior: 'instant' }); return; }
   const was = PITCH ? scrollY / PITCH : 0; pitchW = w; PITCH = Math.max(320, Math.round(h * 1.05));
   if (SNAP) { track.style.height = 'calc(' + PITCH * (N - 1) + 'px + 100vh)'; marks.forEach((m, k) => { m.style.top = k * PITCH + 'px'; }); } else track.style.height = (1 + (N - 1) * 1.05) * 100 + 'vh';
-  if (was) window.scrollTo({ top: Math.round(was) * PITCH, behavior: 'instant' }); }
+  if (navigationReady) syncSectionLabels();
+  if (wasPhone || was) window.scrollTo({ top: (wasPhone ? chapter : Math.round(was)) * PITCH, behavior: 'instant' }); }
 pitchSet(); addEventListener('resize', pitchSet); window.__N = N - 1;
-if (SNAP) document.documentElement.classList.add('snap');
+mobileViewport.addEventListener('change', pitchSet);
 /* a mouse wheel or trackpad under SNAP: the browser alone would snap a single wheel notch straight back to where it was, so each gesture moves
    exactly one chapter, in its direction, the moment it starts. A gesture is a run of wheel events with no pause longer than 180 ms; a trackpad's
    gliding tail belongs to the flick that started it, but a fresh, harder flick during that tail counts as new. Panels that scroll on their own
@@ -2625,7 +2662,7 @@ const WG = { t: 0, t0: 0, sign: 0, abs: 0, acc: 0, done: false, to: -1, at: 0 };
 function wheelStep(dir) { const now = performance.now(), base = now - WG.at < 900 && WG.to >= 0 ? WG.to : Math.round(scrollY / PITCH), k = clamp(base + dir, 0, N - 1);
   WG.at = now; if (k === base) return; WG.to = k; window.scrollTo({ top: k * PITCH, behavior: reduce ? 'instant' : 'smooth' }); }
 if (SNAP) addEventListener('wheel', (e) => {
-  if (intro.on || jump || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  if (mobileViewport.matches || intro.on || jump || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
   const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1); if (!d) return;
   const sc = e.target.closest && e.target.closest('.panel, #focus'); if (sc && sc.scrollHeight > sc.clientHeight + 2 && (d > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0)) return;
   e.preventDefault(); const now = e.timeStamp, sign = Math.sign(d), a = Math.abs(d), gap = now - WG.t;
@@ -2644,7 +2681,7 @@ document.addEventListener('click', (e) => { if (e.target.closest('button, a, inp
 addEventListener('touchmove', (e) => { if (braking()) e.preventDefault(); }, { passive: false });
 addEventListener('keydown', (e) => { if (braking() && ['ArrowDown', 'PageDown', ' ', 'End'].includes(e.key)) e.preventDefault(); });
 let lockOff = false;
-function brakeCheck() { let s = clamp(scrollY / total(), 0, 1) * (N - 1);
+function brakeCheck() { if (mobileViewport.matches) return; let s = clamp(scrollY / total(), 0, 1) * (N - 1);
   if (!SNAP && !fixDone && !lockOff && !jump && !intro.on && s > 1.1) { window.scrollTo({ top: total() * 1.1 / (N - 1), behavior: 'instant' }); s = 1.1; }   // nobody scrolls past the strap chapter until the pen has made its correction
   if (braking()) { if (Math.abs(scrollY - brakeY) > 2) scrollTo({ top: brakeY, behavior: 'instant' }); sPrev = s; return; }
   if (!SNAP && !jump && !intro.on && s > sPrev) for (let k = Math.floor(sPrev + BRW) + 1; k <= Math.floor(s + BRW) && k < N; k++) if (k > 0) { caught[k] = true; brakeY = total() * k / (N - 1); brakeAt = performance.now(); brakeUntil = brakeAt + DWELL; ping({ f: 3200, q: 4, dur: 0.025, vol: 0.05, sharp: 5 }); scrollTo({ top: brakeY, behavior: 'instant' }); break; }   // a short pause, then they are free to go on
@@ -2661,6 +2698,10 @@ function poseAt(c) { const i = Math.min(N - 2, Math.floor(c)), t = ease(c - i), 
 let cur = 0, jump = null, lastPose = poseAt(0), zNow = { fe: 0, c: [0, MC], s: 6.2, r: 3.1, k: null };
 function zsnap(c) { focusPath(c); return { fe: focusAmount(c), c: FZ.c.slice(), s: FZ.s, r: FZ.r, k: stopKey(c) }; }
 function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = true;   // a jump is not a skim: the catch leaves it alone
+  // Phone sections are explicit destinations. Reading within a section never changes the scene.
+  if (mobileViewport.matches) { mobileChapter = i; cur = i; jump = null;
+    const sheet = sheetOf(i); if (sheet) sheet.scrollTop = 0;
+    if (then) then(); return; }
   const top = total() * i / (N - 1);
   if (reduce) { window.scrollTo(0, top); cur = i; if (then) then(); return; }
   const to = Object.assign({}, K[i], { bg: BG[i] }); to.ry = to.ry + 360 * Math.round((lastPose.ry - to.ry) / 360);
@@ -2669,15 +2710,19 @@ function jumpTo(i, then) { caught[i] = true; sPrev = i; if (i > 1) lockOff = tru
 }
 /* the strap display's test pages (window.STRAPSKIP): no unboxing, and the page opens on the Strap chapter. Without the flag nothing here changes */
 const SKIP = !!window.STRAPSKIP;
-if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; window.scrollTo(0, total() / (N - 1)); }
+if (SKIP) { caught[1] = true; sPrev = 1; cur = 1; mobileChapter = 1; if (!mobileViewport.matches) window.scrollTo(0, total() / (N - 1)); }
 const NAV = [['Home', 0], ['Experience', 1], ['Selected work', 2], ['About Me', CB], ['Contact', N - 1]], navOf = (c) => c >= 2 && c < CB ? 2 : c >= CB && c < N - 1 ? 3 : c >= N - 1 ? 4 : c;   // which of the five a chapter belongs to
-NAV.forEach(([n, i]) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
+const MOBILE_LABELS = ['Home', 'Experience', 'Work', 'Interests', 'Contact'];
+NAV.forEach(([n, i], k) => { const b = document.createElement('button'); b.textContent = n; b.setAttribute('aria-label', 'Go to ' + n); b.onclick = () => jumpTo(i); rail.appendChild(b); });
+function syncSectionLabels() { [...rail.children].forEach((b, k) => { const label = mobileViewport.matches ? MOBILE_LABELS[k] : NAV[k][0]; b.textContent = label; b.setAttribute('aria-label', 'Go to ' + label); });
+  canvas.setAttribute('aria-label', mobileViewport.matches ? 'Interactive mechanical watch. Use the section buttons below to explore.' : 'A 3D mechanical watch that comes apart as you scroll'); }
+navigationReady = true; syncSectionLabels();
 /* the arrow at the foot: on to the next chapter, as a key press would be (into the three works through goWork, so their order holds) */
 let cueY0 = null, cueGone = false; const cueEl = $('cue'); cueEl.addEventListener('click', () => { audioOn(); const c = Math.round(cur), n = Math.min(N - 1, c + 1); if (n >= S0 && n < S0 + 3) goWork(STOP[n - S0]); else jumpTo(n); });
 const inWork = () => { const c = jump ? jump.i : Math.round(cur); return c >= S0 && c < S0 + 3; };
 function workOrder(list) { STOP.splice(0, 3, ...list); stopsPaint(); }
 /* every way into the three works (the chips, the journey bar, the dial dots and rows, the links on the spec sheet) comes through here */
-function goWork(k) { audioOn(); if (!inWork() && STOP[0] !== k) workOrder([k, ...WORK0.filter((x) => x !== k)]); jumpTo(stopCh(k)); }
+function goWork(k) { audioOn(); if (!mobileViewport.matches && !inWork() && STOP[0] !== k) workOrder([k, ...WORK0.filter((x) => x !== k)]); jumpTo(stopCh(k)); }
 const JUMPS = { career: [1], resume: [N - 1], contact: [N - 1], top: [0] };
 $('home').addEventListener('click', () => jumpTo(0));
 document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); const w = { projects: 'moon', writing: 'sec', film: 'date' }[b.dataset.jump]; if (w) { goWork(w); return; } const j = JUMPS[b.dataset.jump]; jumpTo(j[0], j[1]); }));
@@ -2714,7 +2759,7 @@ function enterStop(k) {
 }
 function leaveStop() { if (!focus) return; focus = null; document.body.classList.remove('focused'); }
 function openFocus(k) { goWork(k); }
-function closeFocus() {}
+function closeFocus() { if (focus) jumpTo(CD); }
 $('f-prev').onclick = () => { audioOn(); stepFocus(-1); }; $('f-next').onclick = () => { audioOn(); stepFocus(1); };
 document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => openFocus(b.dataset.open)));
 document.querySelectorAll('[data-stop]').forEach((b) => b.addEventListener('click', () => openFocus(b.dataset.stop)));
@@ -2750,17 +2795,31 @@ const ROLES = {
 };
 if (CT.jobs) Object.keys(ROLES).forEach((k) => { const j = CT.jobs[k]; if (!j) return; ROLES[k] = [j.title || ROLES[k][0], j.text || ROLES[k][1], j.linkText || '', j.link || '', typeof j.place === 'string' ? j.place.trim() : ROLES[k][4]]; const b = document.querySelector('[data-strap="' + k + '"]'); if (b && j.chip) b.textContent = j.chip; });
 if (RAIL) railDom();
+/* The phone selector follows the same chronology as the desktop board. */
+const mobileChips = document.querySelector('.panel[data-ch="1"] .chips');
+if (!RAIL && mobileChips) RJ.order.forEach(k => { const button = mobileChips.querySelector('[data-strap="' + k + '"]'); if (button) mobileChips.appendChild(button); });
 const chips = [...document.querySelectorAll('[data-strap]')];
 if (!RAIL) {
   const names = {consulting:'Consulting', engineering:'Engineering', quant:'Quant research', banking:'Investment banking', writing:'Journalism'};
   chips.forEach(button => {
-    const key = button.dataset.strap, preview = document.createElement('img'), label = document.createElement('span');
+    const key = button.dataset.strap, preview = document.createElement('img'), label = document.createElement('span'), year = document.createElement('span');
     preview.className = 'strap-thumbnail'; preview.src = 'photos/straps/' + key + '.webp'; preview.alt = ''; preview.width = 64; preview.height = 96; preview.loading = 'lazy'; preview.decoding = 'async'; preview.setAttribute('aria-hidden', 'true');
-    label.textContent = ((CT.jobs || {})[key] || {}).chip || names[key];
-    button.replaceChildren(preview, label);
+    label.className = 'strap-label'; label.textContent = ((CT.jobs || {})[key] || {}).chip || names[key];
+    year.className = 'strap-year'; year.textContent = RJ.years[key];
+    button.setAttribute('aria-label', label.textContent + ', ' + RJ.years[key]);
+    button.replaceChildren(preview, label, year);
   });
 }
-function pickStrap(k) { const sk = k === 'consulting' && upGone ? 'upcycle' : k; setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k));
+let strapRequest = 0;
+async function pickStrap(k) { const request = ++strapRequest, sk = k === 'consulting' && upGone ? 'upcycle' : k;
+  if (mobileViewport.matches && STRAPS[sk].maps && !STRAPS[sk].dressed && !bakedStraps.isPrepared(sk)) {
+    const button = chips.find(c => c.dataset.strap === k); if (button) button.setAttribute('aria-busy', 'true');
+    try { await bakedStraps.prepare(sk); }
+    catch (error) { console.warn('Strap surface unavailable; keeping the current strap.', error); return; }
+    finally { if (button) button.removeAttribute('aria-busy'); }
+    if (request !== strapRequest) return; // A later tap owns the selection.
+  }
+  setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k));
   const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1];
     sl.hidden = !R[3]; if (R[3]) { sl.textContent = R[2] || R[3]; sl.href = R[3]; } };
   if (!RAIL || !rl.cardK || rl.cardK === k + sk) { rl.cardK = k + sk; fill(); return; } rl.cardK = k + sk; plateSwap(fill); }   // the plate changes on the click, not when the strap lands
@@ -3612,17 +3671,28 @@ function mobLayout(P, je) {
     if (more !== mobL.more) { mobL.more = more; moreEl.classList.toggle('on', more); } }
   const T = mobL.t, a = jump ? clamp(Math.round(jump.c0), 0, N - 1) : Math.min(N - 2, Math.floor(P.pe)), b = jump ? jump.i : a + 1, u = jump ? je : clamp(P.pe - a, 0, 1), to = lerp(T[a], T[b], u);
   mobL.pt = mobL.pt < 0 || snap ? to : mobL.pt + (to - mobL.pt) * 0.2; }
-const mobileLayoutObserver = new ResizeObserver(() => { mobL.n = 0; });
+const mobileLayoutObserver = new ResizeObserver(() => { mobL.n = 0; wakeMobileFrames(); });
 [topEl, fEl, ...panels].forEach((el) => { mobileLayoutObserver.observe(el); el.addEventListener('scroll', () => { mobL.n = 0; }, { passive: true }); });
-const mobileContentObserver = new MutationObserver(() => { mobL.n = 0; });
-[fEl, ...panels].forEach((el) => { mobileContentObserver.observe(el, { subtree: true, childList: true, characterData: true }); el.addEventListener('load', () => { mobL.n = 0; }, true); });
-if (document.fonts) document.fonts.ready.then(() => { mobL.n = 0; });
+const mobileContentObserver = new MutationObserver(() => { mobL.n = 0; wakeMobileFrames(); });
+[fEl, ...panels].forEach((el) => { mobileContentObserver.observe(el, { subtree: true, childList: true, characterData: true }); el.addEventListener('load', () => { mobL.n = 0; wakeMobileFrames(); }, true); });
+if (document.fonts) document.fonts.ready.then(() => { mobL.n = 0; wakeMobileFrames(); });
 moreEl.addEventListener('click', () => { const lp = focus ? fEl : panels.find((q) => q.classList.contains('live')); if (lp) lp.scrollBy({ top: lp.clientHeight * 0.7, behavior: reduce ? 'auto' : 'smooth' }); });
 async function frame(now) {
   if (document.hidden) { last = now; requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); }); return; }
+  // Skip the whole scene update while a front-facing phone watch is settled.
+  // The open movement keeps running at 30 Hz; actual manipulation and shots use 60 Hz.
+  if (mobileViewport.matches && !mobileFrames.shouldFrame(now, {
+    mobile: true, first,
+    signature: [mobileChapter, scrollY, innerWidth, innerHeight, focus, zoomK, strapNow, way, muted].join('|'),
+    live: (cur >= CD - 0.05 && cur <= CB + 0.05) || !!zoomK || cz > 0.002 || !muted,
+    interactive: intro.on || !!jump || !!down || swapT >= 0 || !!armDrag || !!PAN.tgt || !!slide ||
+      (zoomK === 'soccer' && (PIT.mode === 'fly' || !!PIT.aim)) || QR.some((q) => q.t >= 0) ||
+      Math.abs(cur - mobileChapter) > 0.002 ||
+      Math.abs(tx) + Math.abs(ty) + Math.abs(dragX - tx) + Math.abs(dragY - ty) + Math.abs(hy - heroYaw) + Math.abs(hp - heroPitch) > 0.02
+  })) { requestAnimationFrame((time) => { frame(time).catch(watchBootFailed); }); return; }
   pace((now - last) / 1000); const dt = clamp((now - last) / 1000, 0, 0.05), motionDt = mobileViewport.matches ? clamp((now - last) / 1000, 0, 0.25) : dt; last = now; size();   // clamped: the first frame's timestamp can be earlier than the moment the script finished
   if (intro.on) { if (scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' }); cur = 0; sPrev = 0; }
-  brakeCheck(); const target = settle(clamp(scrollY / total(), 0, 1) * (N - 1));
+  brakeCheck(); const target = mobileViewport.matches ? mobileChapter : settle(clamp(scrollY / total(), 0, 1) * (N - 1));
   if (!jump) { if (intro.on) cur = 0; else if (reduce) cur = target; else if (!SNAP) cur += (target - cur) * 0.12;
     else { const d = target - cur, cap = motionDt * Math.max(1 / 0.6, Math.abs(d) / 0.9); cur += clamp(d * (1 - Math.exp(-motionDt * 6)), -cap, cap); if (Math.abs(target - cur) < 0.0005) cur = target; } }   /* the camera follows the scroll at its own pace: never faster than a chapter in about 0.6 s, so a quick snap still reads as a flight */
   if (!jump && !intro.on && cur <= S0 - 0.9 && STOP.join() !== WORK0.join()) workOrder(WORK0);   // back at the dial or before it: the three works return to their usual order
@@ -3648,13 +3718,13 @@ async function frame(now) {
   const fW = (c) => Math.max(1 - clamp((c - 1.25) * 2.4, 0, 1), clamp((c - (N - 1.42)) * 2.4, 0, 1)), heroW = 1 - clamp(cv * 2.4, 0, 1), freeW = jump ? lerp(fW(jump.c0), fW(jump.i), je) : fW(cv);   // the first and last screens both let go of the watch
   if (!down) { tx *= 0.93; ty *= 0.93; if (freeW < 0.02 && !jump) { heroYaw = ((heroYaw + 180) % 360 + 360) % 360 - 180; } }
   dragX += (tx - dragX) * 0.2; dragY += (ty - dragY) * 0.2; hy += (heroYaw - hy) * 0.18; hp += (heroPitch - hp) * 0.18;
-  const s = now / 1000, sway = snap ? 0 : (act === 0 || act === N - 1) ? 1 : (act === CB || act === 1 ? 1 : 0.3) * (1 - fe) * (1 - 0.8 * cz);
+  const s = now / 1000, sway = snap || mobileViewport.matches ? 0 : (act === 0 || act === N - 1) ? 1 : (act === CB || act === 1 ? 1 : 0.3) * (1 - fe) * (1 - 0.8 * cz);
   const mob = W <= 800, visH = 2 * camera.position.z * Math.tan(rad(camera.fov / 2)), visW = visH * camera.aspect;
   let mTop = 0, mH = 0; if (mob) { mobLayout(P, je); mTop = mobL.top - 10; mH = Math.max(80, mobL.pt - mTop); }   /* the clear band between the top row and the sheet, in pixels */
   const fit = mob ? Math.min(visW * 0.96, visH * mH / H * 1.25) : Math.min(visH * 0.7, visW * 0.5), unit = fit / 50;
   let sc = P.sc * unit * (mob ? 0.9 : 1);
   sc = lerp(sc, unit * FZ.s * (mob ? 0.66 : 1), fe);
-  const pan = snap ? 0 : cz;   // in close, the camera never quite sits still: a slow pan round the part
+  const pan = snap || mob ? 0 : cz;   // in close, the camera never quite sits still: a slow pan round the part
   e.set(rad(lerp(P.rx, -6, fe) + dragY + hp * freeW + Math.sin(s * 0.5) * 1.5 * sway + ZSIGN * zTilt[0] + Math.sin(s * 0.31) * 2.5 * pan), rad(P.ry + dragX + hy * freeW + Math.sin(s * 0.33) * 4 * sway + zTilt[1] + Math.sin(s * 0.23 + 1) * 6 * pan), rad(P.rz + zTilt[2]), 'XYZ');
   root.quaternion.setFromEuler(e); root.scale.setScalar(sc);
   const fc = FZ.c;
@@ -3711,7 +3781,7 @@ async function frame(now) {
     o *= (k === CD ? 1 - fe : 1); p.style.opacity = o; p.style.transform = 'translateY(' + ty2 + 'px)'; p.classList.toggle('live', k === act && !jump && !(k === CD && focus)); p.style.visibility = o < 0.01 ? 'hidden' : 'visible'; });
   fixTick(dt);
   fEl.style.opacity = fe * tf; fEl.style.visibility = fe * tf < 0.01 ? 'hidden' : 'visible';
-  { const na = navOf(act); [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === na); bt.classList.toggle('past', k < na); }); }
+  { const na = navOf(act); [...rail.children].forEach((bt, k) => { bt.classList.toggle('cur', k === na); bt.classList.toggle('past', k < na); if (k === na) { if (bt.getAttribute('aria-current') !== 'page') bt.setAttribute('aria-current', 'page'); } else if (bt.hasAttribute('aria-current')) bt.removeAttribute('aria-current'); }); }
   if (!intro.on && cueY0 == null) cueY0 = scrollY; if (!cueGone && cueY0 != null && (Math.abs(scrollY - cueY0) > 8 || jump)) cueGone = true; cueEl.classList.toggle('off', cueGone || act >= N - 1);   /* the arrow is only an invitation: the first scroll or move puts it away for the visit */ { const PTS = [[0, 0], [1, 1], [2, 2], [CB - 1, 2], [CB, 3], [N - 1, 4]]; let q = 4; for (let k = 0; k < PTS.length - 1; k++) if (pe < PTS[k + 1][0]) { const a = PTS[k], b = PTS[k + 1]; q = a[1] + (b[1] - a[1]) * clamp((pe - a[0]) / (b[0] - a[0]), 0, 1); break; } rail.style.setProperty('--p', clamp(q / 4, 0, 1).toFixed(4)); }   /* the brass line runs dot to dot: the five dots are evenly spaced, so the fill follows them, and it rests on Side Projects while the three works are open */
   const near = !jump && Math.abs(pe - act) < 0.15 && !focus && fe < 0.2;
   hots.forEach((h) => { const on = near && +h.dataset.ch === act; h.classList.toggle('on', on); if (on) { anchors[h.dataset.k].getWorldPosition(v).project(camera); h.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * W) + 'px,' + ((-v.y * 0.5 + 0.5) * H) + 'px)'; } });

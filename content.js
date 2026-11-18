@@ -34,8 +34,8 @@ window.CONTENT = {
 
   /* ---- the two quiet lines under the name on the first screen. tagline is set in the
           body type, education in the small mono labels. Leave either empty to hide it. */
-  tagline: "Strategy and Litigation Consulting",
-  education: "UCLA · Applied Math + Computing",
+  tagline: "High velocity generalist",
+  education: "UCLA · Applied Math · Consulting",
 
   /* ---- contact. resume: put the file in this folder (for example resume.pdf)
           and write its name here. Left empty, the site says "Resume on request". */

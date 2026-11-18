@@ -2826,13 +2826,13 @@ async function pickStrap(k) { const request = ++strapRequest, sk = k === 'consul
     if (request !== strapRequest) return; // A later tap owns the selection.
   }
   setStrap(sk); chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.strap === k));
-  const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-name').textContent = 'on ' + STRAPS[sk].name.toLowerCase(); $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1];
+  const fill = () => { const R = ROLES[k], sl = $('s-link'); $('s-title').textContent = R[0]; $('s-place').textContent = R[4] || ''; $('s-years').textContent = RJ.years[k] || ''; $('s-body').textContent = R[1];
     sl.hidden = !R[3]; if (R[3]) { sl.textContent = R[2] || R[3]; sl.href = R[3]; } };
   if (!RAIL || !rl.cardK || rl.cardK === k + sk) { rl.cardK = k + sk; fill(); return; } rl.cardK = k + sk; plateSwap(fill); }   // the plate changes on the click, not when the strap lands
-/* the plate's change: the old lines lift a hair and fade together, then the new ones rise into place one after another (title, material, place and years, paragraph, link).
+/* the plate's change: the old lines lift a hair and fade together, then the new ones rise into place one after another (title, place and years, paragraph, link).
    A later click takes over from wherever the lines are. Reduced motion: a short crossfade and nothing moves. PL.hold (tests) freezes the new lines at that many ms in */
-const PL = { gen: 0, hold: null }, PLD = [0, 40, 80, 120, 160];
-const plateLines = () => ['s-title', 's-name', 's-meta', 's-body', 's-link'].map($);
+const PL = { gen: 0, hold: null }, PLD = [0, 40, 80, 120];
+const plateLines = () => ['s-title', 's-meta', 's-body', 's-link'].map($);
 function plateSwap(fill) { const g = ++PL.gen, ls = plateLines(), rm = reduce; if (snap) { fill(); return; }
   const out = ls.map((el) => { const cs = getComputedStyle(el), o = +cs.opacity, tf = cs.transform === 'none' ? 'none' : cs.transform; el.getAnimations().forEach((a) => a.cancel());
     return el.animate([{ opacity: o, transform: tf }, { opacity: 0, transform: rm ? 'none' : 'translateY(-4px)' }], { duration: rm ? 60 : 140, easing: 'ease-in', fill: 'forwards' }); });
@@ -3737,6 +3737,7 @@ async function frame(now) {
     if (act === 0) mobileCenter = Math.min(mobileCenter, H * 0.43);
     // Keep the top buckle below the dial selector in the full-watch views.
     mobileCenter += Math.min(36, H * 0.05) * (1 - fe) * (1 - cz);
+    if (act === 1) mobileCenter += 20 * (1 - cz);
   }
   const fit = mob ? Math.min(visW * 0.96, visH * mH / H * 1.25) : Math.min(visH * 0.7, visW * 0.5), unit = fit / 50;
   let sc = P.sc * unit * (mob ? 0.9 : 1);

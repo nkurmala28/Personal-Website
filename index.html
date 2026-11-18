@@ -333,12 +333,10 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
 .rail3d button[aria-pressed=true] .ry{color:var(--brass);opacity:1}
 .partrow{display:flex;align-items:baseline;justify-content:space-between;gap:16px;max-width:32em}
 .panel.railed .detail{min-height:0}
-/* the job, set like a catalogue plate: the title, the material in italic under it, the place and the years over a hairline, a paragraph, and a plain link */
+/* Each experience shows its title, place and years, description, and link. */
 .plate{border:0;padding:0;gap:0;min-height:0;max-width:none}
 .plate .pl1{display:flex;flex-direction:column}
-.panel.railed #s-name{display:none}   /* the job stands on its own; the strap shows the material */
 #s-title{font:400 54px/1 'Instrument Serif',serif;letter-spacing:-.005em;color:var(--ink)}
-#s-name{font:italic 400 24px/1.15 'Instrument Serif',serif;color:var(--mut);margin-top:4px}
 #s-meta{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:20px;padding-bottom:11px;border-bottom:1px solid rgba(238,241,244,.14)}
 #s-place{font:400 15px/1.2 'Inter Tight',sans-serif;color:rgba(238,241,244,.78)}
 #s-years{margin-left:auto;font:400 12px/1 'JetBrains Mono',monospace;color:var(--brass);white-space:nowrap}
@@ -430,7 +428,6 @@ body.intro #cue,body.focused #cue,body.zoomed #cue,#cue.off{opacity:0;pointer-ev
   .plate{margin-top:14px}
   .plate .pl1{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:8px}
   #s-title{font-size:27px}
-  #s-name{font-size:17px;line-height:1;margin-top:0}
   #s-meta{margin-top:11px;padding-bottom:8px}
   #s-place{font-size:14px}#s-years{font-size:11px}
   #s-body{font-size:15px;line-height:1.5;margin-top:10px}
@@ -641,6 +638,8 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
     background:linear-gradient(180deg,rgba(12,16,22,0),rgba(12,16,22,.5) 80px,rgba(12,16,22,.72));
     will-change:auto
   }
+  html.mobile-tabs body.mobile-selector .panel[data-ch="1"] .chips{padding-bottom:4px}
+  html.mobile-tabs body.mobile-selector .panel[data-ch="1"] .plate{margin-top:0}
   html.mobile-tabs body .panel[data-ch="0"]{padding-bottom:clamp(24px,5dvh,42px)}
   html.mobile-tabs body .panel[data-ch="7"]{--reader-clearance:max(calc(var(--tb) + 136px),43dvh)}
   html.mobile-tabs body #focus{--reader-clearance:max(calc(var(--tb) + 164px), 50dvh)}
@@ -714,7 +713,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <div class="chips">
         <button data-strap="consulting">Consulting</button><button data-strap="quant">Quant</button><button data-strap="engineering">Engineering</button><button data-strap="writing">Journalism</button><button data-strap="banking">Banking</button>
       </div>
-      <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3><div id="s-name"></div></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
+      <div class="detail plate" style="min-height:0"><div class="pl1"><h3 id="s-title"></h3></div><div id="s-meta"><span id="s-place"></span><span id="s-years"></span></div><p id="s-body"></p><a class="btn sm" id="s-link" href="#" target="_blank" rel="noopener" hidden></a></div>
     </section>
     <section class="panel hub" data-ch="2">
       <div class="part eyebrow">02 / Selected work</div>
@@ -805,7 +804,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261118-mobile-composition.js?v=lower36"></script>
+<script defer src="./bundle.20261118-mobile-composition.js?v=experience-spacing"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

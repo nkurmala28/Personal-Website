@@ -627,19 +627,27 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
 @media(max-width:800px){
   html.mobile-tabs,html.mobile-tabs body{height:100%;overflow:hidden;overscroll-behavior:none}
   html.mobile-tabs{scroll-snap-type:none}
-  html.mobile-tabs body{--rail:calc(58px + var(--sab));--reader-top:clamp(208px,40dvh,360px)}
+  html.mobile-tabs body{--rail:calc(58px + var(--sab));--reader-clearance:max(calc(var(--tb) + 136px), 47dvh)}
   html.mobile-tabs #track{height:100dvh!important}
   html.mobile-tabs #stage{position:relative;height:100%;overflow:clip}
   html.mobile-tabs #copy{overflow:clip}
   html.mobile-tabs .snapm{display:none}
   html.mobile-tabs body .panel,html.mobile-tabs body #focus,
   html.mobile-tabs body .panel.zoomed,html.mobile-tabs body.mobile-selector .panel[data-ch="1"]{
-    top:var(--reader-top);bottom:var(--rail);max-height:none;height:auto;
-    padding-top:22px;padding-bottom:24px;overflow-y:auto;overscroll-behavior-y:contain;
+    top:auto;bottom:var(--rail);height:auto;
+    max-height:calc(100% - var(--rail) - var(--reader-clearance));
+    padding-top:18px;padding-bottom:18px;overflow-y:auto;overscroll-behavior-y:contain;
     -webkit-mask-image:none;mask-image:none;scrollbar-width:thin;touch-action:auto;
     background:linear-gradient(180deg,rgba(12,16,22,0),rgba(12,16,22,.5) 80px,rgba(12,16,22,.72));
     will-change:auto
   }
+  html.mobile-tabs body .panel[data-ch="0"]{padding-bottom:clamp(24px,5dvh,42px)}
+  html.mobile-tabs body .panel[data-ch="7"]{--reader-clearance:max(calc(var(--tb) + 136px),43dvh)}
+  html.mobile-tabs body #focus{--reader-clearance:max(calc(var(--tb) + 164px), 50dvh)}
+  html.mobile-tabs body #focus[data-work="date"]{--reader-clearance:max(calc(var(--tb) + 164px), 57dvh)}
+  html.mobile-tabs body #f-body{min-height:0}
+  html.mobile-tabs body .spec dd{min-width:0;overflow-wrap:anywhere}
+  html.mobile-tabs .igrid i{font-family:Arial,sans-serif;font-variant-emoji:text}
   html.mobile-tabs body .panel>*,html.mobile-tabs body #focus>*{flex-shrink:0}
   html.mobile-tabs body .panel::-webkit-scrollbar,html.mobile-tabs body #focus::-webkit-scrollbar{display:block;width:3px}
   html.mobile-tabs body .panel::-webkit-scrollbar-thumb,html.mobile-tabs body #focus::-webkit-scrollbar-thumb{background:rgba(238,241,244,.35);border-radius:3px}
@@ -654,7 +662,12 @@ body.strap-drawer-open #copy{opacity:0!important;pointer-events:none!important;t
   html.mobile-tabs #focus .stops{display:flex;flex-wrap:wrap;gap:7px}
   html.mobile-tabs #zback{top:calc(var(--tb) + 8px);min-height:40px;backdrop-filter:none;-webkit-backdrop-filter:none}
 }
-@media(max-width:800px) and (max-height:540px){html.mobile-tabs body{--reader-top:calc(var(--tb) + 110px)}}
+@media(max-width:800px) and (max-height:540px){
+  html.mobile-tabs body .panel,html.mobile-tabs body .panel[data-ch="7"],
+  html.mobile-tabs body #focus,html.mobile-tabs body #focus[data-work="date"]{
+    --reader-clearance:min(49dvh, calc(var(--tb) + 115px));
+  }
+}
 </style>
 </head>
 <body>
@@ -792,7 +805,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261118-mobile-tabs.js"></script>
+<script defer src="./bundle.20261118-mobile-composition.js"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

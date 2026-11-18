@@ -34,6 +34,7 @@ test('mobile layout measurements are cached until content, size, or chapter chan
   }));
   const ctx = {
     panels, fEl: panels[2], topEl: { offsetHeight: 48 }, N: 3, H: 800,
+    workBack: { offsetTop: 56, offsetHeight: 40 },
     sheetOf: k => panels[k], focus: null, jump: null, snap: false,
     mobL: { t: [-1, -1, -1], n: 0, top: 48, pt: -1, more: false },
     moreEl: { classList: { toggle() {} } },
@@ -42,6 +43,7 @@ test('mobile layout measurements are cached until content, size, or chapter chan
   vm.createContext(ctx); vm.runInContext(section('function mobMeasure()', 'const mobileLayoutObserver'), ctx);
   vm.runInContext('for (let i=0;i<20;i++) mobLayout({pe:1},1)', ctx);
   assert.equal(reads, 3);
+  assert.equal(ctx.mobL.workTop, 102);
   vm.runInContext('mobLayout({pe:2},1)', ctx); assert.equal(reads, 6);
   ctx.mobL.n = 0; vm.runInContext('mobLayout({pe:2},1)', ctx); assert.equal(reads, 9);
 });

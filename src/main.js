@@ -751,8 +751,7 @@ const HSET = {
 };
 Object.values(HSET).forEach((p) => { hHour.add(p[0]); hMin.add(p[1]); });
 { const cap = add(gHands, new THREE.SphereGeometry(0.5, 24, 12, 0, TAU, 0, Math.PI / 2), mHandA, 0, 0, ZD + 1.18); cap.rotation.x = Math.PI / 2; cap.scale.z = 0.6; add(gHands, cyl(0.48, 0.7, 24), mHandA, 0, 0, ZD + 0.84); }
-const hSec = new THREE.Group(); add(hSec, ext(poly([[-0.11, -0.7], [0.11, -0.7], [0.04, 2.9], [-0.04, 2.9]]), 0.08), mBlue); add(hSec, cyl(0.28, 0.08, 20), mBlue, 0, -0.9, 0.04); add(hSec, cyl(0.35, 0.14, 20), mBlue, 0, 0, 0.05); hSec.position.set(SX, 0, ZD - 0.24); if (!mobileViewport.matches) gHands.add(hSec);
-mobileViewport.addEventListener("change", () => { if (mobileViewport.matches) hSec.removeFromParent(); else gHands.add(hSec); });
+const hSec = new THREE.Group(); add(hSec, ext(poly([[-0.11, -0.7], [0.11, -0.7], [0.04, 2.9], [-0.04, 2.9]]), 0.08), mBlue); add(hSec, cyl(0.28, 0.08, 20), mBlue, 0, -0.9, 0.04); add(hSec, cyl(0.35, 0.14, 20), mBlue, 0, 0, 0.05); hSec.position.set(SX, 0, ZD - 0.24); gHands.add(hSec);
 
 /* per frame hook for dial parts that move: t is local time in seconds, hr the hour hand angle.
    The sky ring turns once in twenty four hours, clockwise: the sun stands at twelve at noon, sets at three, and the moon is up at midnight. */
@@ -2536,8 +2535,12 @@ function mechanism(setW) {
   const tt = ((Math.floor(b) + step) / BPS) % 43200; secNow = tt % 60;
   const aH = tt / 43200 * TAU, hr = aH + (((H1010 - aH + Math.PI) % TAU + TAU) % TAU - Math.PI) * setW;   // rolls the short way round to 10:10
   if (focus === 'sec') secDisp += (secSteps * TAU / DATA.sec.items.length - secDisp) * (snap ? 1 : 0.3); else secDisp = secNow / 60 * TAU;
-  hSec.visible = !mobileViewport.matches;
-  if (hSec.visible) hSec.rotation.z = -secDisp; hHour.rotation.z = -hr; hMin.rotation.z = -hr * 12; dialTick(t, hr);
+  hSec.visible = !mobileViewport.matches || focus === 'sec';
+  if (hSec.visible) {
+    hSec.position.z = ZD + (mobileViewport.matches ? 0.02 : -0.24);
+    hSec.rotation.z = -secDisp;
+  }
+  hHour.rotation.z = -hr; hMin.rotation.z = -hr * 12; dialTick(t, hr);
   // each tick is booked on the audio clock a little ahead, for the instant the balance passes the middle of its swing, so frame hiccups never smear the rhythm
   if (actx && actx.state === 'running' && !muted && !document.hidden && !focus && !intro.on && !needle && zoomK !== 'cooking' && zoomK !== 'snow' && zoomK !== 'soccer') { if (nextBeat <= b) nextBeat = Math.floor(b) + 1; while (nextBeat / BPS - t < 0.12) { snd.tick(nextBeat % 2, nextBeat / BPS - t, tickGain); nextBeat++; } } else nextBeat = 0;
   const pull = Math.sin(Math.PI * setW); gCrown.position.x = 19.7 + 1.3 * pull; gCrown.rotation.x = hr * 12 * (pull > 0.001 ? 1 : 0);
@@ -2738,6 +2741,7 @@ function stopsPaint() { const box = document.querySelector('#focus .stops'); if 
 document.querySelectorAll('#focus .stops [data-stop]').forEach((b) => { const k = b.dataset.stop; b.textContent = WNAME[k]; b.setAttribute('aria-label', WNAME[k]); });
 function paint() {
   const D = DATA[focus], n = D.items.length, it = D.items[idx[focus]];
+  fEl.dataset.work = focus;
   $('f-kicker').textContent = '02 / Selected work / ' + WNAME[focus]; $('f-title').textContent = it.t; $('f-body').textContent = it.d;
   { const fm = $('f-media'), src = focus === 'moon' && (it.video || it.image); fm.hidden = !src; if (src && fm.dataset.src !== src) { fm.dataset.src = src; fm.replaceChildren(); const m = document.createElement(it.video ? 'video' : 'img'); m.src = src; if (it.video) { m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = true; m.controls = true; } else m.alt = it.t; fm.appendChild(m); } }
   const l = $('f-link'); l.style.display = it.link && it.url ? 'inline-block' : 'none'; if (it.url) { l.textContent = it.link; l.href = it.url; l.target = '_blank'; l.rel = 'noopener'; }   // no button until there is somewhere to go
@@ -2766,8 +2770,10 @@ document.querySelectorAll('[data-stop]').forEach((b) => b.addEventListener('clic
 addEventListener('keydown', (e) => { if (!focus || (e.target && e.target.tagName === 'INPUT')) return; if (e.key === 'ArrowRight') { e.preventDefault(); stepFocus(1); } if (e.key === 'ArrowLeft') { e.preventDefault(); stepFocus(-1); } });
 /* where the camera looks and how close, between and at the three stops */
 const RADS = { date: 2.2, moon: AR + 0.5, sec: SR + 0.45 }, FZ = { c: [0, MC], s: FSC.moon, r: RADS.moon };
+const phoneFocusScale = { date: FSC.date * 1.57, moon: FSC.moon * 1.65, sec: FSC.sec * 1.14 };
 function focusPath(cv) { const u = clamp(cv - S0, 0, 2), i0 = Math.min(1, Math.floor(u)), t = ease(u - i0), A = STOP[i0], B = STOP[i0 + 1], dip = 1 - 0.38 * Math.sin(Math.PI * t);   // pulls back a little while it travels across the dial
-  FZ.c = [lerp(FOCUS[A][0], FOCUS[B][0], t), lerp(FOCUS[A][1], FOCUS[B][1], t)]; FZ.s = lerp(FSC[A], FSC[B], t) * dip; FZ.r = lerp(RADS[A], RADS[B], t); }
+  const scale = mobileViewport.matches ? phoneFocusScale : FSC;
+  FZ.c = [lerp(FOCUS[A][0], FOCUS[B][0], t), lerp(FOCUS[A][1], FOCUS[B][1], t)]; FZ.s = lerp(scale[A], scale[B], t) * dip; FZ.r = lerp(RADS[A], RADS[B], t); }
 const zin = (x) => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
 const focusAmount = (cv) => cv < S0 ? zin((cv - CD - 0.15) / 0.6) : cv <= S0 + 2 ? 1 : 1 - zin((cv - S0 - 2 - 0.05) / 0.5);
 
@@ -3660,8 +3666,9 @@ const mobileView = new THREE.Vector3(); const spot = $('spot');
 /* phones: the text is a sheet at the bottom, as tall as its words, and the watch takes the room that is left above it. Where each chapter's sheet
    begins is read from the page (it changes with the screen, the fonts and what is open), and the watch eases between them as the chapters turn */
 const mobL = { t: new Array(N).fill(-1), top: 48, pt: -1, n: 0, more: false }, moreEl = $('more'), topEl = $('top');
+const workBack = $('zback');
 const sheetOf = (k) => k >= S0 && k < S0 + 3 ? fEl : panels.find((q) => +q.dataset.ch === k);
-function mobMeasure() { mobL.top = topEl.offsetHeight; for (let k = 0; k < N; k++) { const p = sheetOf(k); mobL.t[k] = p ? p.offsetTop : H * 0.62; } }
+function mobMeasure() { mobL.top = topEl.offsetHeight; mobL.workTop = workBack.offsetTop + workBack.offsetHeight + 6; for (let k = 0; k < N; k++) { const p = sheetOf(k); mobL.t[k] = p ? p.offsetTop : H * 0.62; } }
 function mobLayout(P, je) {
   const active = jump ? jump.i : Math.round(P.pe), layoutKey = (focus || '') + ':' + active + ':' + !!jump;
   if (mobL.key !== layoutKey) { mobL.key = layoutKey; mobL.n = 0; }
@@ -3672,7 +3679,7 @@ function mobLayout(P, je) {
   const T = mobL.t, a = jump ? clamp(Math.round(jump.c0), 0, N - 1) : Math.min(N - 2, Math.floor(P.pe)), b = jump ? jump.i : a + 1, u = jump ? je : clamp(P.pe - a, 0, 1), to = lerp(T[a], T[b], u);
   mobL.pt = mobL.pt < 0 || snap ? to : mobL.pt + (to - mobL.pt) * 0.2; }
 const mobileLayoutObserver = new ResizeObserver(() => { mobL.n = 0; wakeMobileFrames(); });
-[topEl, fEl, ...panels].forEach((el) => { mobileLayoutObserver.observe(el); el.addEventListener('scroll', () => { mobL.n = 0; }, { passive: true }); });
+[topEl, workBack, fEl, ...panels].forEach((el) => { mobileLayoutObserver.observe(el); el.addEventListener('scroll', () => { mobL.n = 0; }, { passive: true }); });
 const mobileContentObserver = new MutationObserver(() => { mobL.n = 0; wakeMobileFrames(); });
 [fEl, ...panels].forEach((el) => { mobileContentObserver.observe(el, { subtree: true, childList: true, characterData: true }); el.addEventListener('load', () => { mobL.n = 0; wakeMobileFrames(); }, true); });
 if (document.fonts) document.fonts.ready.then(() => { mobL.n = 0; wakeMobileFrames(); });
@@ -3720,16 +3727,30 @@ async function frame(now) {
   dragX += (tx - dragX) * 0.2; dragY += (ty - dragY) * 0.2; hy += (heroYaw - hy) * 0.18; hp += (heroPitch - hp) * 0.18;
   const s = now / 1000, sway = snap || mobileViewport.matches ? 0 : (act === 0 || act === N - 1) ? 1 : (act === CB || act === 1 ? 1 : 0.3) * (1 - fe) * (1 - 0.8 * cz);
   const mob = W <= 800, visH = 2 * camera.position.z * Math.tan(rad(camera.fov / 2)), visW = visH * camera.aspect;
-  let mTop = 0, mH = 0; if (mob) { mobLayout(P, je); mTop = mobL.top - 10; mH = Math.max(80, mobL.pt - mTop); }   /* the clear band between the top row and the sheet, in pixels */
+  let mH = 0, mobileCenter = 0;
+  if (mob) {
+    mobLayout(P, je);
+    const top = focus ? mobL.workTop : mobL.top;
+    mH = Math.max(48, mobL.pt - top);
+    mobileCenter = top + mH / 2;
+    // Short readers can sit near the rail without dragging the dial into the copy.
+    if (act === 0) mobileCenter = Math.min(mobileCenter, H * 0.43);
+  }
   const fit = mob ? Math.min(visW * 0.96, visH * mH / H * 1.25) : Math.min(visH * 0.7, visW * 0.5), unit = fit / 50;
   let sc = P.sc * unit * (mob ? 0.9 : 1);
-  sc = lerp(sc, unit * FZ.s * (mob ? 0.66 : 1), fe);
+  let focusScale = unit * FZ.s;
+  if (mob) {
+    const subject = focus === 'date' ? 3.1 : focus === 'moon' ? AR * 2 : SR * 2;
+    const bandLimit = (mH - 16) * visH / (H * subject);
+    focusScale = Math.min(focusScale * 0.66, bandLimit);
+  }
+  sc = lerp(sc, focusScale, fe);
   const pan = snap || mob ? 0 : cz;   // in close, the camera never quite sits still: a slow pan round the part
   e.set(rad(lerp(P.rx, -6, fe) + dragY + hp * freeW + Math.sin(s * 0.5) * 1.5 * sway + ZSIGN * zTilt[0] + Math.sin(s * 0.31) * 2.5 * pan), rad(P.ry + dragX + hy * freeW + Math.sin(s * 0.33) * 4 * sway + zTilt[1] + Math.sin(s * 0.23 + 1) * 6 * pan), rad(P.rz + zTilt[2]), 'XYZ');
   root.quaternion.setFromEuler(e); root.scale.setScalar(sc);
   const fc = FZ.c;
   v.set(lerp(P.f[0], fc[0], fe), lerp(P.f[1], fc[1], fe), lerp(P.f[2], ZD + P.z[2] * (1 - fe), fe)).multiplyScalar(sc).applyQuaternion(root.quaternion);
-  const cx = mob ? 0 : -visW * 0.2, cy = mob ? visH * (0.5 - (mTop + mH * 0.5) / H) : 0;
+  const cx = mob ? 0 : -visW * 0.2, cy = mob ? visH * (0.5 - mobileCenter / H) : 0;
   root.position.set(cx - v.x, cy - v.y, -v.z); glow.position.x = cx; glow.position.y = cy;
   zoomApply(dt, sc, cx, cy, act);
   let lc = [cx, cy], scU = sc; if (intro.on) { const r = introPose(dt, visW, visH, mob, sc, cx, cy); lc = r.lc; scU = r.s; glow.position.x = lc[0]; glow.position.y = lc[1]; }

@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="./bundle.20261118-main-stops.js?v=5" fetchpriority="high" media="(max-width:800px)">
+<link rel="preload" as="script" href="./bundle.20261118-main-stops.js?v=7" fetchpriority="high" media="(max-width:800px)">
 <link rel="preload" as="fetch" href="./textures/straps/manifest.json" crossorigin media="(max-width:800px)">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@600&display=swap">
 <style>
@@ -142,6 +142,11 @@ body:not(.cook) #pan{display:none}
 #arm::before,#pan::before,#kick::before{inset:13px;background:rgba(255,61,154,.3);border:2px solid #ff3d9a;box-shadow:0 0 0 0 rgba(255,61,154,.75);animation:pulsepk 1.5s ease-out infinite;transition:transform .2s,background .35s,border-color .35s,inset .35s}
 #arm.done::before,#pan.done::before,#kick.done::before{inset:13px;background:rgba(232,189,92,.5);border-color:#e3b04a;animation:pulsebr 2.2s ease-out infinite}
 #arm:hover::before,#pan:hover::before,#kick:hover::before,#arm.grab::before,#pan.grab::before,#kick.grab::before{transform:scale(1.18)}
+/* a word in the owner's hand beside a handle, put away once it has done its job */
+.hot .tag{position:absolute;left:50%;bottom:40px;white-space:nowrap;font:600 21px/1 'Caveat',cursive;font-style:normal;color:var(--ruby);text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 10px rgba(10,14,18,.7);transform:translate(-50%,6px) rotate(-4deg);transform-origin:50% 100%;opacity:0;pointer-events:none;transition:opacity .35s,transform .35s}
+.hot .tag.on{opacity:1;transform:translate(-50%,0) rotate(-4deg);transition:opacity .6s .5s,transform .6s .5s}
+.hot.grab .tag{opacity:0}
+@media (prefers-reduced-motion:reduce){.hot .tag{transition:opacity .2s}}
 .hot:hover::before{transform:scale(1.12)}
 @keyframes pulsepk{0%{box-shadow:0 0 0 0 rgba(255,61,154,.85),0 0 0 0 rgba(255,61,154,.5),0 0 12px 1px rgba(255,61,154,.6)}70%{box-shadow:0 0 0 24px rgba(255,61,154,0),0 0 0 42px rgba(255,61,154,0),0 0 12px 1px rgba(255,61,154,.6)}100%{box-shadow:0 0 0 0 rgba(255,61,154,0),0 0 0 0 rgba(255,61,154,0),0 0 12px 1px rgba(255,61,154,.6)}}
 @keyframes pulsepks{0%{box-shadow:0 0 0 0 rgba(255,61,154,.8),0 0 0 0 rgba(255,61,154,.4),0 0 8px 1px rgba(255,61,154,.5)}70%{box-shadow:0 0 0 9px rgba(255,61,154,0),0 0 0 16px rgba(255,61,154,0),0 0 8px 1px rgba(255,61,154,.5)}100%{box-shadow:0 0 0 0 rgba(255,61,154,0),0 0 0 0 rgba(255,61,154,0),0 0 8px 1px rgba(255,61,154,.5)}}
@@ -558,6 +563,7 @@ body.zoomed #dial-picker *{pointer-events:none!important}
 #int-score .goal .seam{fill:none;stroke:#243b2a;stroke-width:1.1}
 #int-score .shot.miss{border-color:#885e63}
 #int-score .cross{fill:none;stroke:#d9959c;stroke-width:2;stroke-linecap:round}
+#pit-curl{display:inline-flex;align-self:flex-start;align-items:center;gap:8px;margin:2px 0 6px;padding:7px 12px 7px 10px;border:1px solid var(--line);border-radius:99px;background:none;color:var(--mut);font:500 11px 'JetBrains Mono',monospace;letter-spacing:.04em;cursor:pointer}#pit-curl[hidden]{display:none}#pit-curl .pc-dot{width:16px;height:9px;border-radius:9px;background:#2a323a;position:relative;transition:background .2s}#pit-curl .pc-dot::after{content:'';position:absolute;left:1px;top:1px;width:7px;height:7px;border-radius:50%;background:#8a949c;transition:transform .2s,background .2s}#pit-curl[aria-pressed=true]{color:var(--brass);border-color:rgba(220,184,114,.6)}#pit-curl[aria-pressed=true] .pc-dot{background:rgba(220,184,114,.35)}#pit-curl[aria-pressed=true] .pc-dot::after{transform:translateX(7px);background:var(--brass)}
 #int-score .pending::after{content:'';width:5px;height:5px;border-radius:50%;background:#53616c;box-shadow:0 1px 0 #000}
 /* A short highlight follows the rounded picker border four times on an unlock. */
 #dial-picker summary{position:relative}
@@ -742,7 +748,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
       <p class="prov">Singapore <span>→</span> UCLA <span>→</span> San Francisco</p>
       <div class="igrid"><button data-interest="music"><span>01</span>Music<i aria-hidden="true">↗</i></button><button data-interest="soccer" aria-label="Soccer"><span>02</span>Soccer<i aria-hidden="true">↗</i></button><button data-interest="cooking"><span>03</span>Cooking<i aria-hidden="true">↗</i></button><button data-interest="snow"><span>04</span>Snowboarding<i aria-hidden="true">↗</i></button></div>
       <p id="int-hint">Explore the parts of the movement!</p>
-      <div class="detail" id="int-d" style="min-height:0" hidden><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><div id="int-score" aria-live="polite" aria-atomic="true" hidden></div><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><div id="int-deck-controls"><button class="btn sm" id="int-needle">Drop the needle</button><label class="music-scope" title="Keep the music playing while exploring the website"><input type="checkbox" role="switch" id="int-music-global" aria-label="Keep music playing throughout the website"><span>Keep playing</span></label></div></div></div><div id="int-nav"><button class="btn sm" id="int-next">Next</button><button id="int-back">Back to the movement</button></div>
+      <div class="detail" id="int-d" style="min-height:0" hidden><h3 id="int-t"></h3><p id="int-b"></p><div class="part" id="int-l"></div><ol id="int-list"></ol><div id="int-score" aria-live="polite" aria-atomic="true" hidden></div><button id="pit-curl" type="button" aria-pressed="false" hidden><span class="pc-dot" aria-hidden="true"></span>Tilt to curl</button><div id="int-ph"></div><div id="int-deck" hidden><p id="int-now"></p><div id="int-deck-controls"><button class="btn sm" id="int-needle">Drop the needle</button><label class="music-scope" title="Keep the music playing while exploring the website"><input type="checkbox" role="switch" id="int-music-global" aria-label="Keep music playing throughout the website"><span>Keep playing</span></label></div></div></div><div id="int-nav"><button class="btn sm" id="int-next">Next</button><button id="int-back">Back to the movement</button></div>
     </section>
     <section class="panel" data-ch="7">
       <div class="part eyebrow">04 / Contact</div>
@@ -816,7 +822,7 @@ try { history.scrollRestoration = 'manual'; } catch (e) {} try { scrollTo(0, 0);
 })();
 </script>
 <script defer src="./content.js"></script>
-<script defer src="./bundle.20261118-main-stops.js?v=5"></script>
+<script defer src="./bundle.20261118-main-stops.js?v=7"></script>
 
 <script>
 /* A native disclosure keeps keyboard and touch behavior independent of WebGL. */

@@ -1239,7 +1239,7 @@ const gClick = new THREE.Group(); gClick.position.set(clickArc[0][0], clickArc[0
   add(gClick, slab([trace2d(f, -3.2, -0.8, 1.0, 5.2, 0.025)[0]], ZW + 0.02, ZW + 0.3, { bevel: 0.035 }), tri3(mBrSteelF, mBrSteel, mBrSteel)); screw(gBr, o[0], o[1], ZW + 0.42, 0.3); }
 /* music: the ratchet is the platter, its teeth the strobe dots of a DJ deck, and on it lies a record: fine grooves, the bright ring of the run
    out, a saffron label and a steel spindle. A tonearm stands on the bridge below it: counterweight, slim tube, and a headshell set at the
-   offset angle so the stylus sits square in the lead in groove. caseFX spins the record, and for music brings it up to 33 1/3 and lowers the arm. */
+   offset angle so the stylus sits square in the first track's groove. caseFX spins the record, and for music brings it up to 33 1/3 and lowers the arm. */
 const RREC = 3.86, ZREC = ZW + 0.345, ZGRV = ZREC + 0.058;   // the record lies on the ratchet's face; the grooved surface
 const gRec = new THREE.Group(); gRec.position.set(PB[0], PB[1], 0); gBr.add(gRec);
 { const vinyl = (rough) => tex(512, (g, S) => { const k = S / 2 / RREC, c = S / 2, r = cbDice(rough ? 5 : 3), ring = (r0, r1, col) => { g.strokeStyle = col; g.lineWidth = (r1 - r0) * k; g.beginPath(); g.arc(c, c, (r0 + r1) / 2 * k, 0, TAU); g.stroke(); };
@@ -1257,14 +1257,16 @@ const gRec = new THREE.Group(); gRec.position.set(PB[0], PB[1], 0); gBr.add(gRec
     g.font = 'italic 600 22px Georgia, serif'; g.fillText('Kurmala', c, c + R * 0.52); });
   add(gRec, cyl(1.33, 0.008, 64), M('bridges', { map: label, metalness: 0, roughness: 0.55 }), 0, 0, ZREC + 0.074);
   stamp(gBr, mBrSteel, lathe([[0.12, 0], [0.12, 0.13], [0.1, 0.17], [0.05, 0.19], [0, 0.195]], 16), PB[0], PB[1], ZREC + 0.078); }   // the spindle stands still
-const TAP = [PB[0] + 5.8 * Math.cos(rad(-40)), PB[1] + 5.8 * Math.sin(rad(-40))], TAS = [PB[0] + 3.5 * Math.cos(rad(-115)), PB[1] + 3.5 * Math.sin(rad(-115))];   // pivot, stylus
-const TAH = 0.55, TAO = rad(-20), TAZ = ZGRV + 0.297, TAL = Math.hypot(TAS[0] - TAP[0], TAS[1] - TAP[1]), TAE = Math.sqrt(TAL * TAL - (TAH * Math.sin(TAO)) ** 2) - TAH * Math.cos(TAO);   // the tube ends at TAE
+const TAP = [PB[0] + 5.8 * Math.cos(rad(-40)), PB[1] + 5.8 * Math.sin(rad(-40))], TAS = [PB[0] + 3.35 * Math.cos(rad(-115)), PB[1] + 3.35 * Math.sin(rad(-115))];   // pivot, stylus: set down inside the edge, in the first track
+const TAH = 0.55, TAO = rad(-24), TAZ = ZGRV + 0.297, TAL = Math.hypot(TAS[0] - TAP[0], TAS[1] - TAP[1]), TAE = Math.sqrt(TAL * TAL - (TAH * Math.sin(TAO)) ** 2) - TAH * Math.cos(TAO);   // the tube ends at TAE
 const gTone = new THREE.Group(); gTone.position.set(TAP[0], TAP[1], TAZ); gTone.rotation.z = Math.atan2(TAS[1] - TAP[1], TAS[0] - TAP[0]) - Math.atan2(TAH * Math.sin(TAO), TAE + TAH * Math.cos(TAO)); gBr.add(gTone);
 const gToneT = new THREE.Group(); gToneT.rotation.y = -0.017; gTone.add(gToneT);   // tilts about the bearing: cued up at rest
 { const along = (r, x0, x1, seg = 14) => new THREE.CylinderGeometry(r, r, x1 - x0, seg).rotateZ(-Math.PI / 2).translate((x0 + x1) / 2, 0, 0), hs = (geo, x, y, z) => geo.translate(x, y, z).rotateZ(TAO).translate(TAE, 0, 0);
-  stamp(gToneT, mBrSteel, along(0.072, -0.42, TAE)); stamp(gToneT, mBrSteel, along(0.21, -1.0, -0.56, 28)); stamp(gToneT, mCBBlack, along(0.215, -0.84, -0.74, 28)); stamp(gToneT, mCBBlack, along(0.1, TAE - 0.12, TAE + 0.02, 16));
+  /* one tube runs right through the bearing: in front it carries the headshell, behind it is a short threaded stub. The counterweight is a drum screwed onto that stub,
+     on the same axis as the tube, its front face up against the bearing post, and the stub's end shows just past it */
+  stamp(gToneT, mBrSteel, along(0.072, -1.02, TAE)); stamp(gToneT, mBrSteel, along(0.21, -0.94, -0.24, 28)); stamp(gToneT, mCBBlack, along(0.215, -0.66, -0.56, 28)); stamp(gToneT, mBrSteel, along(0.095, -0.26, -0.2, 18)); stamp(gToneT, mCBBlack, along(0.1, TAE - 0.12, TAE + 0.02, 16));
   stamp(gToneT, mBrSteel, hs(new RoundedBoxGeometry(0.86, 0.3, 0.04, 2, 0.015), 0.34, 0, -0.055)); stamp(gToneT, mCBBlack, hs(new THREE.BoxGeometry(0.42, 0.22, 0.14), TAH - 0.12, 0, -0.145));
-  stamp(gToneT, mBrSteel, hs(cyl(0.022, 0.09, 6), TAH, 0, -0.25)); stamp(gToneT, mBrSteel, hs(along(0.02, 0, 0.3, 6).rotateZ(rad(62)), 0.72, 0.1, -0.05));   // stylus, finger lift
+  stamp(gToneT, mBrSteel, hs(cyl(0.022, 0.09, 6), TAH, 0, -0.25));   // the stylus, straight down into the groove
   stamp(gBr, mBrSteel, lathe([[0.62, BTOP], [0.62, BTOP + 0.06], [0.58, BTOP + 0.1], [0, BTOP + 0.1]], 40), TAP[0], TAP[1], 0);
   stamp(gBr, mCBBlack, lathe([[0.44, BTOP + 0.09], [0.44, BTOP + 0.19], [0.4, BTOP + 0.21], [0, BTOP + 0.21]], 32), TAP[0], TAP[1], 0);
   stamp(gBr, mBrSteel, lathe([[0.22, BTOP + 0.2], [0.22, TAZ + 0.1], [0.17, TAZ + 0.15], [0, TAZ + 0.16]], 24), TAP[0], TAP[1], 0); }
@@ -2213,11 +2215,12 @@ function natoInit(st) { const W0 = st.loop(0), n = W0.length, s = [0]; for (let 
 /* what the physics would hold each side at: the side at twelve held up out of the way while the webbing is fed in, or both falling as they hang */
 function natoTurn(sy, up) { const st = STRAPS.writing, fl = up ? -1 : 1, gu = fl * sy * gv.y, gz = fl * gv.z, mag = Math.min(1, Math.hypot(gu, gz)); let dg = Math.atan2(gz, gu) - TH0; dg = rWrap(dg); dg = clamp(dg, rad(-170), rad(up ? 130 : 36)); return lerp(st.rest, dg, (up ? 1 : st.droop) * mag); }
 const nC12 = chainBuf(STRAPS.writing.sn[0] + 1), nC6 = chainBuf(STRAPS.writing.sn[1] + 1);
-/* while it is fed in, the side at twelve is held up and turned toward the display it is coming from (on a desktop, toward the gutter it comes up), so the webbing runs in one easy curve from there to the lug */
-function natoAim(piv) { const tgt = nV[0].setFromMatrixPosition(piv.matrixWorld), lug = nV[1].set(0, LH[0], LH[1]); if (rl.desk) tgt.set(rl.gx, tgt.y - rl.drop, tgt.z);   /* on a desktop it is turned toward the gutter it comes up, not at the display under the text */ nM.copy(gStrap.matrixWorld).invert(); tgt.applyMatrix4(nM); const up = natoTurn(1, true), aim = clamp(rWrap(Math.atan2(tgt.z - lug.z, tgt.y - lug.y) - TH0), rad(-10), rad(150)); return up + rWrap(aim - up) * (rl.desk ? 1 : 0.74); }
+/* while it is fed in, the side at twelve is held up and turned toward the hook it is coming from, so the webbing runs in one easy curve from there to the lug */
+function natoAim(piv) { const tgt = nV[0].setFromMatrixPosition(piv.matrixWorld), lug = nV[1].set(0, LH[0], LH[1]);   /* on a desktop it is turned toward the gutter it comes up, not at the display under the text */ nM.copy(gStrap.matrixWorld).invert(); tgt.applyMatrix4(nM); const up = natoTurn(1, true), aim = clamp(rWrap(Math.atan2(tgt.z - lug.z, tgt.y - lug.y) - TH0), rad(-10), rad(150)); return up + rWrap(aim - up) * 0.74; }
 /* where the NATO is, by the swap's clock: eased from where it was when the last click came, to its place or to the watch */
 function natoQ(T) { const span = Math.abs(NT.to - NT.q0); if (span < 1e-4) return NT.to; const u = clamp((T - NT.t0) / ((NT.to ? N_IN : N_OUT) * span), 0, 1); if (u >= 1) return NT.to; return lerp(NT.q0, NT.to, u * u * u * (u * (u * 6 - 15) + 10)); }
 /* build the whole path in the scene's frame and slide the webbing to q along it. Each point carries the way across and the scale, so the webbing grows from the display's size to the watch's as it flies */
+const NXc = new THREE.Vector3(), Xt0 = (a, b) => NXc.crossVectors(a, b);
 function natoLay(R, q, T, sy0) { const st = R.st, n = NT.n, L = NT.L, s = NT.s, P = NT.P, X = NT.X, G = NT.G, pu = NT.pu, piv = R.slot.piv; let m = 0;
   piv.updateWorldMatrix(true, false); gStrap.updateWorldMatrix(true, false); const gd = rl.s, gw = nV[3].setFromMatrixColumn(gStrap.matrixWorld, 0).length(), xd = nV[4].set(1, 0, 0).transformDirection(piv.matrixWorld), xw = nV[5].set(1, 0, 0).transformDirection(gStrap.matrixWorld);
   /* first it is lifted off its hook, whole, up off the prong and out toward the visitor; only then does its free end lead it away */
@@ -2231,29 +2234,23 @@ function natoLay(R, q, T, sy0) { const st = R.st, n = NT.n, L = NT.L, s = NT.s, 
   for (let k = 0; k < 6; k++) { const f = (6 - k) / 6 * NRUN; P[mw + k].set(0, W[n - 1][0] + d0y / dl * f, W[n - 1][1] + d0z / dl * f); }
   for (let i = n - 1; i >= 0; i--) P[mw + 6 + (n - 1 - i)].set(0, W[i][0], W[i][1]);
   for (let k = 0; k < n + 6; k++) { P[mw + k].applyMatrix4(gStrap.matrixWorld); X[mw + k].copy(xw); G[mw + k] = gw; }
-  /* through the air: from where it leaves its place to the start of the run in, sagging a little and bowed toward the visitor, clear of the case */
-  const B0 = P[m - 1], B3 = P[mw], t0 = natoOut(nV[0]).transformDirection(piv.matrixWorld), t3 = nV[1].subVectors(P[mw + 1], P[mw]).normalize(), dist = B0.distanceTo(B3), k0 = 0.3 * dist, k3 = 0.34 * dist;
-  let bl = 0, prev = nV[2].copy(B0);
-  /* on a desktop it keeps below the text: off its place, along at the display's level to the gutter, up the gutter, and in over twelve */
-  const NC = NT.cv || (NT.cv = new THREE.CatmullRomCurve3([0, 1, 2, 3, 4, 5].map(() => new THREE.Vector3()), false, 'centripetal')); if (rl.desk) { const q = NC.points, gx = Math.min(rl.gx, B0.x), lo = lerp(B0.y, B3.y, 0.12);   /* never below where its end leaves the hook */
-    q[0].copy(B0); q[1].copy(B0).addScaledVector(t0, 0.16 * dist); q[2].set(gx + 0.05 * dist, lo, B0.z + 0.12 * dist); q[3].set(gx - 0.03 * dist, lerp(lo, B3.y, 0.55), B3.z + 0.06 * dist);   /* out of the board toward the eye first, then along in one S */ q[4].copy(B3).addScaledVector(t3, -0.18 * dist); q[5].copy(B3); }
-  for (let k = 1; k <= NBR; k++) { const u = k / (NBR + 1), a = (1 - u) * (1 - u) * (1 - u), b = 3 * (1 - u) * (1 - u) * u, c = 3 * (1 - u) * u * u, d = u * u * u, bow = Math.sin(Math.PI * u), V = P[m + k - 1];
-    if (rl.desk) NC.getPoint(u, V); else V.set(a * B0.x + b * (B0.x + t0.x * k0) + c * (B3.x - t3.x * k3) + d * B3.x, a * B0.y + b * (B0.y + t0.y * k0) + c * (B3.y - t3.y * k3) + d * B3.y - 0.085 * dist * bow, a * B0.z + b * (B0.z + t0.z * k0) + c * (B3.z - t3.z * k3) + d * B3.z + 0.14 * dist * bow);
-    const e = sSmooth(u); G[m + k - 1] = lerp(gd, gw, e);
-    if (!reduce) { const rp = nW.subVectors(B3, B0).cross(X[m + k - 1]).normalize(), wv = 0.035 * dist * bow * Math.sin(TAU * 1.6 * u - T * 8.5); V.addScaledVector(rp, wv); }   /* soft webbing does not fly flat: a slow ripple runs along it, driven by the swap's clock */ bl += V.distanceTo(prev) / G[m + k - 1]; prev = V; }
+  /* through the air: one smooth S, a single cubic from where it leaves its hook (heading out toward the visitor) to the start of the run in over twelve (heading down into it). Its two
+     end directions are the only bends it makes; a little bow toward the visitor, gone again at both ends, keeps it clear of the case. No waypoints, no ripple, so it never turns back on itself */
+  const B0 = P[m - 1], B3 = P[mw], t0 = natoOut(nV[0]).transformDirection(piv.matrixWorld), t3 = nV[1].subVectors(P[mw + 1], P[mw]).normalize(), dist = B0.distanceTo(B3), k0 = 0.28 * dist, k3 = 0.4 * dist;   /* the turn down into twelve is spread over a long last bend */
+  const C1 = nV[2].copy(B0).addScaledVector(t0, k0), C2 = NT.c2v || (NT.c2v = new THREE.Vector3()); C2.copy(B3).addScaledVector(t3, -k3); let bl = 0, prev = NT.pv || (NT.pv = new THREE.Vector3()); prev.copy(B0);
+  for (let k = 1; k <= NBR; k++) { const u = k / (NBR + 1), a = (1 - u) * (1 - u) * (1 - u), b = 3 * (1 - u) * (1 - u) * u, c = 3 * (1 - u) * u * u, d = u * u * u, V = P[m + k - 1];
+    V.set(a * B0.x + b * C1.x + c * C2.x + d * B3.x, a * B0.y + b * C1.y + c * C2.y + d * B3.y, a * B0.z + b * C1.z + c * C2.z + d * B3.z + 0.08 * dist * Math.sin(Math.PI * u) ** 2);
+    G[m + k - 1] = lerp(gd, gw, sSmooth(u)); bl += V.distanceTo(prev) / G[m + k - 1]; prev.copy(V); }
   bl += B3.distanceTo(prev) / gw; for (let k = 0; k < NBR; k++) pu[m + k] = 0;
-  /* the webbing's way across is carried along the flight without turning about its own length; whatever turn is still owed where it meets the watch is then spread evenly over the whole
-     flight, so it never flips or kinks in the middle */
-  /* the webbing's way across in the air: it keeps its face turned to the visitor, as a strap carried by its end does, so it never twirls about its own length; near its two ends it eases
-     to the way it lies on the hook and on the watch. The face's side is the one it shows at both ends, so nothing flips */
-  { const Tk = nW, Nc = nV[2], Xe = nV[0], cam = camera.position, tA = nV[1].subVectors(P[m], B0).normalize(), sg = Math.sign(Xe.crossVectors(xd, tA).dot(Nc.subVectors(cam, B0))) || 1, pN = NT.pN || (NT.pN = new THREE.Vector3()), Tq = NT.Tq || (NT.Tq = new THREE.Vector3());
-    pN.crossVectors(xd, tA).normalize();
-    for (let k = 0; k < NBR; k++) { Tk.subVectors(k < NBR - 1 ? P[m + k + 1] : B3, k ? P[m + k - 1] : B0).normalize(); Nc.subVectors(cam, P[m + k]).normalize().multiplyScalar(sg); Nc.addScaledVector(Tk, -Tk.dot(Nc));
-      const w = clamp(Nc.length() / 0.6, 0, 1); Nc.normalize().multiplyScalar(w).addScaledVector(pN, 1 - w); Nc.addScaledVector(Tk, -Tk.dot(Nc)).normalize(); pN.copy(Nc);   /* where it runs toward the eye the face is held as it was */
-      X[m + k].crossVectors(Tk, Nc).normalize(); }
-    for (let pass = 0; pass < 3; pass++) for (let k = 0; k < NBR; k++) { const a = k ? X[m + k - 1] : xd, b = k < NBR - 1 ? X[m + k + 1] : xw; Tq.copy(a).add(b).addScaledVector(X[m + k], 2); Tk.subVectors(k < NBR - 1 ? P[m + k + 1] : B3, k ? P[m + k - 1] : B0).normalize(); X[m + k].copy(Tq.addScaledVector(Tk, -Tk.dot(Tq)).normalize()); }   /* smoothed along its length, so it never kinks */
-    for (let k = 0; k < NBR; k++) { const u = (k + 1) / (NBR + 1), w0 = 1 - sSmooth(u / 0.16), w1 = sSmooth((u - 0.84) / 0.16); Tk.subVectors(k < NBR - 1 ? P[m + k + 1] : B3, k ? P[m + k - 1] : B0).normalize(); if (w0 > 0) X[m + k].lerp(xd, w0); if (w1 > 0) X[m + k].lerp(xw, w1); X[m + k].addScaledVector(Tk, -Tk.dot(X[m + k])).normalize(); }
-    NT.endDot = X[m + NBR - 2].dot(xw); }
+  /* the webbing's way across in the air is carried along the flight without turning about its own length: each row takes the one before it, turned only as much as the strap bends
+     there. Whatever turn is still owed where it meets the watch is then spread smoothly over the whole flight, so it never flips or kinks */
+  { const Tk = nW, Tp = nV[0], Tq = NT.Tq || (NT.Tq = new THREE.Vector3()), qb = NT.qb || (NT.qb = new THREE.Quaternion()), Xc = NT.Xc || (NT.Xc = new THREE.Vector3());
+    Tp.subVectors(B0, P[m - 2]); if (Tp.lengthSq() < 1e-10) Tp.copy(t0); Tp.normalize(); Xc.copy(xd).addScaledVector(Tp, -Tp.dot(xd)).normalize();
+    for (let k = 0; k <= NBR; k++) { if (k < NBR) Tk.subVectors(k < NBR - 1 ? P[m + k + 1] : B3, k ? P[m + k - 1] : B0).normalize(); else Tk.copy(t3);
+      if (Tp.dot(Tk) > -0.999) Xc.applyQuaternion(qb.setFromUnitVectors(Tp, Tk)); Xc.addScaledVector(Tk, -Tk.dot(Xc)).normalize(); Tp.copy(Tk); if (k < NBR) X[m + k].copy(Xc); }
+    Tq.copy(xw).addScaledVector(t3, -t3.dot(xw)).normalize(); const owe = Math.atan2(Xt0(Xc, Tq).dot(t3), Xc.dot(Tq));
+    for (let k = 0; k < NBR; k++) { const u = (k + 1) / (NBR + 1); Tk.subVectors(k < NBR - 1 ? P[m + k + 1] : B3, k ? P[m + k - 1] : B0).normalize(); X[m + k].applyAxisAngle(Tk, owe * sSmooth(u)).addScaledVector(Tk, -Tk.dot(X[m + k])).normalize(); }
+    NT.endDot = X[m + NBR - 1].dot(xw); }
   /* the length of each stretch, in mm of webbing */
   { let acc = L, pv = P[m - 1]; for (let k = 0; k < NBR; k++) { acc += P[m + k].distanceTo(pv) / G[m + k]; pu[m + k] = acc; pv = P[m + k]; } acc = L + bl; for (let k = 0; k < 6; k++) pu[mw + k] = acc + NRUN * k / 6; acc += NRUN; for (let i = n - 1; i >= 0; i--) pu[mw + 6 + (n - 1 - i)] = acc + L - s[i]; }
   const tot = mw + 6 + n, Pt = pu[tot - 1], p0 = q * (Pt - L); let j = 1;
@@ -2984,7 +2981,9 @@ function crowd(up) { if (!actx || muted || actx.state !== 'running') return; try
     if (up) { f1.frequency.setValueAtTime(650, t); f1.frequency.exponentialRampToValueAtTime(1500, t + 0.35); f2.frequency.setValueAtTime(1700, t); f2.frequency.exponentialRampToValueAtTime(3000, t + 0.4); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55, t + 0.16); g.gain.setValueAtTime(0.5, t + 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     else { f1.frequency.setValueAtTime(640, t); f1.frequency.exponentialRampToValueAtTime(250, t + 0.75); f2.frequency.setValueAtTime(1150, t); f2.frequency.exponentialRampToValueAtTime(480, t + 0.75); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.34, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     s.connect(f1).connect(g); s.connect(f2).connect(g); g.connect(master); s.start(t); s.stop(t + dur + 0.05); } catch (e) {} }
-const soccerBoard = createSoccerBoard(CT.soccerLeaderboardUrl, $('int-score'));
+/* the penalty leaderboard is switched off for now: with LEADERBOARD false nothing is drawn and nothing is fetched. true brings it back as it was */
+const LEADERBOARD = false;
+const soccerBoard = createSoccerBoard(LEADERBOARD ? CT.soccerLeaderboardUrl : '', $('int-score'));
 function pitEnd(res) { const P = PIT; if (P.res) return; P.res = res; P.results.push(res); P.t = 0; P.shots++; if (res === 'goal') { P.goals++; P.hop = 1; ping({ f: 5200, q: 0.5, dur: 0.24, vol: 0.22, sharp: 2 }); crowd(true); buzz([18, 40, 30], true); } else crowd(false); pitScore(); if (P.shots === 5) soccerBoard.finish(P.goals); }
 /* the ball in the net. Past the line the net takes it like a soft spring: it gives, holds the ball, and lets it drop and roll back a touch. The side netting keeps it in,
    and nothing lets it back out over the line. Where and how hard it went in is kept for the cloth */
@@ -3023,6 +3022,7 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
     gKeep.position.set(P.kr,.03,0);
     gKeep.rotation.y=P.res==='goal'?Math.min(1.3,P.t*5)*(P.kr>0?1:-1):clamp((target-P.kr)*2,-.45,.45);
   }
+  if (P.mode === 'fly' && P.curl && !P.res) pitCurl(dt);
   if (P.mode === 'fly') { const n = ballSubsteps(P.v.length(),dt,P.rb), hh = dt / n;
     for (let i = 0; i < n && P.mode === 'fly'; i++) {
       if(P.res==='goal') {
@@ -3036,7 +3036,7 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
       const over = P.s > 0 ? th < P.ag : th > P.ag; if (over && !P.res) { const rr = r - rm; if (Math.abs(rr - P.kr) < keeperDifficulty(P.goals).reach) { reboundGoal(P.p,P.v,P,.55); ping({ f: 220, q: 1, dur: 0.07, vol: 0.25, sharp: 3, thump: 80 }); pitEnd('save'); }
         else if (Math.abs(rr) < P.GW / 2 - P.rb * 0.6) { pitEnd('goal'); const sp = P.v.length() || 1, ns = Math.min(sp * 0.55, 4.5); P.v.multiplyScalar(ns / sp); if (P.bz <= 0) { P.vz = Math.min(3.2, ns * 0.8); P.bz = 0.001; } }
         else if (Math.abs(rr) < P.GW / 2 + P.rb) { reboundGoal(P.p,P.v,P,.8); ping({ f: 1250, q: 16, dur: 0.5, vol: 0.3, sharp: 3 }); ping({ f: 2610, q: 14, dur: 0.35, vol: 0.14, sharp: 3 }); pitEnd('post'); }
-        else { reboundGoal(P.p,P.v,P); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); } }
+        else { reboundGoal(P.p,P.v,P); ping({ f: 700, q: 2, dur: 0.04, vol: 0.14, sharp: 4 }); pitEnd('wide'); } }   /* wide of the posts: called at once, so a ball that keeps its pace does not rattle round the course */
       if (P.res === 'goal') pitNet(hh);
       if (P.v.length() < 0.45 && P.bz <= 0) { if (!P.res) pitEnd('short'); P.mode = 'dead'; } } }
   if (P.res) { P.t += dt; if (P.t > (P.res === 'goal' ? 1.9 : 1.4) && P.mode !== 'ready') { P.out = false; if (P.shots >= 5) { pitReset(); pitScore(); P.over = true; } else pitReset(); } }
@@ -3047,8 +3047,22 @@ function pitTick(dt) { const P = PIT, want = zoomK === 'soccer' ? 1 : 0, was = P
     const aimAt = (e) => { gPit.updateWorldMatrix(true, false); const O = sc(P.p.x, P.p.y), X = sc(P.p.x + 1, P.p.y), Y = sc(P.p.x, P.p.y + 1), ax = X[0] - O[0], ay = X[1] - O[1], bx = Y[0] - O[0], by = Y[1] - O[1], det = ax * by - ay * bx || 1, dx = e.clientX - O[0], dy = e.clientY - O[1], lx = (dx * by - dy * bx) / det, ly = (ax * dy - ay * dx) / det, l = Math.hypot(lx, ly); return l < 0.12 ? null : { dx: -lx / l, dy: -ly / l, pw: clamp((l - 0.12) / 2.4, 0, 1) }; };
     hd.addEventListener('pointerdown', (e) => { e.preventDefault(); if (P.mode !== 'ready') return; if (P.shots >= 5) { soccerBoard.newRound(); P.shots = P.goals = 0; P.results = []; pitScore(); } hd.setPointerCapture(e.pointerId); audioOn(); d0 = true; P.aim = null; hd.classList.add('grab'); });
     hd.addEventListener('pointermove', (e) => { if (d0) P.aim = aimAt(e); });
-    const end = (e) => { if (!d0) return; d0 = null; hd.classList.remove('grab'); const A = P.aim; P.aim = null; if (!A || A.pw < 0.06 || e.type === 'pointercancel') return; const sp = 6 + 15 * A.pw; P.v.set(A.dx * sp, A.dy * sp); P.mode = 'fly'; P.out = false; P.res = ''; P.hop = 0.5; ping({ f: 170, q: 1, dur: 0.09, vol: 0.32, sharp: 3, thump: 90 }); buzz(10, true); pullSeen(); };
+    const end = (e) => { if (!d0) return; d0 = null; hd.classList.remove('grab'); const A = P.aim; P.aim = null; if (!A || A.pw < 0.06 || e.type === 'pointercancel') return; const sp = 6 + 15 * A.pw; P.v.set(A.dx * sp, A.dy * sp); P.g0 = curlTilt.g; P.mode = 'fly'; P.out = false; P.res = ''; P.hop = 0.5; ping({ f: 170, q: 1, dur: 0.09, vol: 0.32, sharp: 3, thump: 90 }); buzz(10, true); pullSeen(); };
     hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end); } }
+/* tilt to curl: with the switch on, once the ball is struck the visitor can tilt the watch (drag it round, as it always turns, or tilt the phone) and the ball bends toward the tilt.
+   It only ever turns the ball's heading, so its pace is kept; it never turns it back toward the taker (at most 70 degrees off the way to goal) and never lets it slow below a floor */
+const curlTilt = { g: 0, ok: false }, cpV = new THREE.Vector3(), cpR = new THREE.Vector3();
+/* the tilt is how far the watch is being turned by a drag that is held now (a turn left over from before the strike counts for nothing), plus how far the phone has been tilted since the strike.
+   P.tiltTest, when set, stands in for both: a test aid */
+function pitCurl(dt) { const P = PIT, tilt = clamp(P.tiltTest ?? ((down && !down.hero ? (tx - down.tx) / 28 : 0) + (curlTilt.ok ? (curlTilt.g - (P.g0 || 0)) / 22 : 0)), -1, 1); if (Math.abs(tilt) < 0.03) return;
+  const sp = P.v.length() || 1; gPit.updateWorldMatrix(true, false); cpR.set(1, 0, 0).applyQuaternion(camera.quaternion);   /* which way across the lane is to the right on screen */
+  cpV.set(-P.v.y, P.v.x, 0).transformDirection(gPit.matrixWorld); const side = Math.sign(cpV.dot(cpR)) || 1, da = 2.4 * tilt * side * dt, c = Math.cos(da), s = Math.sin(da), vx = P.v.x * c - P.v.y * s, vy = P.v.x * s + P.v.y * c;
+  const th = Math.atan2(P.p.y, P.p.x), fx = P.s * Math.sin(th), fy = -P.s * Math.cos(th);   /* the way along the lane toward the goal */
+  if (vx * fx + vy * fy >= Math.cos(rad(70)) * sp) P.v.set(vx, vy); if (P.v.length() < 3.2) P.v.setLength(3.2); }
+{ const b = $('pit-curl'); if (b) { let on = false; try { on = sessionStorage.getItem('nk-curl') === '1'; } catch (e) {} const set = (v) => { on = v; PIT.curl = v; b.setAttribute('aria-pressed', String(v)); try { sessionStorage.setItem('nk-curl', v ? '1' : '0'); } catch (e) {} }; set(on);
+  const listen = () => { if (curlTilt.ok) return; curlTilt.ok = true; addEventListener('deviceorientation', (e) => { if (typeof e.gamma === 'number') curlTilt.g = e.gamma; }); };
+  b.addEventListener('click', () => { set(!on); if (!on) return; const D = window.DeviceOrientationEvent; if (D && typeof D.requestPermission === 'function') D.requestPermission().then((r) => { if (r === 'granted') listen(); }).catch(() => {}); else if (D && matchMedia('(pointer:coarse)').matches) listen(); });
+  if (on) { const D = window.DeviceOrientationEvent; if (D && typeof D.requestPermission !== 'function' && matchMedia('(pointer:coarse)').matches) listen(); } } }
 window.__pit = PIT;
 /* one way back out of any close-up: from a piece of work to the dial, from a caseback part to the caseback */
 /* the way back out says where it goes: from a work's close up to all the work, from a caseback part back out of the movement */
@@ -3088,6 +3102,7 @@ function panTick(dt) { const wasVisible = gPan.visible; pitTick(dt); snowLoop(zo
   PAN.items.forEach((it, i) => { const q = it.lag * it.w, wob = live * 0.05, px = it.b.x - sx * q + Math.sin(PAN.t * (5 + it.lag * 4) + it.ph) * wob, py = it.b.y - sy * q + Math.cos(PAN.t * (4.3 + it.lag * 5) + it.ph) * wob, d = Math.hypot(px, py), lim = PAN.r * 0.74, f = d > lim ? lim / d : 1;
     it.me.position.set(px * f, py * f, it.b.z + (d > lim ? (d - lim) * 0.7 : 0) + PAN.hop * it.w * (0.6 + 0.4 * Math.sin(it.ph * 3)) + sl * 0.12 * it.lag); it.me.rotation.z = it.r0 + (sx * Math.cos(it.ph) + sy * Math.sin(it.ph)) * 1.6 * it.lag + Math.sin(PAN.t * 3 + it.ph) * 0.06 * live; });
   const lvl = clamp(sp / 16, 0, 1); fryLoop(want === 1, lvl); PAN.flare = lvl;
+  if (!panShook && PAN.tgt && sp > 7) { panShook = true; try { sessionStorage.setItem('nk-shake', '1'); } catch (e) {} } panTag(!panShook);   /* one good shake and the pan's word is put away for the visit */
   /* a toss: the food hisses louder, the pan knocks on the grate, steam bursts and the oil spits */
   clang -= dt; if (sp > 9 && clang <= 0) { clang = 0.32; ping({ f: 1900 + Math.random() * 500, q: 6, dur: 0.02, vol: 0.05 + 0.06 * lvl, sharp: 5, ring: 2600 + Math.random() * 300, ringVol: 0.4, ringDur: 0.12, thump: 130 }); snd.sizzle(1); buzz(8); for (let i = 0; i < 6; i++) puff(false, sp); for (let i = 0; i < 5; i++) puff(true, sp); }
   if (Math.random() < dt * (3 + 26 * lvl)) puff(false, sp);
@@ -3118,12 +3133,16 @@ const INT_LOOP = ['soccer', 'cooking', 'snow', 'music'], INT_NAME = { soccer: 'S
 function pickInt(k) { zbLabel('Zoom out'); document.body.classList.add('dotted'); selInt = zoomK = k; const r = INTS[k]; cbPanel.classList.add('zoomed'); document.body.classList.add('zoomed'); $('int-d').hidden = false; $('int-t').textContent = r[1]; { const nx = INT_LOOP[(INT_LOOP.indexOf(k) + 1) % INT_LOOP.length], nb = $('int-next'); if (nb) { nb.textContent = 'Next: ' + INT_NAME[nx]; nb.dataset.next = nx; } } footFix(k === 'soccer'); $('int-b').textContent = r[2]; $('int-l').textContent = r[3];
   const ol = $('int-list'); ol.className = r[6] ? 'num' : ''; ol.hidden = !r[4].length; $('int-l').hidden = !r[4].length || !r[3]; ol.replaceChildren(...r[4].map((t) => { const li = document.createElement('li'); const item = typeof t === 'string' ? { name: t } : t; const url = item.url || ''; if (/^https:\/\//i.test(url)) { const a = document.createElement('a'); a.textContent = item.name; a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; li.appendChild(a); } else li.textContent = item.name; return li; }));
   $('int-ph').replaceChildren(...r[5].map((p) => { const im = document.createElement('img'); im.src = p.src; im.alt = p.alt || ''; im.loading = 'lazy'; return im; }));
-  intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; soccerBoard.show(k === 'soccer'); if (!musicAcrossSite && k !== 'music') setNeedle(false); spotShow(k === 'music'); }
+  intPins.forEach((p) => p.classList.toggle('sel', p.dataset.int === k)); $('int-deck').hidden = k !== 'music'; document.body.classList.toggle('deck', k === 'music'); document.body.classList.toggle('cook', k === 'cooking'); document.body.classList.toggle('pitch', k === 'soccer'); $('int-score').hidden = k !== 'soccer'; { const cb = $('pit-curl'); if (cb) cb.hidden = k !== 'soccer'; } soccerBoard.show(k === 'soccer'); if (!musicAcrossSite && k !== 'music') setNeedle(false); spotShow(k === 'music'); }
 /* the music part links to a Spotify playlist when content.js gives one. The page host blocks players embedded from other sites, so it is a link that opens Spotify in a new tab */
 function spotShow(on) { let f = $('int-spot'); const m = ((CT.interests || {}).music || {}).spotify || '', id = (m.match(/playlist\/([A-Za-z0-9]+)/) || [])[1];
   if (!on || !id) { if (f) f.hidden = true; return; }
   if (!f) { f = document.createElement('a'); f.id = 'int-spot'; f.href = 'https://open.spotify.com/playlist/' + id; f.target = '_blank'; f.rel = 'noopener'; f.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.5 9.3c3.6-1.1 7.9-.8 11 1M7.2 12.4c3-.9 6.5-.6 9.2.9M7.8 15.3c2.4-.6 5-.4 7.2.8" fill="none" stroke="#0d1117" stroke-width="1.6" stroke-linecap="round"/></svg><span>Listen to my playlist on Spotify</span>'; $('int-deck').after(f); }
   f.hidden = false; }
+/* a playful word beside a handle in the scene: it rides with the handle's dot, wherever the camera puts it, and is put away once it has done its job */
+function hotTag(id, text) { const h = $(id); if (!h) return () => {}; const t = document.createElement('em'); t.className = 'tag'; t.textContent = text; t.setAttribute('aria-hidden', 'true'); h.appendChild(t); let on = null; return (v) => { if (v !== on) { on = v; t.classList.toggle('on', v); } }; }
+const armTag = hotTag('arm', 'Drop me on the record and I\u2019ll play'), panTag = hotTag('pan', 'Give me a shake');
+let panShook = false; try { panShook = sessionStorage.getItem('nk-shake') === '1'; } catch (e) {}
 /* the deck: the arm waits off the record. Drop the needle and it plays; lift it, or leave, and it stops */
 let needle = false, musicAcrossSite = false, armOff = 0, crackle = null, armDrag = null;
 /* the tonearm is yours to move: take the headshell, swing it over the record and let go, and the needle drops. Lift it away and the music stops */
@@ -3146,7 +3165,7 @@ function trackPlay(on) { try {
 } catch (e) {} }
 function trackLoad() { const t = TRACKS[trackI]; trackEl.src = t.file; nowShow(); }
 function nowShow() { const el = $('int-now'), t = TRACKS[trackI]; if (!el) return;
-  if (!needle) { el.textContent = 'Take the tonearm and drop the needle on the record.'; return; }
+  if (!needle) { el.textContent = ''; return; }   /* the arm's own word says what to do while the needle is up */
   if (!t) { el.textContent = 'Now playing: ' + NOW; return; }
   el.replaceChildren(); if (t.cover) { const im = document.createElement('img'); im.src = t.cover; im.alt = ''; im.className = 'npc'; el.appendChild(im); }
   const sp = document.createElement('span'); sp.textContent = 'Now playing: ' + (t.title || 'Untitled') + (t.artist ? ', ' + t.artist : ''); el.appendChild(sp); }
@@ -3766,7 +3785,7 @@ async function frame(now) {
   tickGain = 0.35 + 0.65 * clamp(1 - Math.abs(pe - CB) / 0.8, 0, 1);
   if ((!mobileViewport.matches || !mobileMovementHidden) && typeof caseFX === 'function') caseFX(now / 1000, dt, (selInt === 'music' && !needle) || (selInt === 'cooking' && !(PAN.flare > 0.55)) ? null : selInt); snowTick(now / 1000, dt); panTick(dt);
   if (armDrag && armDrag.t != null) armOff += (armDrag.t - armOff) * Math.min(1, dt * 18); else armOff += ((zoomK === 'music' && !needle ? 1 : 0) - armOff) * Math.min(1, dt * 3.5);
-  gTone.rotation.z = TONE0 + ARMSWING * armOff; armAt(anchors['i-arm'], armOff);   // off the record, the arm swings out to its rest   // the flame flickers, the record turns   // a faint tick out front; you hear it properly at the back, with the movement in view
+  gTone.rotation.z = TONE0 + ARMSWING * armOff; armAt(anchors['i-arm'], armOff); armTag(!needle && !armDrag);   // off the record, the arm swings out to its rest   // the flame flickers, the record turns   // a faint tick out front; you hear it properly at the back, with the movement in view
   let sk, fe, tf = 1;
   if (jump) { const A = jump.zA, B = jump.zB, both = A.k && B.k && A.k !== B.k, w = A.fe > 0.001 && B.fe > 0.001 ? je : B.fe > 0.001 ? 1 : 0;
     fe = lerp(A.fe, B.fe, je); FZ.c = [lerp(A.c[0], B.c[0], w), lerp(A.c[1], B.c[1], w)]; FZ.s = lerp(A.s, B.s, w) * (both ? 1 - 0.38 * Math.sin(Math.PI * je) : 1); FZ.r = lerp(A.r, B.r, w);

@@ -25,8 +25,9 @@ export function containBall(p,v,lane,restitution=.9) {
 }
 export function ballSubsteps(speed,dt,rb) {return Math.max(5,Math.ceil(speed*dt/(rb*.3)));}
 export function advanceLaneBall(p,v,h,lane) {
-  p.x+=v.x*h;p.y+=v.y*h; const drag=Math.exp(-.6*h);v.x*=drag;v.y*=drag;
-  return containBall(p,v,lane);
+  // a struck ball keeps its pace: a light roll drag, and the smooth walls of the course take little from a glancing ball
+  p.x+=v.x*h;p.y+=v.y*h; const drag=Math.exp(-.16*h);v.x*=drag;v.y*=drag;
+  return containBall(p,v,lane,.97);
 }
 export function keeperDifficulty(goals) {
  const g=Math.max(0,Math.min(4,goals));
